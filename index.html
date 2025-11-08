@@ -128,5 +128,44 @@
     });
 
   </script>
+  <!-- Firebase SDK -->
+<script type="module">
+  // Import firebase
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  // Your Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyC8CzspwB_GtrbUm-V2mIvumpPqbb-f6k",
+    authDomain: "world-blessing-wall.firebaseapp.com",
+    projectId: "world-blessing-wall",
+    storageBucket: "world-blessing-wall.firebasestorage.app",
+    messagingSenderId: "552766948715",
+    appId: "1:552766948715:web:427d27f309a2c2c345782e"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Submit Blessing Function
+  document.getElementById("blessingForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const blessingText = document.getElementById("blessing").value;
+
+    // Send data to Firestore
+    await addDoc(collection(db, "blessings"), {
+      text: blessingText,
+      country: "India",
+      created: serverTimestamp(),
+      approved: true
+    });
+
+    alert("✅ Blessing submitted successfully!");
+    document.getElementById("blessingForm").reset();
+  });
+</script>
+
 </body>
 </html>
