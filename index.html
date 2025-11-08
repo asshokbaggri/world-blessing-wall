@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>World Blessing Wall</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      padding: 40px;
+    }
+    .box {
+      background: #fff;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 12px 25px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: none;
+      background: black;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .blessing {
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="box">
+    <h2>Write a Blessing ✨</h2>
+    <textarea id="blessingText" placeholder="Type your blessing..." rows="4"></textarea>
+    <button onclick="submitBlessing()">Send Blessing</button>
+  </div>
+
+  <div class="box">
+    <h2>Live Blessings 💫</h2>
+    <div id="blessingsList"></div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    // Import Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { 
+      getFirestore, 
+      collection, 
+      addDoc, 
+      serverTimestamp,
+      query,
+      orderBy,
+      onSnapshot 
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // Your Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyC8CzspwB_GtrbUm-V2mIvumpPqbbq-f6k",
+      authDomain: "world-blessing-wall.firebaseapp.com",
+      projectId: "world-blessing-wall",
+      storageBucket: "world-blessing-wall.firebasestorage.app",
+      messagingSenderId: "552766948715",
+      appId: "1:552766948715:web:427d27f309a2c2c345782e"
+    };
+
+    // Init
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ✅ Submit blessing
+    async function submitBlessing() {
+      const text = document.getElementById("blessingText").value.trim();
+      if (!text) {
+        alert("Please write something 🙏");
+        return;
+      }
+
+      await addDoc(collection(db, "blessings"), {
+        text: text,
+        country: "India",
+        created: serverTimestamp(),
+        approved: true
+      });
+
+      document.getElementById("blessingText").value = "";
+      alert("Blessing submitted 💫");
+    }
+
+    // ✅ Live Blessing Feed
+    const blessingsList = document.getElementById("blessingsList");
+
+    const q = query(
+      collection(db, "blessings"),
+      orderBy("created", "desc")
+    );
+
+    onSnapshot(q, (snapshot) => {
+      blessingsList.innerHTML = "";
+      snapshot.forEach((doc) => {
+        const d = doc.data();
+        const item = document.createElement("div");
+        item.className = "blessing";
+        item.innerHTML = `
+          <b>${d.country}</b><br>
+          ${d.text}<br><br>
+          <small>${new Date(d.created?.toDate()).toLocaleString()}</small>
+        `;
+        blessingsList.appendChild(item);
+      });
+    });
+
+  </script>
+</body>
+</html>
