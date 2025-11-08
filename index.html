@@ -48,8 +48,14 @@
 
   <div class="box">
     <h2>Write a Blessing ✨</h2>
-    <textarea id="blessingText" placeholder="Type your blessing..." rows="4"></textarea>
-    <button onclick="submitBlessing()">Send Blessing</button>
+
+    <!-- ✅ FIXED FORM -->
+    <form id="blessingForm" onsubmit="submitBlessing(event)">
+      <textarea id="blessingText" placeholder="Type your blessing..." rows="4"></textarea>
+      <br>
+      <input id="country" placeholder="Your Country" value="India" />
+      <button type="submit">Send Blessing</button>
+    </form>
   </div>
 
   <div class="box">
@@ -57,7 +63,7 @@
     <div id="blessingsList"></div>
   </div>
 
-  <!-- Firebase SDK -->
+  <!-- ✅ ONLY ONE CLEAN FIREBASE SCRIPT -->
   <script type="module">
     // Import Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -71,7 +77,7 @@
       onSnapshot 
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // Your Firebase Config
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyC8CzspwB_GtrbUm-V2mIvumpPqbbq-f6k",
       authDomain: "world-blessing-wall.firebaseapp.com",
@@ -85,9 +91,13 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // ✅ Submit blessing
-    async function submitBlessing() {
+    // ✅ Submit blessing (FINAL)
+    async function submitBlessing(event) {
+      event.preventDefault();
+
       const text = document.getElementById("blessingText").value.trim();
+      const country = document.getElementById("country").value.trim();
+
       if (!text) {
         alert("Please write something 🙏");
         return;
@@ -95,7 +105,7 @@
 
       await addDoc(collection(db, "blessings"), {
         text: text,
-        country: "India",
+        country: country || "Unknown",
         created: serverTimestamp(),
         approved: true
       });
@@ -104,7 +114,7 @@
       alert("Blessing submitted 💫");
     }
 
-    // ✅ Live Blessing Feed
+    // ✅ Live Blessings Feed
     const blessingsList = document.getElementById("blessingsList");
 
     const q = query(
@@ -118,54 +128,20 @@
         const d = doc.data();
         const item = document.createElement("div");
         item.className = "blessing";
+
+        // Fix created timestamp undefined issue
+        const ts = d.created ? new Date(d.created.toDate()).toLocaleString() : "Just now";
+
         item.innerHTML = `
           <b>${d.country}</b><br>
           ${d.text}<br><br>
-          <small>${new Date(d.created?.toDate()).toLocaleString()}</small>
+          <small>${ts}</small>
         `;
         blessingsList.appendChild(item);
       });
     });
 
   </script>
-  <!-- Firebase SDK -->
-<script type="module">
-  // Import firebase
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-  // Your Firebase Config
-  const firebaseConfig = {
-    apiKey: "AIzaSyC8CzspwB_GtrbUm-V2mIvumpPqbb-f6k",
-    authDomain: "world-blessing-wall.firebaseapp.com",
-    projectId: "world-blessing-wall",
-    storageBucket: "world-blessing-wall.firebasestorage.app",
-    messagingSenderId: "552766948715",
-    appId: "1:552766948715:web:427d27f309a2c2c345782e"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  // Submit Blessing Function
-  document.getElementById("blessingForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const blessingText = document.getElementById("blessing").value;
-
-    // Send data to Firestore
-    await addDoc(collection(db, "blessings"), {
-      text: blessingText,
-      country: "India",
-      created: serverTimestamp(),
-      approved: true
-    });
-
-    alert("✅ Blessing submitted successfully!");
-    document.getElementById("blessingForm").reset();
-  });
-</script>
 
 </body>
 </html>
