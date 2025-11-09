@@ -9,12 +9,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
-  <!-- Main CSS -->
+  <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
+  <meta name="theme-color" content="#000000" />
 
-  <meta name="theme-color" content="#0b0a06" />
-
-  <!-- HERO PARTICLES CONTAINER STYLE -->
+  <!-- PARTICLES CSS -->
   <style>
     #particles {
       position: absolute;
@@ -24,12 +23,13 @@
     }
     .hero { position: relative; overflow: hidden; }
   </style>
+
 </head>
 
 <body>
 
   <!-- HEADER -->
-  <header class="nav">
+  <header class="nav glass-nav">
     <div class="brand">Asshok Baggri</div>
     <nav class="menu">
       <a href="#live">Live</a>
@@ -42,15 +42,13 @@
   <!-- HERO -->
   <section class="hero">
 
-    <!-- PARTICLES -->
+    <!-- Particle Stars -->
     <div id="particles"></div>
 
     <h1 class="title">
       Ek Dua Likho, <span class="gold">Duniya Badlo</span> <span class="sparkle">💫</span>
     </h1>
-    <p class="subtitle">
-      Har dua ek vibration hoti hai… aur vibrations hi duniya badalti hain.
-    </p>
+    <p class="subtitle">Har dua ek vibration hoti hai… aur vibrations hi duniya badalti hain.</p>
 
     <div class="composer glass">
       <label class="lbl">Your Blessing</label>
@@ -58,16 +56,14 @@
 
       <div class="row">
         <input id="countryInput" type="text" value="India" />
-        <button id="sendBtn" class="btn-primary">
-          Blessing Add Karo ✨
-        </button>
+        <button id="sendBtn" class="btn-primary">Blessing Add Karo ✨</button>
       </div>
 
-      <div id="status" class="status" role="status" aria-live="polite"></div>
+      <div id="status" class="status"></div>
 
       <div class="kpi">
-        <span class="dot"></span>
-        <span>Total Blessings: <span id="counter">0</span></span>
+        <span class="dot"></span> Total Blessings:
+        <span id="counter">0</span>
       </div>
     </div>
   </section>
@@ -94,9 +90,7 @@
     <div>
       <h4>Asshok Baggri</h4>
       <div class="role">Consciousness & Peace Architect</div>
-      <blockquote>
-        “Main chahta hoon har insaan ek dua likhe, kyunki blessings hi duniya ki asli currency hain.”
-      </blockquote>
+      <blockquote>“Main chahta hoon har insaan ek dua likhe, kyunki blessings hi duniya ki asli currency hain.”</blockquote>
     </div>
   </section>
 
@@ -116,8 +110,8 @@
     <div class="copy">© 2025 Asshok Baggri — Light For Humanity 🌍✨</div>
   </footer>
 
-  <!-- FIREBASE APP -->
-  <script type="module" src="./app.js"></script>
+  <!-- APP -->
+  <script type="module" src="app.js"></script>
 
   <!-- PARTICLES ENGINE -->
   <script src="https://cdn.jsdelivr.net/npm/tsparticles-engine"></script>
@@ -131,7 +125,7 @@
         background: { opacity: 0 },
         particles: {
           color: { value: ["#ffe27a", "#ffb400", "#ffffff"] },
-          move: { speed: 0.6 }
+          move: { speed: 0.45 }
         }
       });
     })();
