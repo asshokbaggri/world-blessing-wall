@@ -1,18 +1,13 @@
 /* ===========================================
-   WORLD BLESSING WALL — APP (PHASE 2)
-   ✅ Auto-format text
-   ✅ Auto country flag (with smart default)
-   ✅ Infinite Load (12 per page) + Realtime newest
-   ✅ Full-screen particles (already live)
-   =========================================== */
+   WORLD BLESSING WALL — ULTRA DELUXE FINAL
+=========================================== */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore, collection, addDoc, serverTimestamp,
-  onSnapshot, query, orderBy, limit, startAfter, getDocs
+  query, orderBy, limit, startAfter, getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* --- Firebase --- */
 const firebaseConfig = {
   apiKey: "AIzaSyC8CzspwB_GtrbUm-V2mIvumpPqbbq-f6k",
   authDomain: "world-blessing-wall.firebaseapp.com",
@@ -21,10 +16,11 @@ const firebaseConfig = {
   messagingSenderId: "552766948715",
   appId: "1:552766948715:web:427d27f309a2c2c345782e"
 };
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
 
-/* --- DOM --- */
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ---------- DOM ----------
 const blessingInput = document.getElementById("blessingInput");
 const countryInput  = document.getElementById("countryInput");
 const sendBtn       = document.getElementById("sendBtn");
@@ -34,225 +30,161 @@ const counterEl     = document.getElementById("counter");
 const loadMoreBtn   = document.getElementById("loadMore");
 const noMoreEl      = document.getElementById("noMore");
 
-const waShare   = document.getElementById("waShare");
-const twShare   = document.getElementById("twShare");
-const copyShare = document.getElementById("copyShare");
+let lastVisible = null;
+const PAGE_SIZE = 12;
 
-/* --- Utils --- */
-const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-
-function animateCount(el, to){
-  if(!el) return;
-  const from = Number(el.textContent || 0);
-  const dur = 420;
-  const t0 = performance.now();
-  function tick(t){
-    const p = Math.min(1, (t - t0)/dur);
-    el.textContent = Math.round(from + (to - from)*p);
-    if(p < 1) requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
-}
-
-/* --- Country helpers --- */
-const ISO2_TO_FLAG = code => {
-  if(!code || code.length !== 2) return "🌍";
-  const cc = code.toUpperCase();
-  return String.fromCodePoint(...[...cc].map(c => 127397 + c.charCodeAt()));
+// ---------- FLAGS ----------
+const countryFlags = {
+  "India":"🇮🇳",
+  "USA":"🇺🇸",
+  "UK":"🇬🇧",
+  "UAE":"🇦🇪",
+  "Pakistan":"🇵🇰",
+  "Bangladesh":"🇧🇩"
 };
-const COMMON_ALIASES = {
-  "UAE":"AE", "U.K.":"GB", "UK":"GB", "USA":"US", "US":"US", "KSA":"SA",
-  "Hong Kong":"HK", "South Korea":"KR", "North Korea":"KP"
-};
-/* Guess user country code from browser locale */
-function guessUserIso2(){
-  const lang = (navigator.language || "en").toUpperCase();
-  const parts = lang.split("-"); // e.g. EN-IN
-  if(parts.length > 1 && parts[1].length === 2) return parts[1];
-  return null;
-}
-/* Normalize a typed country to ISO2 + nice name + flag */
-function normalizeCountry(input){
-  let raw = (input || "").trim();
-  if(!raw){
-    const iso2 = guessUserIso2();
-    return iso2 ? { name: raw || iso2, flag: ISO2_TO_FLAG(iso2) } : { name:"", flag:"🌍" };
-  }
-  // Try to read ISO2 directly
-  if(raw.length === 2) return { name: raw.toUpperCase(), flag: ISO2_TO_FLAG(raw) };
 
-  // Map a few alias names → ISO2
-  if(COMMON_ALIASES[raw]) return { name: raw, flag: ISO2_TO_FLAG(COMMON_ALIASES[raw]) };
-
-  // Keep original name + try to find a flag by first 2 letters (rough, but better than nothing)
-  const iso2 = raw.slice(0,2);
-  return { name: raw, flag: ISO2_TO_FLAG(iso2) };
+function getFlag(country){
+  return countryFlags[country] || "🌍";
 }
 
-/* --- Text formatting --- */
-function escapeHTML(s){
-  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-function tidyLine(line){
-  const x = line.trim().replace(/\s+/g," ");
-  if(!x) return "";
-  const cap = x.charAt(0).toUpperCase() + x.slice(1);
-  return /[.!?]$/.test(cap) ? cap : cap + ".";
-}
-function formatBlessingText(text){
-  if(!text) return "";
-  // Preserve line breaks but tidy each line
-  return text
-    .split(/\n+/)
-    .map(tidyLine)
-    .join("\n")
-    .trim();
-}
+// ---------- MAKE CARD ----------
+function makeCard(doc){
+  const { text, country, created } = doc.data();
 
-/* --- Card --- */
-function makeCard({ country, text, created }){
-  const wrap = document.createElement("div");
-  wrap.classList.add("card","blessing-card","fade-up");
+  const card = document.createElement("div");
+  card.className = "blessing-card fade-up";
 
-  const t = (text || "");
-  const formatted = escapeHTML(formatBlessingText(t)).replace(/\n/g,"<br>");
+  const time = created?.toDate()
+    ? created.toDate().toLocaleString()
+    : "";
 
-  const { name, flag } = normalizeCountry(country);
-  const timeStr =
-    created?.toDate
-      ? created.toDate().toLocaleString()
-      : new Date().toLocaleString();
-
-  wrap.innerHTML = `
-    <b><span class="flag">${flag}</span>${escapeHTML(name || "—")}</b>
-    <div>${formatted}</div>
-    <small>${timeStr}</small>
+  card.innerHTML = `
+    <b><span class="flag">${getFlag(country)}</span> ${country}</b>
+    <div>${text}</div>
+    <small>${time}</small>
   `;
-  return wrap;
+
+  return card;
 }
 
-/* --- Submit --- */
-async function submitBlessing(){
-  const text = blessingInput.value.trim();
-  const country = (countryInput.value || "").trim();
-
-  if(!text){ blessingInput.focus(); return; }
-
-  try{
-    sendBtn.disabled = true; sendBtn.style.opacity = .7;
-
-    // Save formatted text, but also keep original if you want later auditing
-    const pretty = formatBlessingText(text);
-
-    await addDoc(collection(db,"blessings"), {
-      text: pretty,
-      country: country || (guessUserIso2() || ""),
-      created: serverTimestamp(),
-      approved: true
-    });
-
-    statusBox.textContent = "Blessing submitted ✅";
-    statusBox.style.color = "#bfe4c2";
-    blessingInput.value = "";
-    await sleep(150);
-  }catch(err){
-    statusBox.textContent = "Error: " + (err?.message || "Failed to submit");
-    statusBox.style.color = "#ffb4b4";
-  }finally{
-    sendBtn.disabled = false; sendBtn.style.opacity = 1;
-  }
-}
-sendBtn?.addEventListener("click", submitBlessing);
-blessingInput?.addEventListener("keydown", (e)=>{
-  if((e.ctrlKey || e.metaKey) && e.key === "Enter") submitBlessing();
-});
-
-/* --- Realtime newest + paged older --- */
-const PAGE = 12;
-let lastDoc = null;
-let pagingBusy = false;
-let reachedEnd = false;
-
-/* Realtime listener for the newest PAGE items */
-const newestQ = query(collection(db,"blessings"), orderBy("created","desc"), limit(PAGE));
-onSnapshot(newestQ, (snap)=>{
-  // Clear only the first PAGE slots (newest area) and re-render them at top.
-  // Older paged items (appended later) remain unaffected.
-  const existingPaged = [...document.querySelectorAll(".card.paged")];
+// ---------- INITIAL LOAD ----------
+async function loadInitial(){
+  const q = query(collection(db,"blessings"), orderBy("created","desc"), limit(PAGE_SIZE));
+  const snap = await getDocs(q);
 
   blessingsList.innerHTML = "";
-  snap.docs.forEach(doc => {
-    const card = makeCard(doc.data());
-    blessingsList.appendChild(card);
+  snap.forEach(doc => blessingsList.appendChild(makeCard(doc)));
+
+  lastVisible = snap.docs[snap.docs.length - 1];
+
+  animateFade();
+  counterEl.textContent = snap.size;
+}
+loadInitial();
+
+// ---------- LOAD MORE ----------
+loadMoreBtn.addEventListener("click", async ()=>{
+
+  if (!lastVisible) return;
+
+  const q = query(
+    collection(db,"blessings"),
+    orderBy("created","desc"),
+    startAfter(lastVisible),
+    limit(PAGE_SIZE)
+  );
+
+  const snap = await getDocs(q);
+
+  if (snap.empty){
+    noMoreEl.textContent = "No more";
+    loadMoreBtn.style.display = "none";
+    return;
+  }
+
+  snap.forEach(doc => blessingsList.appendChild(makeCard(doc)));
+
+  lastVisible = snap.docs[snap.docs.length - 1];
+
+  animateFade();
+});
+
+// ---------- SUBMIT ----------
+sendBtn.addEventListener("click", async ()=>{
+  const text = blessingInput.value.trim();
+  const country = countryInput.value.trim();
+
+  if (!text) return;
+  if (!country) return;
+
+  await addDoc(collection(db,"blessings"), {
+    text, country,
+    created: serverTimestamp()
   });
 
-  // Re-append older paged items (if any)
-  existingPaged.forEach(el => blessingsList.appendChild(el));
-
-  // Track the lastDoc only if we haven't paged yet
-  lastDoc = snap.docs[snap.docs.length - 1] || lastDoc;
-
-  animateCount(counterEl, (snap.size + countPaged()));
+  statusBox.textContent = "Blessing submitted ✅";
+  blessingInput.value = "";
 });
 
-/* Helper to count paged elements */
-function countPaged(){
-  return document.querySelectorAll(".card.paged").length;
+// ---------- FADE ANIMATION ----------
+function animateFade(){
+  document.querySelectorAll(".fade-up").forEach(el=>{
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight - 40){
+      el.classList.add("show");
+    }
+  });
 }
 
-/* Load more (older) once per click */
-async function loadMore(){
-  if(pagingBusy || reachedEnd || !lastDoc) return;
-  pagingBusy = true;
-  loadMoreBtn.disabled = true;
+window.addEventListener("scroll", animateFade);
+window.addEventListener("load", animateFade);
 
-  try{
-    const olderQ = query(
-      collection(db,"blessings"),
-      orderBy("created","desc"),
-      startAfter(lastDoc),
-      limit(PAGE)
-    );
-    const snap = await getDocs(olderQ);
+// ---------- PARTICLES (FULL SCREEN SMOOTH) ----------
+(function(){
+  const canvas = document.getElementById("goldParticles");
+  const ctx = canvas.getContext("2d");
 
-    if(snap.empty){
-      reachedEnd = true;
-      loadMoreBtn.style.display = "none";
-      noMoreEl.style.display = "block";
-      return;
-    }
+  let W, H, dpr;
 
-    // Append older cards at the end of the grid
-    snap.docs.forEach(d => {
-      const el = makeCard(d.data());
-      el.classList.add("paged");
-      blessingsList.appendChild(el);
+  function resize(){
+    dpr = window.devicePixelRatio || 1;
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.scale(dpr,dpr);
+  }
+  resize();
+  window.addEventListener("resize", resize);
+
+  const COUNT = 120;
+  const stars = [];
+
+  for(let i=0;i<COUNT;i++){
+    stars.push({
+      x: Math.random()*W,
+      y: Math.random()*H,
+      r: Math.random()*1.8 + .4,
+      vx: (Math.random()-.5)*0.25,
+      vy: Math.random()*0.3+0.05
+    });
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    stars.forEach(s=>{
+      s.x+=s.vx; s.y+=s.vy;
+      if(s.y>H) s.y=-10;
+      if(s.x>W) s.x=0;
+      if(s.x<0) s.x=W;
+
+      ctx.beginPath();
+      ctx.arc(s.x,s.y,s.r*4,0,Math.PI*2);
+      ctx.fillStyle="rgba(255,240,190,.7)";
+      ctx.fill();
     });
 
-    lastDoc = snap.docs[snap.docs.length - 1];
-    animateCount(counterEl, (PAGE + countPaged())); // just a nice tick; true total still via backend if needed
-  }catch(e){
-    console.error(e);
-  }finally{
-    pagingBusy = false;
-    if(!reachedEnd) loadMoreBtn.disabled = false;
+    requestAnimationFrame(draw);
   }
-}
-loadMoreBtn?.addEventListener("click", loadMore);
-
-/* --- Share --- */
-const shareText = encodeURIComponent("Ek dua likho, duniya badlo 💫");
-const shareUrl  = encodeURIComponent(location.href.split('#')[0]);
-waShare?.addEventListener("click", ()=> window.open(`https://wa.me/?text=${shareText}%20${shareUrl}`,'_blank'));
-twShare?.addEventListener("click", ()=> window.open(`https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`,'_blank'));
-copyShare?.addEventListener("click", async ()=>{
-  try{
-    await navigator.clipboard.writeText(decodeURIComponent(shareUrl));
-    copyShare.textContent = "Link Copied ✅";
-    await sleep(1200);
-    copyShare.textContent = "Copy Link";
-  }catch{}
-});
-
-/* --- Particles (already wired by you) — keeping as-is --- */
-// (Using your existing goldParticles canvas & animation)
+  draw();
+})();
