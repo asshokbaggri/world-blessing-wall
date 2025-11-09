@@ -1,10 +1,17 @@
-// Firebase
+// Firebase (CDN modules)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, serverTimestamp,
-  query, orderBy, onSnapshot
+  getFirestore,
+  collection,
+  addDoc,
+  serverTimestamp,
+  onSnapshot,
+  orderBy,
+  query,
+  limit
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// 🔐 Your Firebase config (from your console; already shared earlier)
 const firebaseConfig = {
   apiKey: "AIzaSyC8CzspwB_GtrbUm-V2mIvumpPqbbq-f6k",
   authDomain: "world-blessing-wall.firebaseapp.com",
@@ -13,72 +20,101 @@ const firebaseConfig = {
   messagingSenderId: "552766948715",
   appId: "1:552766948715:web:427d27f309a2c2c345782e"
 };
+
+// Init
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
-// DOM
-const blessingText  = document.getElementById("blessingText");
+// UI refs
+const blessingInput = document.getElementById("blessingInput");
 const countryInput  = document.getElementById("countryInput");
-const blessingsList = document.getElementById("blessingsList");
-const statusEl      = document.getElementById("status");
 const sendBtn       = document.getElementById("sendBtn");
+const statusEl      = document.getElementById("status");
+const listEl        = document.getElementById("blessingsList");
+const counterEl     = document.getElementById("counter");
 
-// Submit
-async function submitBlessing(){
-  const text = (blessingText.value || "").trim();
-  const country = (countryInput.value || "").trim() || "Unknown";
-  if(!text){ statusEl.textContent = "Please write something 🙏"; return; }
+// Submit blessing
+sendBtn.addEventListener("click", async () => {
+  const text = blessingInput.value.trim();
+  const country = countryInput.value.trim() || "Unknown";
 
-  sendBtn.disabled = true;
-  statusEl.textContent = "Sending…";
-
-  try{
-    await addDoc(collection(db,"blessings"), {
-      text, country, created: serverTimestamp(), approved: true
-    });
-    blessingText.value = "";
-    statusEl.textContent = "Blessing submitted ✅";
-  }catch(err){
-    console.error(err);
-    statusEl.textContent = "Couldn’t submit (check rules/console).";
-  }finally{
-    sendBtn.disabled = false;
+  if (!text) {
+    status("Please write something 🙏", "err");
+    return;
   }
-}
-sendBtn.addEventListener("click", submitBlessing);
 
-// Live feed
-const q = query(collection(db,"blessings"), orderBy("created","desc"));
-onSnapshot(q, (snap)=>{
-  blessingsList.innerHTML = "";
-  snap.forEach(doc=>{
-    const d = doc.data();
-    const when = d.created ? new Date(d.created.toDate()).toLocaleString() : "just now";
-    const card = document.createElement("div");
-    card.className = "blessing";
-    card.innerHTML = `<b>${d.country || "Unknown"}</b><br>${d.text}<br><br><small>${when}</small>`;
-    blessingsList.appendChild(card);
-  });
-}, (err)=>{
-  console.error(err);
-  statusEl.textContent = "Live feed error (check console).";
+  try {
+    await addDoc(collection(db, "blessings"), {
+      text,
+      country,
+      created: serverTimestamp(),
+      approved: true
+    });
+    blessingInput.value = "";
+    status("Blessing submitted ✅");
+  } catch (e) {
+    console.error(e);
+    status("Error, try again.", "err");
+  }
 });
 
-// Share helpers (basic)
-const shareWhatsApp = document.getElementById("shareWhatsApp");
-const shareX        = document.getElementById("shareX");
-const copyLink      = document.getElementById("copyLink");
-const siteURL       = location.href.split('#')[0];
+function status(msg, type="ok"){
+  statusEl.textContent = msg;
+  statusEl.style.color = type === "ok" ? "#97f7b2" : "#ffb3b3";
+  setTimeout(()=> statusEl.textContent = "", 2500);
+}
 
-if(shareWhatsApp){
-  shareWhatsApp.href = `https://wa.me/?text=${encodeURIComponent("Bless the world with me 💫 " + siteURL)}`;
-}
-if(shareX){
-  shareX.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent("Ek Dua Likho, Duniya Badlo 💫")}&url=${encodeURIComponent(siteURL)}`;
-}
-if(copyLink){
-  copyLink.addEventListener("click", async ()=>{
-    await navigator.clipboard.writeText(siteURL);
-    statusEl.textContent = "Link copied ✨";
+// Live feed + counter
+const q = query(collection(db, "blessings"), orderBy("created","desc"), limit(100));
+
+onSnapshot(q, (snap) => {
+  // Counter (approved count visible from snapshot subset: best-effort)
+  animateCount(counterEl, snap.size);
+
+  // Cards
+  listEl.innerHTML = "";
+  snap.forEach(doc => {
+    const d = doc.data();
+    const card = document.createElement("div");
+    card.className = "card";
+    const when = d.created?.toDate ? d.created.toDate() : new Date();
+    card.innerHTML = `
+      <div class="meta"><strong>${escapeHTML(d.country || "—")}</strong></div>
+      <div>${escapeHTML(d.text || "")}</div>
+      <div class="time">${when.toLocaleString()}</div>
+    `;
+    listEl.appendChild(card);
   });
+});
+
+// Simple animated counter
+function animateCount(el, target){
+  const current = parseInt(el.textContent || "0", 10);
+  if (current === target) return;
+  const diff = target - current;
+  const step = Math.max(1, Math.floor(Math.abs(diff) / 12));
+  const dir  = diff > 0 ? 1 : -1;
+  const tick = () => {
+    const val = parseInt(el.textContent || "0", 10) + (step * dir);
+    if ((dir>0 && val >= target) || (dir<0 && val <= target)) {
+      el.textContent = String(target);
+    } else {
+      el.textContent = String(val);
+      requestAnimationFrame(tick);
+    }
+  };
+  requestAnimationFrame(tick);
+}
+
+// Share buttons
+const url = window.location.href;
+document.getElementById("waShare").onclick  = () => window.open(`https://wa.me/?text=${encodeURIComponent("Write a blessing on the World Blessing Wall 💫 " + url)}`);
+document.getElementById("twShare").onclick  = () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent("Write a blessing on the World Blessing Wall 💫")}&url=${encodeURIComponent(url)}`);
+document.getElementById("copyShare").onclick= async () => {
+  try{ await navigator.clipboard.writeText(url); status("Link copied ✅"); }catch(e){ status("Copy failed", "err"); }
+};
+
+// tiny XSS guard
+function escapeHTML(s=""){
+  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
