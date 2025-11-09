@@ -1,6 +1,5 @@
 /* ===========================
    WORLD BLESSING WALL — ULTRA DELUXE THEME
-   (Golden Halo + Shimmer + Particles)
    =========================== */
 
 /* -------- Root -------- */
@@ -37,279 +36,175 @@ body{
     radial-gradient(1200px 800px at 50% -10%, #1b2130 0%, transparent 60%),
     radial-gradient(1200px 800px at 50% 110%, #10141c 0%, transparent 60%),
     linear-gradient(180deg, var(--bg-1), var(--bg-2));
-  font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  letter-spacing:.1px;
+  font-family: "Inter", sans-serif;
   -webkit-font-smoothing:antialiased;
   overflow-x:hidden;
 }
-html{ scroll-behavior:smooth }
 
-/* -------- Decorative layers (behind everything) -------- */
+/* -------- Decorative Layers -------- */
 #goldHalo{
-  position:fixed; inset:0; pointer-events:none; z-index:0;
+  position:fixed; inset:0; pointer-events:none;
   background:
     radial-gradient(600px 300px at 50% 18%, rgba(247,198,106,.25), transparent 60%),
     radial-gradient(800px 360px at 50% 55%, rgba(240,167,59,.14), transparent 70%),
     radial-gradient(900px 420px at 50% 100%, rgba(255,239,179,.08), transparent 72%);
   filter: blur(24px) saturate(120%);
-}
-#goldParticles{
-  position:fixed; inset:0; z-index:1; pointer-events:none; display:block;
+  z-index:0;
 }
 
-/* -------- Header / Nav -------- */
+#goldParticles{
+  position:fixed; inset:0; pointer-events:none;
+  z-index:1;
+  display:block;
+}
+
+/* -------- Header -------- */
 .nav{
-  position:sticky; top:16px; z-index:5;
-  margin:0 auto 24px; width:min(1100px, 92vw);
-  display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:16px;
+  width:min(1100px, 92vw);
+  margin:0 auto 24px;
   padding:12px 16px;
+  display:flex; justify-content:space-between; align-items:center;
   background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
   backdrop-filter: blur(14px);
-  border:1px solid rgba(255,255,255,.08);
   border-radius:999px;
+  border:1px solid rgba(255,255,255,.08);
   box-shadow: var(--shadow-sm);
+  z-index:5;
 }
-.brand{ font-weight:700; letter-spacing:.4px }
+
 .menu a{
-  color:var(--text); text-decoration:none;
-  margin:0 6px; padding:8px 12px; border-radius:999px;
-  transition:.18s ease; border:1px solid transparent;
+  color:var(--text);
+  margin:0 6px;
+  padding:8px 12px;
+  border-radius:999px;
+  text-decoration:none;
+  transition:.18s ease;
 }
-.menu a:hover{ border-color:rgba(255,255,255,.12); background:rgba(255,255,255,.05) }
+.menu a:hover{
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.12);
+}
 
 /* -------- Hero -------- */
 .hero{
   width:min(1100px, 92vw);
   margin:60px auto 28px;
-  text-align:center; position:relative; z-index:2;
+  text-align:center;
 }
 .title{
   font-family:"Playfair Display", serif;
-  font-weight:700; font-size: clamp(36px, 5vw, 56px);
-  line-height:1.1; margin:0 0 10px; letter-spacing:.2px;
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight:700;
+  letter-spacing:.2px;
   text-shadow:0 2px 0 rgba(0,0,0,.25);
 }
 .gold{
-  background: linear-gradient(92deg, #fff4c7 0%, var(--gold) 35%, var(--gold-2) 65%, #fff4c7 100%);
-  -webkit-background-clip:text; background-clip:text; color:transparent;
-  position:relative; animation: shimmer 3.6s ease-in-out infinite;
+  background: linear-gradient(92deg, #fff4c7, var(--gold), var(--gold-2), #fff4c7);
+  -webkit-background-clip:text;
+  color:transparent;
+  animation: shimmer 3.6s infinite;
 }
-.sparkle{ filter: drop-shadow(0 2px 0 rgba(0,0,0,.5)) }
 @keyframes shimmer{
-  0%,100%{ filter: drop-shadow(0 0 0 rgba(247,198,106,.0)) }
-  50%    { filter: drop-shadow(0 0 22px rgba(247,198,106,.55)) }
+  0%,100%{ filter: brightness(1) }
+  50%{ filter: brightness(1.4) }
 }
-.subtitle{ color:var(--text-dim); margin:0 0 26px }
+.subtitle{ color:var(--text-dim); }
 
-/* -------- Composer (Input Card) -------- */
+/* -------- Composer -------- */
 .composer{
-  width:min(900px, 92vw); margin:0 auto; padding:18px;
+  width:min(900px, 92vw);
+  margin:0 auto;
+  padding:18px;
   border-radius: var(--radius-xl);
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-  border:1px solid rgba(255,255,255,.10); box-shadow: var(--shadow-md);
-  position:relative;
+  background: var(--glass);
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow: var(--shadow-md);
 }
-.composer::before{
-  content:""; position:absolute; inset:-2px; border-radius: inherit; pointer-events:none;
-  background:
-    radial-gradient(350px 110px at 60% 75%, rgba(247,198,106,.35), transparent 60%),
-    radial-gradient(420px 140px at 30% 10%, rgba(255,239,179,.18), transparent 65%);
-  filter: blur(16px); opacity:.55; z-index:-1;
+textarea,input[type=text]{
+  width:100%;
+  padding:16px;
+  border-radius: var(--radius-lg);
+  background:#12161ecc;
+  color:var(--text);
+  border:1px solid var(--stroke);
 }
-.lbl{ display:block; text-align:left; color:var(--muted); font-size:.88rem; margin:4px 6px 8px }
-textarea, input[type="text"]{
-  width:100%; color:var(--text); background: rgba(18,22,30,.65);
-  border:1px solid var(--stroke); border-radius: var(--radius-lg);
-  padding:16px 14px; outline:none; transition:.18s ease;
+textarea:focus,input:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(247,198,106,.2);
 }
-textarea{ min-height:140px; resize:vertical }
-textarea:focus, input[type="text"]:focus{
-  border-color:rgba(247,198,106,.6); box-shadow:0 0 0 3px rgba(247,198,106,.15)
-}
-.row{ display:flex; gap:12px; margin-top:12px; align-items:center }
-#countryInput{ flex:1 }
 
-/* Button — gold pill */
 .btn-primary{
-  flex:0 0 auto; border:none; cursor:pointer; font-weight:600;
-  padding:14px 20px; border-radius:999px; color:#2a2008;
-  background: linear-gradient(180deg, var(--gold-3), var(--gold));
-  box-shadow: inset 0 1px 0 #fff7d5, 0 10px 24px rgba(247,198,106,.35), 0 2px 0 rgba(0,0,0,.18);
-  transition: transform .06s ease, filter .15s ease, box-shadow .2s ease;
-}
-.btn-primary:hover{ filter:saturate(110%) brightness(1.02) }
-.btn-primary:active{ transform: translateY(1px) }
-
-/* KPI line + status */
-.status{ margin:12px 6px 0; color:#a6b3c9; font-size:.9rem }
-.kpi{ display:flex; gap:10px; align-items:center; margin:10px 6px 0; color:var(--text-dim) }
-.dot{
-  width:10px; height:10px; border-radius:50%;
-  background:radial-gradient(circle, var(--gold-3), var(--gold-2));
-  box-shadow:0 0 12px rgba(247,198,106,.9), 0 0 30px rgba(247,198,106,.5);
+  background:linear-gradient(180deg, var(--gold-3), var(--gold));
+  padding:14px 20px;
+  border-radius:999px;
+  border:none;
+  cursor:pointer;
+  font-weight:600;
+  color:#2a2008;
 }
 
-/* -------- Live Feed -------- */
-.feed{ width:min(1100px, 92vw); margin:38px auto 24px; position:relative; z-index:2 }
-.section-title{
-  font-family:"Playfair Display", serif; font-size: clamp(28px, 3.4vw, 40px);
-  margin:0 0 16px; display:flex; align-items:center; gap:10px
+/* -------- Cards -------- */
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(260px,1fr));
+  gap:18px;
+  margin-top:18px;
 }
-.cards{ display:grid; grid-template-columns: repeat(4, 1fr); gap:16px }
-@media (max-width:1000px){ .cards{ grid-template-columns: repeat(3, 1fr) } }
-@media (max-width:720px){ .cards{ grid-template-columns: repeat(2, 1fr) } }
-@media (max-width:480px){ .cards{ grid-template-columns: 1fr } }
 
-/* --- Card base --- */
-.card{
-  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.01));
-  border:1px solid rgba(255,255,255,.10);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
-  padding:16px; min-height:120px; position:relative; overflow:hidden;
-}
-.card::after{
-  content:""; position:absolute; inset:0; pointer-events:none; opacity:.65;
-  background:
-    radial-gradient(200px 80px at -10% -20%, rgba(247,198,106,.22), transparent 60%),
-    radial-gradient(220px 90px at 110% 120%, rgba(247,198,106,.18), transparent 65%);
-}
-.card b{ display:block; margin-bottom:6px; color:#ffefc8 }
-.card small{ color:var(--text-dim) }
-
-/* --- PREMIUM BLESSING CARD UPGRADE (glow ring + hover) --- */
-.blessing-card{ backdrop-filter: blur(10px) }
-.blessing-card::before{
-  content:""; position:absolute; inset:0; border-radius:14px; padding:1.5px;
-  background: linear-gradient(120deg, rgba(255,207,115,0.6), rgba(255,255,255,0.1), rgba(255,207,115,0.6));
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none;
+.blessing-card{
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);
+  padding:16px;
+  border-radius:14px;
+  backdrop-filter: blur(12px);
+  position:relative;
+  overflow:hidden;
+  transition:.25s ease;
 }
 .blessing-card:hover{
-  transform: translateY(-4px);
-  box-shadow: 0 4px 20px rgba(255, 215, 120, 0.25), 0 0 25px rgba(255, 215, 120, 0.15) inset;
+  transform:translateY(-4px);
+  box-shadow:0 0 20px rgba(247,198,106,.25);
+}
+.blessing-card b{ color:#ffeab0; display:flex; align-items:center; gap:6px; }
+.flag{
+  font-size:18px;
 }
 
-/* -------- Share strip -------- */
-.share{
-  width:min(1100px,92vw); margin:28px auto; padding:18px; border-radius: var(--radius-xl);
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-  border:1px solid rgba(255,255,255,.10); box-shadow: var(--shadow-md);
+/* -------- Load More -------- */
+.load-btn{
+  margin:20px auto;
+  display:block;
+  padding:10px 16px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.04);
+  color:var(--text);
+  cursor:pointer;
 }
-.share-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:8px }
-.btn{
-  padding:10px 14px; border:1px solid rgba(255,255,255,.12);
-  background:rgba(255,255,255,.04); color:var(--text);
-  border-radius:999px; cursor:pointer;
-}
-.btn:hover{ background:rgba(255,255,255,.07) }
-
-/* -------- Founder -------- */
-.founder{
-  width:min(1100px,92vw); margin:22px auto; padding:18px; border-radius: var(--radius-xl);
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-  border:1px solid rgba(255,255,255,.10); box-shadow: var(--shadow-sm);
-  display:flex; gap:16px; align-items:flex-start;
-}
-.avatar{
-  width:48px; height:48px; border-radius:50%; display:grid; place-items:center;
-  background:linear-gradient(180deg, #2a3243, #161b25); border:1px solid rgba(255,255,255,.1);
-  font-weight:700;
+.no-more{
+  text-align:center;
+  margin:10px;
+  color:var(--text-dim);
 }
 
-/* -------- Map placeholder -------- */
-.map{
-  width:min(1100px,92vw); margin:22px auto 36px; padding:18px; border-radius: var(--radius-xl);
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-  border:1px solid rgba(255,255,255,.10); box-shadow: var(--shadow-sm);
-}
-.map-box{
-  height:220px; border-radius: var(--radius-lg);
-  background: repeating-linear-gradient(45deg, rgba(255,255,255,.05) 0 16px, rgba(255,255,255,.02) 16px 32px);
-  display:grid; place-items:center; color:var(--text-dim);
-  border:1px dashed rgba(255,255,255,.12);
-}
-
-/* -------- Footer -------- */
-.footer{
-  width:min(1100px, 92vw); margin:36px auto; padding:18px 0 60px; color:var(--text-dim);
-  display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
-}
-.footer .links a{ color:var(--text-dim); text-decoration:none; margin-right:14px }
-.footer .links a:hover{ color:var(--text) }
-
-/* -------- Small screens tweaks -------- */
-@media (max-width:560px){
-  .composer{ padding:14px }
-  .row{ flex-direction:column; align-items:stretch }
-  .btn-primary{ width:100% }
-  .footer{ flex-direction:column; gap:10px; text-align:center }
-}
-
-/* =======================
-   ANIMATION SYSTEM
-   ======================= */
-
-/* Card fade-in (for live blessings) */
+/* -------- Scroll Fade -------- */
 .fade-up{
-  opacity:0; transform: translateY(20px);
-  animation: fadeUp .8s ease forwards;
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity .6s ease, transform .6s ease;
 }
-@keyframes fadeUp{ to{ opacity:1; transform: translateY(0) } }
-
-/* SOFT LUXURY SCROLL FADE for sections */
-.reveal{ opacity:0; transform: translateY(20px); transition: opacity .9s ease, transform .9s ease }
-.reveal.visible{ opacity:1; transform: translateY(0) }
-
-/* Accessibility: reduce motion */
-@media (prefers-reduced-motion: reduce){
-  .fade-up, .reveal{ animation:none !important; transition:none !important; opacity:1 !important; transform:none !important }
+.fade-up.show{
+  opacity:1;
+  transform:translateY(0);
 }
 
-/* ===== Infinite scroll controls ===== */
-.loadmore-wrap{
-  display:flex; align-items:center; justify-content:center;
-  gap:12px; margin:18px 0 6px;
+.fade-section{
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity .8s ease, transform .8s ease;
 }
-.btn.load{
-  padding:10px 18px;
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(255,255,255,.05);
-  border-radius:999px; cursor:pointer;
+.fade-section.show{
+  opacity:1;
+  transform:translateY(0);
 }
-.btn.load:disabled{ opacity:.5; cursor:default }
-#scrollSentinel{ height: 40px } /* viewport trigger zone */
-
-.spinner{
-  width:18px; height:18px; border-radius:50%;
-  border:2px solid rgba(255,255,255,.18);
-  border-top-color: var(--gold);
-  animation: spin 0.9s linear infinite; display:none;
-}
-@keyframes spin{ to{ transform: rotate(360deg) } }
-
-/* --- Flags in cards --- */
-.flag {
-  margin-right: 6px;
-  filter: drop-shadow(0 0 4px rgba(247,198,106,.3));
-}
-
-/* --- Load more controls --- */
-.loadmore-wrap{
-  display:flex; align-items:center; justify-content:center;
-  gap:12px; margin:22px 0 6px;
-}
-.load-more{
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(255,255,255,.05);
-  border-radius:999px; padding:10px 16px;
-}
-.load-more[disabled]{opacity:.55; cursor:not-allowed}
-.no-more{ color:var(--text-dim); display:none }
-
-/* Ensure cards have a bit more bottom space above controls */
-.cards{ margin-bottom: 12px; }
-
-/* Smooth reveal for any dynamically inserted card */
-.fade-up { opacity:0; transform:translateY(16px); animation:fadeUp .6s ease forwards }
-@keyframes fadeUp { to { opacity:1; transform:translateY(0) } }
