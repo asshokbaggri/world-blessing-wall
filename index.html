@@ -4,25 +4,112 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>World Blessing Wall</title>
+
+  <!-- SEO / Social -->
+  <meta name="description" content="Ek Dua Likho, Duniya Badlo. Write a blessing and light up the world." />
+  <meta property="og:title" content="World Blessing Wall" />
+  <meta property="og:description" content="Write a blessing and light up the world." />
+  <meta property="og:type" content="website" />
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="box">
-    <h2>Write a Blessing ✨</h2>
 
-    <textarea id="blessingText" placeholder="Type your blessing..." rows="4"></textarea>
-    <input id="countryInput" type="text" placeholder="Country" value="India" />
-    <button id="sendBtn">Send Blessing</button>
+  <!-- glowing background layers -->
+  <div class="glow bg-a"></div>
+  <div class="glow bg-b"></div>
+  <div class="glow bg-c"></div>
 
-    <p id="status" class="status"></p>
-  </div>
+  <!-- HEADER -->
+  <header class="wrap header">
+    <div class="brand">
+      <span class="logo">Asshok Baggri</span>
+    </div>
+    <nav class="nav">
+      <a href="#live" class="nav-link">Live</a>
+      <a href="#share" class="nav-link">Share</a>
+      <a href="#founder" class="nav-link">Founder</a>
+      <a href="#map" class="nav-link">Map</a>
+    </nav>
+  </header>
 
-  <div class="box">
-    <h2>Live Blessings 💫</h2>
-    <div id="blessingsList"></div>
-  </div>
+  <!-- HERO -->
+  <section class="wrap hero" id="hero">
+    <h1 class="hero-title">Ek Dua Likho, <span class="gold">Duniya Badlo</span> 💫</h1>
+    <p class="hero-sub">Har dua ek vibration hoti hai… aur vibrations hi duniya badalti hain.</p>
 
-  <!-- App code -->
+    <div class="card form-card">
+      <label for="blessingText" class="label">Your Blessing</label>
+      <textarea id="blessingText" rows="4" placeholder="Duniya ke liye ek dua likho…"></textarea>
+
+      <div class="row">
+        <input id="countryInput" type="text" placeholder="Country" value="India" aria-label="Country" />
+        <button id="sendBtn" class="btn-primary">Blessing Add Karo ✨</button>
+      </div>
+      <p id="status" class="status" aria-live="polite"></p>
+    </div>
+
+    <p class="counter">🌍 Total Blessings: <span id="countHint">growing</span></p>
+  </section>
+
+  <!-- LIVE FEED -->
+  <section class="wrap" id="live">
+    <h2 class="section-title">Live Blessings 💫</h2>
+    <div id="blessingsList" class="grid"></div>
+  </section>
+
+  <!-- SHARE BANNER -->
+  <section class="share wrap" id="share">
+    <div class="card share-card">
+      <h3>Aapki dua roshni ban kar duniya tak pahunchti hai 🤍</h3>
+      <div class="share-row">
+        <a class="btn-ghost" id="shareWhatsApp" href="#" aria-label="Share on WhatsApp">WhatsApp</a>
+        <a class="btn-ghost" id="shareX" href="#" aria-label="Share on X">Twitter/X</a>
+        <button class="btn-ghost" id="copyLink" aria-label="Copy site link">Copy Link</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOUNDER -->
+  <section class="wrap founder" id="founder">
+    <div class="card founder-card">
+      <div class="founder-media">
+        <!-- replace with real image later -->
+        <div class="avatar">AB</div>
+      </div>
+      <div class="founder-copy">
+        <h3>Asshok Baggri</h3>
+        <p class="muted">Consciousness &amp; Peace Architect</p>
+        <blockquote>“Main chahta hoon har insaan ek dua likhe, kyunki blessings hi duniya ki asli currency hain.”</blockquote>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAP -->
+  <section class="wrap map" id="map">
+    <h2 class="section-title">🌍 Blessings Around The World</h2>
+    <div class="card map-card">
+      <div class="map-placeholder">World Map (coming soon)</div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="wrap footer">
+    <div class="footer-row">
+      <div class="links">
+        <a href="#hero">About</a>
+        <a href="#map">Roadmap</a>
+        <a href="#founder">Contact</a>
+      </div>
+      <div class="copy">© 2025 Asshok Baggri — Light For Humanity 🌍✨</div>
+    </div>
+  </footer>
+
+  <!-- App -->
   <script type="module" src="app.js"></script>
 </body>
 </html>
