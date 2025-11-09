@@ -56,16 +56,23 @@ function animateCount(el, to) {
 
 function makeCard({ country, text, created }) {
   const wrap = document.createElement("div");
-  div.classList.add("fade-up");
+
+  // Animation class
+  wrap.classList.add("fade-up");
+
   wrap.className = "card";
-  const timeStr = created?.toDate
-    ? created.toDate().toLocaleString()
-    : new Date().toLocaleString();
+
+  const timeStr =
+    created?.toDate
+      ? created.toDate().toLocaleString()
+      : new Date().toLocaleString();
+
   wrap.innerHTML = `
-    <b>${country || "—"}</b>
-    <div>${(text || "").replace(/\n/g,"<br>")}</div>
+    <b>${country || "–"}</b>
+    <div>${(text || "").replace(/\n/g, "<br>")}</div>
     <small>${timeStr}</small>
   `;
+
   return wrap;
 }
 
