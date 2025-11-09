@@ -59,7 +59,7 @@ function makeCard({ country, text, created }) {
   const wrap = document.createElement("div");
 
   // ✅ important: add BOTH classes (don’t overwrite)
-  wrap.classList.add("card", "fade-up");
+  wrap.classList.add("card", "blessing-card", "fade-up");
 
   const timeStr =
     created?.toDate
