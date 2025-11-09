@@ -287,3 +287,29 @@ textarea:focus, input[type="text"]:focus{
   animation: spin 0.9s linear infinite; display:none;
 }
 @keyframes spin{ to{ transform: rotate(360deg) } }
+
+/* --- Flags in cards --- */
+.flag {
+  margin-right: 6px;
+  filter: drop-shadow(0 0 4px rgba(247,198,106,.3));
+}
+
+/* --- Load more controls --- */
+.loadmore-wrap{
+  display:flex; align-items:center; justify-content:center;
+  gap:12px; margin:22px 0 6px;
+}
+.load-more{
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.05);
+  border-radius:999px; padding:10px 16px;
+}
+.load-more[disabled]{opacity:.55; cursor:not-allowed}
+.no-more{ color:var(--text-dim); display:none }
+
+/* Ensure cards have a bit more bottom space above controls */
+.cards{ margin-bottom: 12px; }
+
+/* Smooth reveal for any dynamically inserted card */
+.fade-up { opacity:0; transform:translateY(16px); animation:fadeUp .6s ease forwards }
+@keyframes fadeUp { to { opacity:1; transform:translateY(0) } }
