@@ -118,7 +118,7 @@ const q = query(collection(db,"blessings"), orderBy("created","desc"));
 onSnapshot(q, (snap)=>{
   const docs = snap.docs.map(d=>d.data());
   blessingsList.innerHTML = "";
-  docs.forEach(data => blessingsList.appendChild(makeCard(data)));
+  docs.forEach(data => blessingsList.appendChild(makeCard(data))).className = "fade-up";
   animateCount(counterEl, docs.length);
 });
 
