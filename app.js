@@ -124,3 +124,59 @@ document.getElementById("copyShare").onclick = () => {
   navigator.clipboard.writeText(location.href);
   alert("Link copied ✅");
 };
+
+/* ------------------------------------------------------
+   GOLDEN FLOATING PARTICLES 
+------------------------------------------------------ */
+
+const canvas = document.getElementById("goldParticles");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const particles = [];
+
+for (let i = 0; i < 70; i++) {
+  particles.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 2 + 1,
+    dx: Math.random() * 0.4 - 0.2,
+    dy: Math.random() * 0.4 - 0.2
+  });
+}
+
+function animateParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  particles.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255, 204, 77, 0.6)";
+    ctx.fill();
+
+    p.x += p.dx;
+    p.y += p.dy;
+
+    if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+    if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+  });
+
+  requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+/* ------------------------------------------------------
+   FADE-IN EFFECT FOR SECTIONS 
+------------------------------------------------------ */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add("fade-in");
+    }
+  });
+});
+
+document.querySelectorAll("section, .composer, .share, .founder, .map, .footer")
+  .forEach(el => observer.observe(el));
