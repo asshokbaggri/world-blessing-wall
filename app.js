@@ -1,7 +1,6 @@
 /* ===========================================
    WORLD BLESSING WALL — APP (ULTRA DELUXE)
-   FINAL VERSION ✅
-   WITH SCROLL FADE FIX
+   FINAL VERSION ✅ (Soft Luxury Scroll Fade)
    =========================================== */
 
 // ---------- Firebase ----------
@@ -37,26 +36,22 @@ const copyShare = document.getElementById("copyShare");
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-
 // ---------- Counter Animation ----------
 function animateCount(el, to) {
   const from = Number(el.textContent || 0);
   const dur = 420;
   const t0 = performance.now();
-  function tick(t) {
-    const p = Math.min(1, (t - t0) / dur);
-    el.textContent = Math.round(from + (to - from) * p);
+  function tick(t){
+    const p = Math.min(1, (t - t0)/dur);
+    el.textContent = Math.round(from + (to - from)*p);
     if (p < 1) requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
 }
 
-
 // ---------- Blessing Card ----------
 function makeCard({ country, text, created }) {
   const wrap = document.createElement("div");
-
-  // ✅ add classes without overwriting
   wrap.classList.add("card", "blessing-card", "fade-up");
 
   const timeStr =
@@ -73,16 +68,15 @@ function makeCard({ country, text, created }) {
   return wrap;
 }
 
-
 // ---------- Submit ----------
-async function submitBlessing() {
+async function submitBlessing(){
   const text = blessingInput.value.trim();
   const country = (countryInput.value || "").trim();
 
   if (!text) { blessingInput.focus(); return; }
   if (!country) { countryInput.focus(); return; }
 
-  try {
+  try{
     sendBtn.disabled = true;
     sendBtn.style.opacity = .7;
 
@@ -97,10 +91,10 @@ async function submitBlessing() {
 
     blessingInput.value = "";
     await sleep(150);
-
-  } catch (err) {
+  } catch(err){
     statusBox.textContent = "Error: " + (err?.message || "Failed to submit");
     statusBox.style.color = "#ffb4b4";
+    console.error(err);
   } finally {
     sendBtn.disabled = false;
     sendBtn.style.opacity = 1;
@@ -108,36 +102,24 @@ async function submitBlessing() {
 }
 
 sendBtn?.addEventListener("click", submitBlessing);
-
-// Ctrl+Enter submit
 blessingInput?.addEventListener("keydown", (e)=>{
   if ((e.ctrlKey || e.metaKey) && e.key === "Enter") submitBlessing();
 });
 
-
-// ---------- Realtime Feed ----------
-const q = query(collection(db, "blessings"), orderBy("created", "desc"));
-
+// ---------- Realtime feed ----------
+const q = query(collection(db,"blessings"), orderBy("created","desc"));
 onSnapshot(q, (snap)=>{
-  const docs = snap.docs.map(d => d.data());
-
+  const docs = snap.docs.map(d=>d.data());
   blessingsList.innerHTML = "";
   docs.forEach(data => blessingsList.appendChild(makeCard(data)));
-
   animateCount(counterEl, docs.length);
 });
 
-
-// ---------- Share Buttons ----------
+// ---------- Share ----------
 const shareText = encodeURIComponent("Ek dua likho, duniya badlo 💫");
 const shareUrl  = encodeURIComponent(location.href.split('#')[0]);
-
-waShare?.addEventListener("click", ()=>{
-  window.open(`https://wa.me/?text=${shareText}%20${shareUrl}`, "_blank");
-});
-twShare?.addEventListener("click", ()=>{
-  window.open(`https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`, "_blank");
-});
+waShare?.addEventListener("click", ()=> window.open(`https://wa.me/?text=${shareText}%20${shareUrl}`,'_blank'));
+twShare?.addEventListener("click", ()=> window.open(`https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`,'_blank'));
 copyShare?.addEventListener("click", async ()=>{
   try{
     await navigator.clipboard.writeText(decodeURIComponent(shareUrl));
@@ -147,10 +129,7 @@ copyShare?.addEventListener("click", async ()=>{
   }catch{}
 });
 
-
-// =======================================================
-// ✅ GOLD PARTICLES — FULL SCREEN CENTER SPREAD
-// =======================================================
+// ---------- GOLD PARTICLES (GPU-friendly) ----------
 (function initParticles(){
   const canvas = document.getElementById("goldParticles");
   if (!canvas) return;
@@ -162,58 +141,54 @@ copyShare?.addEventListener("click", async ()=>{
   function resize(){
     W = window.innerWidth;
     H = window.innerHeight;
-
     canvas.style.width  = W + "px";
     canvas.style.height = H + "px";
     canvas.width  = W * dpr;
     canvas.height = H * dpr;
-
     ctx.setTransform(dpr,0,0,dpr,0,0);
   }
   resize();
   window.addEventListener("resize", resize);
 
-  const COUNT = Math.floor((W * H) / 28000) + 90;
-
-  const stars = Array.from({length: COUNT}).map(() => ({
-    x: Math.random()*W,
-    y: Math.random()*H,
-    r: Math.random()*1.4 + 0.5,
-    a: Math.random()*0.7 + 0.3,
-    vx: (Math.random()*0.2 - 0.1),
-    vy: (Math.random()*0.18 + 0.04),
-    tw: Math.random()*Math.PI*2,
-    ts: 0.006 + Math.random()*0.012
+  const COUNT = Math.floor((W*H)/28000) + 90;
+  const stars = Array.from({length:COUNT}).map(()=>({
+    x: Math.random()*W, y: Math.random()*H,
+    r: Math.random()*1.4 + 0.5, a: Math.random()*0.7 + 0.3,
+    vx: (Math.random()*0.2 - 0.1), vy: (Math.random()*0.18 + 0.04),
+    tw: Math.random()*Math.PI*2, ts: 0.006 + Math.random()*0.012
   }));
 
   function step(){
     ctx.clearRect(0,0,W,H);
-
     for (const s of stars){
-      s.x += s.vx;
-      s.y += s.vy;
-      s.tw += s.ts;
-
+      s.x += s.vx; s.y += s.vy; s.tw += s.ts;
       if (s.y > H) { s.y = -10; s.x = Math.random()*W; }
       if (s.x < -20) s.x = W + 20;
       if (s.x > W + 20) s.x = -20;
-
       const pulse = 0.6 + 0.4*Math.sin(s.tw);
       ctx.globalAlpha = s.a * pulse;
-
       const grd = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r*6);
       grd.addColorStop(0, "rgba(255,240,190,1)");
       grd.addColorStop(1, "rgba(255,240,190,0)");
-
       ctx.fillStyle = grd;
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r*6, 0, Math.PI*2);
       ctx.fill();
     }
-
     ctx.globalAlpha = 1;
     requestAnimationFrame(step);
   }
-
   requestAnimationFrame(step);
+})();
+
+// ---------- SCROLL FADE OBSERVER (Soft Luxury) ----------
+(function initScrollFade(){
+  const items = document.querySelectorAll(".reveal");
+  if (!items.length) return;
+  const obs = new IntersectionObserver((entries)=>{
+    entries.forEach((e)=>{
+      if (e.isIntersecting) e.target.classList.add("visible");
+    });
+  }, { threshold: 0.18, rootMargin: "0px 0px -4% 0px" });
+  items.forEach(el => obs.observe(el));
 })();
