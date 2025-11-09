@@ -3,8 +3,9 @@
    FINAL VERSION ✅
    - Firebase submit + realtime feed
    - Smooth counter
-   - Smooth fade-up cards
-   - FULL SCREEN CENTER PARTICLES FIXED
+   - Smooth fade-up cards (FIXED)
+   - FULL SCREEN CENTER PARTICLES
+   - Clean & Optimized
    =========================================== */
 
 // ---------- Firebase ----------
@@ -45,22 +46,20 @@ function animateCount(el, to) {
   const from = Number(el.textContent || 0);
   const dur = 420;
   const t0 = performance.now();
-  function tick(t){
-    const p = Math.min(1, (t - t0)/dur);
-    el.textContent = Math.round(from + (to - from)*p);
+  function tick(t) {
+    const p = Math.min(1, (t - t0) / dur);
+    el.textContent = Math.round(from + (to - from) * p);
     if (p < 1) requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
 }
 
-// ---------- Blessing Card ----------
+// ---------- Blessing Card (FIXED ✅) ----------
 function makeCard({ country, text, created }) {
   const wrap = document.createElement("div");
 
-  // Smooth fade-up
-  wrap.classList.add("fade-up");
-
-  wrap.className = "card";
+  // ✅ important: add BOTH classes (don’t overwrite)
+  wrap.classList.add("card", "fade-up");
 
   const timeStr =
     created?.toDate
@@ -77,14 +76,14 @@ function makeCard({ country, text, created }) {
 }
 
 // ---------- Submit ----------
-async function submitBlessing(){
+async function submitBlessing() {
   const text = blessingInput.value.trim();
   const country = (countryInput.value || "").trim();
 
   if (!text) { blessingInput.focus(); return; }
   if (!country) { countryInput.focus(); return; }
 
-  try{
+  try {
     sendBtn.disabled = true;
     sendBtn.style.opacity = .7;
 
@@ -94,18 +93,15 @@ async function submitBlessing(){
       approved: true
     });
 
-    if (statusBox){
-      statusBox.textContent = "Blessing submitted ✅";
-      statusBox.style.color = "#bfe4c2";
-    }
+    statusBox.textContent = "Blessing submitted ✅";
+    statusBox.style.color = "#bfe4c2";
+
     blessingInput.value = "";
     await sleep(150);
 
-  } catch(err){
-    if (statusBox){
-      statusBox.textContent = "Error: " + (err?.message || "Failed to submit");
-      statusBox.style.color = "#ffb4b4";
-    }
+  } catch (err) {
+    statusBox.textContent = "Error: " + (err?.message || "Failed to submit");
+    statusBox.style.color = "#ffb4b4";
   } finally {
     sendBtn.disabled = false;
     sendBtn.style.opacity = 1;
@@ -114,18 +110,20 @@ async function submitBlessing(){
 
 sendBtn?.addEventListener("click", submitBlessing);
 
-// CTRL+ENTER submit
+// Ctrl+Enter submit
 blessingInput?.addEventListener("keydown", (e)=>{
   if ((e.ctrlKey || e.metaKey) && e.key === "Enter") submitBlessing();
 });
 
 // ---------- Realtime Feed ----------
-const q = query(collection(db,"blessings"), orderBy("created","desc"));
+const q = query(collection(db, "blessings"), orderBy("created", "desc"));
 
 onSnapshot(q, (snap)=>{
-  const docs = snap.docs.map(d=>d.data());
+  const docs = snap.docs.map(d => d.data());
+
   blessingsList.innerHTML = "";
   docs.forEach(data => blessingsList.appendChild(makeCard(data)));
+
   animateCount(counterEl, docs.length);
 });
 
@@ -134,10 +132,10 @@ const shareText = encodeURIComponent("Ek dua likho, duniya badlo 💫");
 const shareUrl  = encodeURIComponent(location.href.split('#')[0]);
 
 waShare?.addEventListener("click", ()=>{
-  window.open(`https://wa.me/?text=${shareText}%20${shareUrl}`,'_blank');
+  window.open(`https://wa.me/?text=${shareText}%20${shareUrl}`, "_blank");
 });
 twShare?.addEventListener("click", ()=>{
-  window.open(`https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`,'_blank');
+  window.open(`https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`, "_blank");
 });
 copyShare?.addEventListener("click", async ()=>{
   try{
@@ -149,33 +147,34 @@ copyShare?.addEventListener("click", async ()=>{
 });
 
 // =======================================================
-// ✅ GOLD PARTICLES — FIXED FULL SCREEN CENTER SPREAD
+// ✅ GOLD PARTICLES — FULL SCREEN CENTER SPREAD
 // =======================================================
 (function initParticles(){
   const canvas = document.getElementById("goldParticles");
   if (!canvas) return;
 
   const ctx = canvas.getContext("2d");
-
   let dpr = Math.min(2, window.devicePixelRatio || 1);
   let W, H;
 
   function resize(){
     W = window.innerWidth;
     H = window.innerHeight;
+
     canvas.style.width  = W + "px";
     canvas.style.height = H + "px";
     canvas.width  = W * dpr;
     canvas.height = H * dpr;
+
     ctx.setTransform(dpr,0,0,dpr,0,0);
   }
   resize();
   window.addEventListener("resize", resize);
 
-  // ★ Center-balanced particle count
-  const COUNT = Math.floor((W*H)/28000) + 90;
+  // Center-balanced particle amount
+  const COUNT = Math.floor((W * H) / 28000) + 90;
 
-  const stars = Array.from({length:COUNT}).map(()=>({
+  const stars = Array.from({length: COUNT}).map(()=>({
     x: Math.random()*W,
     y: Math.random()*H,
     r: Math.random()*1.4 + 0.5,
@@ -194,7 +193,6 @@ copyShare?.addEventListener("click", async ()=>{
       s.y += s.vy;
       s.tw += s.ts;
 
-      // re-enter
       if (s.y > H) { s.y = -10; s.x = Math.random()*W; }
       if (s.x < -20) s.x = W + 20;
       if (s.x > W + 20) s.x = -20;
@@ -202,14 +200,11 @@ copyShare?.addEventListener("click", async ()=>{
       const pulse = 0.6 + 0.4*Math.sin(s.tw);
       ctx.globalAlpha = s.a * pulse;
 
-      const grd = ctx.createRadialGradient(
-        s.x, s.y, 0,
-        s.x, s.y, s.r*6
-      );
+      const grd = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r*6);
       grd.addColorStop(0, "rgba(255,240,190,1)");
       grd.addColorStop(1, "rgba(255,240,190,0)");
-      ctx.fillStyle = grd;
 
+      ctx.fillStyle = grd;
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r*6, 0, Math.PI*2);
       ctx.fill();
@@ -218,6 +213,5 @@ copyShare?.addEventListener("click", async ()=>{
     ctx.globalAlpha = 1;
     requestAnimationFrame(step);
   }
-
   requestAnimationFrame(step);
 })();
