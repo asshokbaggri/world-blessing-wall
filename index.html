@@ -1,335 +1,112 @@
-/* =======================================================
-   WORLD BLESSING WALL — HYBRID V2 (FINAL PREMIUM THEME)  
-   ======================================================= */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>World Blessing Wall</title>
 
-/* -------- Root -------- */
-:root{
-  --bg-1:#0a0c0f;
-  --bg-2:#141821;
-  --glass:#1b2230cc;
-  --glass-strong:#1b2230e6;
-  --text:#e9eef6;
-  --text-dim:#b7c3d8;
-  --muted:#8a95aa;
-  --card:#1d2432;
-  --stroke:#2a3346;
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
-  --gold:#f7c66a;
-  --gold-2:#f0a73b;
-  --gold-3:#ffefb3;
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css" />
+  <meta name="theme-color" content="#000000" />
+</head>
 
-  --radius-xl:18px;
-  --radius-lg:14px;
-  --radius:12px;
+<body>
+  <!-- GOLD HALO + PARTICLES (behind everything) -->
+  <div id="goldHalo"></div>
+  <canvas id="goldParticles"></canvas>
 
-  --shadow-lg:0 20px 60px rgba(0,0,0,.5);
-  --shadow-md:0 10px 30px rgba(0,0,0,.35);
-  --shadow-sm:0 6px 18px rgba(0,0,0,.25);
-}
+  <!-- HEADER -->
+  <header class="nav fade-section" role="banner" aria-label="Main navigation">
+    <div class="brand">Asshok Baggri</div>
+    <nav class="menu" aria-label="Site sections">
+      <a href="#live">Live</a>
+      <a href="#share">Share</a>
+      <a href="#founder">Founder</a>
+      <a href="#map">Map</a>
+    </nav>
+  </header>
 
-/* -------- Global -------- */
-*{ box-sizing:border-box }
-html,body{ height:100% }
-body{
-  margin:0;
-  color:var(--text);
-  background:
-    radial-gradient(1200px 800px at 50% -10%, #1b2130 0%, transparent 60%),
-    radial-gradient(1200px 800px at 50% 110%, #10141c 0%, transparent 60%),
-    linear-gradient(180deg, var(--bg-1), var(--bg-2));
-  font-family:"Inter", sans-serif;
-  -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
-  line-height:1.5;
-}
+  <!-- HERO -->
+  <section class="hero fade-section" id="hero">
+    <h1 class="title">
+      Ek Dua Likho, <span class="gold">Duniya Badlo</span> <span class="sparkle" aria-hidden="true">💫</span>
+    </h1>
+    <p class="subtitle">Har dua ek vibration hoti hai… aur vibrations hi duniya badalti hain.</p>
 
-/* -------- Decorative Layers -------- */
-#goldHalo{
-  position:fixed; inset:0; pointer-events:none;
-  background:
-    radial-gradient(600px 300px at 50% 18%, rgba(247,198,106,.25), transparent 60%),
-    radial-gradient(800px 360px at 50% 55%, rgba(240,167,59,.14), transparent 70%),
-    radial-gradient(900px 420px at 50% 100%, rgba(255,239,179,.08), transparent 72%);
-  filter:blur(24px) saturate(120%);
-  z-index:-1;
-}
+    <div class="composer fade-up" aria-label="Blessing composer">
+      <label class="lbl" for="blessingInput">Your Blessing</label>
+      <textarea id="blessingInput" rows="4" placeholder="Duniya ke liye ek dua likho…"></textarea>
 
-#goldParticles{
-  position:fixed; inset:0; pointer-events:none;
-  z-index:0;
-  display:block;
-}
+      <div class="row">
+        <!-- Tip: user can type “IN India”, “IN”, or “India” — app.js handles it -->
+        <input id="countryInput" type="text" value="IN India" aria-label="Country" />
+        <button id="sendBtn" class="btn-primary" type="button">Blessing Add Karo ✨</button>
+      </div>
 
-/* -------- Header -------- */
-.nav{
-  position:sticky; top:16px;
-  width:min(1100px,92vw);
-  margin:0 auto 32px;
-  padding:12px 20px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
-  backdrop-filter:blur(14px);
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.08);
-  box-shadow:var(--shadow-sm);
-  z-index:5;
-}
+      <div id="status" class="status" aria-live="polite"></div>
 
-.menu a{
-  color:var(--text);
-  margin:0 8px;
-  padding:8px 14px;
-  border-radius:999px;
-  text-decoration:none;
-  transition:.18s ease;
-}
-.menu a:hover{
-  background:rgba(255,255,255,.07);
-  border:1px solid rgba(255,255,255,.12);
-}
+      <div class="kpi">
+        <span class="dot" aria-hidden="true"></span>
+        <span>Total Blessings: <strong id="counter">0</strong></span>
+      </div>
+    </div>
+  </section>
 
-/* -------- Hero -------- */
-.hero{
-  width:min(1100px,92vw);
-  margin:70px auto 40px;
-  text-align:center;
-}
-.title{
-  font-family:"Playfair Display",serif;
-  font-size:clamp(36px,5vw,56px);
-  font-weight:700;
-  text-shadow:0 2px 0 rgba(0,0,0,.25);
-}
-.gold{
-  background:linear-gradient(92deg,#fff4c7,var(--gold),var(--gold-2),#fff4c7);
-  -webkit-background-clip:text;
-  color:transparent;
-  animation:shimmer 3.6s infinite;
-}
-@keyframes shimmer{
-  0%,100%{filter:brightness(1)}
-  50%{filter:brightness(1.4)}
-}
-.subtitle{
-  color:var(--text-dim);
-  margin-top:6px;
-  margin-bottom:26px;
-}
+  <!-- LIVE FEED -->
+  <section id="live" class="feed fade-section" aria-label="Live blessings">
+    <h2 class="section-title">Live Blessings <span class="sparkle" aria-hidden="true">💫</span></h2>
 
-/* -------- Composer -------- */
-.composer{
-  width:min(900px,92vw);
-  margin:0 auto 60px;
-  padding:24px 22px;
-  border-radius:var(--radius-xl);
-  background:var(--glass);
-  border:1px solid rgba(255,255,255,.08);
-  box-shadow:var(--shadow-md);
-}
-textarea,input[type=text]{
-  width:100%;
-  padding:16px;
-  border-radius:var(--radius-lg);
-  background:#12161ecc;
-  color:var(--text);
-  border:1px solid var(--stroke);
-}
-textarea:focus,input:focus{
-  border-color:var(--gold);
-  box-shadow:0 0 0 3px rgba(247,198,106,.25);
-}
+    <div id="blessingsList" class="cards" role="list"></div>
 
-.row{
-  display:flex;
-  gap:14px;
-  margin-top:16px;
-}
+    <button id="loadMore" class="load-btn" type="button">Load more</button>
+    <div id="noMore" class="no-more" aria-live="polite"></div>
+  </section>
 
-.btn-primary{
-  background:linear-gradient(180deg,var(--gold-3),var(--gold));
-  padding:14px 20px;
-  border-radius:999px;
-  border:none;
-  cursor:pointer;
-  font-weight:600;
-  color:#2a2008;
-  min-width:160px;
-}
+  <!-- SHARE -->
+  <section id="share" class="share fade-section" aria-label="Share the wall">
+    <h3>Aapki dua roshni ban kar duniya tak pahunchti hai 🤍</h3>
+    <div class="share-row">
+      <button class="btn" id="waShare" type="button">WhatsApp</button>
+      <button class="btn" id="twShare" type="button">Twitter/X</button>
+      <button class="btn" id="copyShare" type="button">Copy Link</button>
+    </div>
+  </section>
 
-.status{
-  margin-top:10px;
-  font-size:14px;
-  color:var(--text-dim);
-}
+  <!-- FOUNDER -->
+  <section id="founder" class="founder fade-section" aria-label="Founder">
+    <div class="avatar" aria-hidden="true">AB</div>
+    <div>
+      <h4>Asshok Baggri</h4>
+      <div class="role">Consciousness &amp; Peace Architect</div>
+      <blockquote>“Main chahta hoon har insaan ek dua likhe, kyunki blessings hi duniya ki asli currency hain.”</blockquote>
+    </div>
+  </section>
 
-.kpi{
-  margin-top:14px;
-  font-size:15px;
-  color:var(--text-dim);
-}
-.dot{
-  display:inline-block;
-  width:8px; height:8px;
-  border-radius:50%;
-  background:var(--gold);
-  margin-right:6px;
-}
+  <!-- MAP -->
+  <section id="map" class="map fade-section" aria-label="Blessings around the world">
+    <h3>🌍 Blessings Around The World</h3>
+    <div class="map-box">World Map (coming soon)</div>
+  </section>
 
-/* -------- Feed -------- */
-.feed{
-  width:min(1100px,92vw);
-  margin:40px auto 40px;
-}
-.section-title{
-  font-size:28px;
-  font-weight:600;
-  margin:0 0 20px 0;
-  font-family:"Playfair Display",serif;
-}
+  <!-- FOOTER -->
+  <footer class="footer fade-section" role="contentinfo">
+    <div class="links">
+      <a href="#">About</a>
+      <a href="#">Roadmap</a>
+      <a href="#">Contact</a>
+    </div>
+    <div class="copy">© 2025 Asshok Baggri — Light For Humanity 🌍✨</div>
+  </footer>
 
-.cards{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-  gap:20px;
-}
+  <noscript style="color:white; display:block; text-align:center; padding:12px;">
+    Please enable JavaScript to use the World Blessing Wall.
+  </noscript>
 
-.blessing-card{
-  background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.1);
-  padding:16px;
-  border-radius:14px;
-  backdrop-filter:blur(12px);
-  position:relative;
-  overflow:hidden;
-  transition:.25s ease;
-}
-.blessing-card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 0 20px rgba(247,198,106,.25);
-}
-.blessing-card b{
-  color:#ffeab0;
-  display:flex;
-  align-items:center;
-  gap:6px;
-  margin-bottom:6px;
-}
-.flag{font-size:18px;}
-
-.load-btn{
-  margin:26px auto 20px;
-  display:block;
-  padding:10px 16px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(255,255,255,.04);
-  color:var(--text);
-  cursor:pointer;
-}
-.no-more{
-  text-align:center;
-  margin:10px;
-  color:var(--text-dim);
-}
-
-/* -------- Share -------- */
-.share{
-  width:min(900px,92vw);
-  margin:60px auto;
-  padding:26px;
-  border-radius:var(--radius-xl);
-  background:var(--glass);
-  border:1px solid rgba(255,255,255,.08);
-  box-shadow:var(--shadow-md);
-  text-align:center;
-}
-
-.share-row{
-  display:flex;
-  justify-content:center;
-  gap:14px;
-  margin-top:20px;
-}
-.btn{
-  padding:10px 16px;
-  border-radius:999px;
-  background:rgba(255,255,255,.06);
-  color:var(--text);
-  border:1px solid rgba(255,255,255,.12);
-}
-
-/* -------- Founder -------- */
-.founder{
-  width:min(900px,92vw);
-  margin:60px auto;
-  padding:26px;
-  background:var(--glass);
-  border-radius:var(--radius-xl);
-  border:1px solid rgba(255,255,255,.08);
-  backdrop-filter:blur(18px);
-  box-shadow:var(--shadow-md);
-  display:flex;
-  gap:16px;
-}
-.avatar{
-  width:52px; height:52px;
-  display:flex; justify-content:center; align-items:center;
-  border-radius:50%;
-  background:#fff2c3;
-  font-weight:700;
-  color:#2a2008;
-  font-size:18px;
-}
-
-/* -------- Map -------- */
-.map{
-  width:min(900px,92vw);
-  margin:60px auto;
-  padding:26px;
-  background:var(--glass);
-  border-radius:var(--radius-xl);
-  border:1px solid rgba(255,255,255,.08);
-  text-align:center;
-  box-shadow:var(--shadow-md);
-}
-.map-box{
-  margin-top:16px;
-  padding:40px;
-  background:rgba(255,255,255,.04);
-  border-radius:var(--radius-lg);
-}
-
-/* -------- Footer -------- */
-.footer{
-  width:min(1100px,92vw);
-  margin:60px auto 40px;
-  text-align:center;
-  color:var(--text-dim);
-}
-.footer .links a{
-  color:var(--text-dim);
-  margin:0 10px;
-  text-decoration:none;
-}
-
-/* -------- Animations -------- */
-.fade-up{
-  opacity:0;
-  transform:translateY(20px);
-  transition:opacity .6s ease, transform .6s ease;
-}
-.fade-up.show{
-  opacity:1;
-  transform:translateY(0);
-}
-.fade-section{
-  opacity:0;
-  transform:translateY(20px);
-  transition:opacity .8s ease, transform .8s ease;
-}
-.fade-section.show{
-  opacity:1;
-  transform:translateY(0);
-}
+  <!-- APP -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
