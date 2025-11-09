@@ -1,11 +1,7 @@
 /* ===========================================
    WORLD BLESSING WALL — APP (ULTRA DELUXE)
    FINAL VERSION ✅
-   - Firebase submit + realtime feed
-   - Smooth counter
-   - Smooth fade-up cards (FIXED)
-   - FULL SCREEN CENTER PARTICLES
-   - Clean & Optimized
+   WITH SCROLL FADE FIX
    =========================================== */
 
 // ---------- Firebase ----------
@@ -41,6 +37,7 @@ const copyShare = document.getElementById("copyShare");
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
+
 // ---------- Counter Animation ----------
 function animateCount(el, to) {
   const from = Number(el.textContent || 0);
@@ -54,11 +51,12 @@ function animateCount(el, to) {
   requestAnimationFrame(tick);
 }
 
-// ---------- Blessing Card (FIXED ✅) ----------
+
+// ---------- Blessing Card ----------
 function makeCard({ country, text, created }) {
   const wrap = document.createElement("div");
 
-  // ✅ important: add BOTH classes (don’t overwrite)
+  // ✅ add classes without overwriting
   wrap.classList.add("card", "blessing-card", "fade-up");
 
   const timeStr =
@@ -74,6 +72,7 @@ function makeCard({ country, text, created }) {
 
   return wrap;
 }
+
 
 // ---------- Submit ----------
 async function submitBlessing() {
@@ -115,6 +114,7 @@ blessingInput?.addEventListener("keydown", (e)=>{
   if ((e.ctrlKey || e.metaKey) && e.key === "Enter") submitBlessing();
 });
 
+
 // ---------- Realtime Feed ----------
 const q = query(collection(db, "blessings"), orderBy("created", "desc"));
 
@@ -126,6 +126,7 @@ onSnapshot(q, (snap)=>{
 
   animateCount(counterEl, docs.length);
 });
+
 
 // ---------- Share Buttons ----------
 const shareText = encodeURIComponent("Ek dua likho, duniya badlo 💫");
@@ -145,6 +146,7 @@ copyShare?.addEventListener("click", async ()=>{
     copyShare.textContent = "Copy Link";
   }catch{}
 });
+
 
 // =======================================================
 // ✅ GOLD PARTICLES — FULL SCREEN CENTER SPREAD
@@ -171,10 +173,9 @@ copyShare?.addEventListener("click", async ()=>{
   resize();
   window.addEventListener("resize", resize);
 
-  // Center-balanced particle amount
   const COUNT = Math.floor((W * H) / 28000) + 90;
 
-  const stars = Array.from({length: COUNT}).map(()=>({
+  const stars = Array.from({length: COUNT}).map(() => ({
     x: Math.random()*W,
     y: Math.random()*H,
     r: Math.random()*1.4 + 0.5,
@@ -213,5 +214,6 @@ copyShare?.addEventListener("click", async ()=>{
     ctx.globalAlpha = 1;
     requestAnimationFrame(step);
   }
+
   requestAnimationFrame(step);
 })();
