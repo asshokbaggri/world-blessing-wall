@@ -62,11 +62,21 @@
     </div>
   </section>
 
-  <!-- LIVE FEED -->
   <section id="live" class="feed reveal">
     <h2 class="section-title">Live Blessings <span class="sparkle">💫</span></h2>
+
     <div id="blessingsList" class="cards"></div>
+
+    <!-- Load more (fallback) -->
+    <div class="loadmore-wrap">
+      <button id="loadMore" class="btn load">Load more</button>
+      <div id="loadSpin" class="spinner" aria-hidden="true"></div>
+    </div>
+
+    <!-- Infinite scroll sentinel -->
+    <div id="scrollSentinel" aria-hidden="true"></div>
   </section>
+
 
   <!-- SHARE -->
   <section id="share" class="share glass reveal">
