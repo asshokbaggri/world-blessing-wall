@@ -49,13 +49,11 @@
   <div class="box">
     <h2>Write a Blessing ✨</h2>
 
-    <!-- ✅ FIXED FORM -->
-    <form id="blessingForm" onsubmit="submitBlessing(event)">
-      <textarea id="blessingText" placeholder="Type your blessing..." rows="4"></textarea>
-      <br>
-      <input id="country" placeholder="Your Country" value="India" />
-      <button type="submit">Send Blessing</button>
-    </form>
+    <textarea id="blessingText" placeholder="Type your blessing..." rows="4"></textarea>
+
+    <input id="countryInput" value="India" />
+
+    <button onclick="submitBlessing()">Send Blessing</button>
   </div>
 
   <div class="box">
@@ -63,21 +61,19 @@
     <div id="blessingsList"></div>
   </div>
 
-  <!-- ✅ ONLY ONE CLEAN FIREBASE SCRIPT -->
   <script type="module">
-    // Import Firebase
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { 
-      getFirestore, 
-      collection, 
-      addDoc, 
+      getFirestore,
+      collection,
+      addDoc,
       serverTimestamp,
       query,
       orderBy,
-      onSnapshot 
+      onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyC8CzspwB_GtrbUm-V2mIvumpPqbbq-f6k",
       authDomain: "world-blessing-wall.firebaseapp.com",
@@ -87,16 +83,14 @@
       appId: "1:552766948715:web:427d27f309a2c2c345782e"
     };
 
-    // Init
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // ✅ Submit blessing (FINAL)
-    async function submitBlessing(event) {
-      event.preventDefault();
 
+    // ✅ ADD BLESSING
+    async function submitBlessing() {
       const text = document.getElementById("blessingText").value.trim();
-      const country = document.getElementById("country").value.trim();
+      const country = document.getElementById("countryInput").value.trim();
 
       if (!text) {
         alert("Please write something 🙏");
@@ -111,10 +105,10 @@
       });
 
       document.getElementById("blessingText").value = "";
-      alert("Blessing submitted 💫");
     }
 
-    // ✅ Live Blessings Feed
+
+    // ✅ LIVE BLESSINGS
     const blessingsList = document.getElementById("blessingsList");
 
     const q = query(
@@ -124,19 +118,21 @@
 
     onSnapshot(q, (snapshot) => {
       blessingsList.innerHTML = "";
+
       snapshot.forEach((doc) => {
         const d = doc.data();
+
         const item = document.createElement("div");
         item.className = "blessing";
 
-        // Fix created timestamp undefined issue
-        const ts = d.created ? new Date(d.created.toDate()).toLocaleString() : "Just now";
+        const createdTime = d.created ? new Date(d.created.toDate()).toLocaleString() : "just now";
 
         item.innerHTML = `
           <b>${d.country}</b><br>
           ${d.text}<br><br>
-          <small>${ts}</small>
+          <small>${createdTime}</small>
         `;
+
         blessingsList.appendChild(item);
       });
     });
