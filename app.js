@@ -1,5 +1,10 @@
 /* ===========================================
    WORLD BLESSING WALL — APP (ULTRA DELUXE)
+   FINAL VERSION ✅
+   - Firebase submit + realtime feed
+   - Smooth counter
+   - Smooth fade-up cards
+   - FULL SCREEN CENTER PARTICLES FIXED
    =========================================== */
 
 // ---------- Firebase ----------
@@ -33,11 +38,10 @@ const waShare   = document.getElementById("waShare");
 const twShare   = document.getElementById("twShare");
 const copyShare = document.getElementById("copyShare");
 
-// ---------- Helpers ----------
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
+// ---------- Counter Animation ----------
 function animateCount(el, to) {
-  if (!el) return;
   const from = Number(el.textContent || 0);
   const dur = 420;
   const t0 = performance.now();
@@ -49,12 +53,14 @@ function animateCount(el, to) {
   requestAnimationFrame(tick);
 }
 
-// ---------- Card Builder ----------
+// ---------- Blessing Card ----------
 function makeCard({ country, text, created }) {
   const wrap = document.createElement("div");
 
-  // ✅ Premium card + fade animation
-  wrap.className = "blessing-card fade-up";
+  // Smooth fade-up
+  wrap.classList.add("fade-up");
+
+  wrap.className = "card";
 
   const timeStr =
     created?.toDate
@@ -94,12 +100,12 @@ async function submitBlessing(){
     }
     blessingInput.value = "";
     await sleep(150);
+
   } catch(err){
     if (statusBox){
       statusBox.textContent = "Error: " + (err?.message || "Failed to submit");
       statusBox.style.color = "#ffb4b4";
     }
-    console.error(err);
   } finally {
     sendBtn.disabled = false;
     sendBtn.style.opacity = 1;
@@ -108,12 +114,12 @@ async function submitBlessing(){
 
 sendBtn?.addEventListener("click", submitBlessing);
 
-// Enter to submit
+// CTRL+ENTER submit
 blessingInput?.addEventListener("keydown", (e)=>{
   if ((e.ctrlKey || e.metaKey) && e.key === "Enter") submitBlessing();
 });
 
-// ---------- Realtime feed ----------
+// ---------- Realtime Feed ----------
 const q = query(collection(db,"blessings"), orderBy("created","desc"));
 
 onSnapshot(q, (snap)=>{
@@ -123,7 +129,7 @@ onSnapshot(q, (snap)=>{
   animateCount(counterEl, docs.length);
 });
 
-// ---------- Share ----------
+// ---------- Share Buttons ----------
 const shareText = encodeURIComponent("Ek dua likho, duniya badlo 💫");
 const shareUrl  = encodeURIComponent(location.href.split('#')[0]);
 
@@ -142,18 +148,23 @@ copyShare?.addEventListener("click", async ()=>{
   }catch{}
 });
 
-// ---------- GOLD PARTICLES (GPU-friendly) ----------
+// =======================================================
+// ✅ GOLD PARTICLES — FIXED FULL SCREEN CENTER SPREAD
+// =======================================================
 (function initParticles(){
   const canvas = document.getElementById("goldParticles");
   if (!canvas) return;
 
   const ctx = canvas.getContext("2d");
+
   let dpr = Math.min(2, window.devicePixelRatio || 1);
   let W, H;
 
   function resize(){
-    W = canvas.clientWidth;
-    H = canvas.clientHeight;
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.style.width  = W + "px";
+    canvas.style.height = H + "px";
     canvas.width  = W * dpr;
     canvas.height = H * dpr;
     ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -161,51 +172,52 @@ copyShare?.addEventListener("click", async ()=>{
   resize();
   window.addEventListener("resize", resize);
 
-  const COUNT = Math.floor((W*H)/38000) + 60;
+  // ★ Center-balanced particle count
+  const COUNT = Math.floor((W*H)/28000) + 90;
+
   const stars = Array.from({length:COUNT}).map(()=>({
     x: Math.random()*W,
     y: Math.random()*H,
-    r: Math.random()*1.6 + .4,
-    a: Math.random()*0.6 + 0.3,
+    r: Math.random()*1.4 + 0.5,
+    a: Math.random()*0.7 + 0.3,
     vx: (Math.random()*0.2 - 0.1),
-    vy: (Math.random()*0.15 + 0.02),
+    vy: (Math.random()*0.18 + 0.04),
     tw: Math.random()*Math.PI*2,
-    ts: 0.006 + Math.random()*0.01
+    ts: 0.006 + Math.random()*0.012
   }));
 
   function step(){
     ctx.clearRect(0,0,W,H);
+
     for (const s of stars){
       s.x += s.vx;
       s.y += s.vy;
       s.tw += s.ts;
 
-      if (s.y > H + 10) { s.y = -10; s.x = Math.random()*W; }
-      if (s.x < -10) s.x = W + 10;
-      if (s.x > W + 10) s.x = -10;
+      // re-enter
+      if (s.y > H) { s.y = -10; s.x = Math.random()*W; }
+      if (s.x < -20) s.x = W + 20;
+      if (s.x > W + 20) s.x = -20;
 
       const pulse = 0.6 + 0.4*Math.sin(s.tw);
       ctx.globalAlpha = s.a * pulse;
-      const grd = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r*6);
+
+      const grd = ctx.createRadialGradient(
+        s.x, s.y, 0,
+        s.x, s.y, s.r*6
+      );
       grd.addColorStop(0, "rgba(255,240,190,1)");
       grd.addColorStop(1, "rgba(255,240,190,0)");
       ctx.fillStyle = grd;
+
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r*6, 0, Math.PI*2);
       ctx.fill();
     }
+
     ctx.globalAlpha = 1;
     requestAnimationFrame(step);
   }
-  requestAnimationFrame(step);
-})();
 
-// ---------- FIX duplicated canvas ----------
-(function ensureHalo(){
-  const existing = document.querySelectorAll("#goldParticles");
-  if (existing.length > 1){
-    for (let i = 1; i < existing.length; i++){
-      existing[i].remove();
-    }
-  }
+  requestAnimationFrame(step);
 })();
