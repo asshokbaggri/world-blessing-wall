@@ -13,20 +13,19 @@
   <link rel="stylesheet" href="style.css" />
   <meta name="theme-color" content="#000000" />
 
-  <!-- PAGE FADE IN -->
+  <!-- Page entry fade -->
   <style>
-    body { opacity: 0; animation: pageFade 1.1s ease forwards; }
-    @keyframes pageFade { to { opacity: 1; } }
+    body{opacity:0;animation:pageFade 1.0s ease forwards}
+    @keyframes pageFade{to{opacity:1}}
   </style>
 </head>
 
 <body>
-
-  <!-- GOLD HALO + PARTICLES -->
+  <!-- Golden ambience layers -->
   <div id="goldHalo"></div>
   <canvas id="goldParticles"></canvas>
 
-  <!-- HEADER (no scroll-fade on header) -->
+  <!-- HEADER -->
   <header class="nav glass-nav">
     <div class="brand">Asshok Baggri</div>
     <nav class="menu">
@@ -37,14 +36,14 @@
     </nav>
   </header>
 
-  <!-- HERO (scroll-fade) -->
-  <section class="hero reveal">
+  <!-- HERO -->
+  <section class="hero fade-section">
     <h1 class="title">
       Ek Dua Likho, <span class="gold">Duniya Badlo</span> <span class="sparkle">💫</span>
     </h1>
     <p class="subtitle">Har dua ek vibration hoti hai… aur vibrations hi duniya badalti hain.</p>
 
-    <div class="composer glass reveal">
+    <div class="composer glass">
       <label class="lbl">Your Blessing</label>
       <textarea id="blessingInput" rows="4" placeholder="Duniya ke liye ek dua likho…"></textarea>
 
@@ -62,24 +61,22 @@
     </div>
   </section>
 
-  <section id="live" class="feed reveal">
+  <!-- LIVE FEED -->
+  <section id="live" class="feed fade-section">
     <h2 class="section-title">Live Blessings <span class="sparkle">💫</span></h2>
 
+    <!-- Newest (realtime) + older (paged) share same grid -->
     <div id="blessingsList" class="cards"></div>
 
-    <!-- Load more (fallback) -->
+    <!-- Paged loading controls -->
     <div class="loadmore-wrap">
-      <button id="loadMore" class="btn load">Load more</button>
-      <div id="loadSpin" class="spinner" aria-hidden="true"></div>
+      <button id="loadMore" class="btn load-more">Load more</button>
+      <div id="noMore" class="no-more">No more blessings 🙂</div>
     </div>
-
-    <!-- Infinite scroll sentinel -->
-    <div id="scrollSentinel" aria-hidden="true"></div>
   </section>
 
-
   <!-- SHARE -->
-  <section id="share" class="share glass reveal">
+  <section id="share" class="share glass fade-section">
     <h3>Aapki dua roshni ban kar duniya tak pahunchti hai 🤍</h3>
     <div class="share-row">
       <button class="btn" id="waShare">WhatsApp</button>
@@ -89,7 +86,7 @@
   </section>
 
   <!-- FOUNDER -->
-  <section id="founder" class="founder glass reveal">
+  <section id="founder" class="founder glass fade-section">
     <div class="avatar">AB</div>
     <div>
       <h4>Asshok Baggri</h4>
@@ -99,13 +96,13 @@
   </section>
 
   <!-- MAP -->
-  <section id="map" class="map glass reveal">
+  <section id="map" class="map glass fade-section">
     <h3>🌍 Blessings Around The World</h3>
     <div class="map-box">World Map (coming soon)</div>
   </section>
 
   <!-- FOOTER -->
-  <footer class="footer reveal">
+  <footer class="footer fade-section">
     <div class="links">
       <a href="#">About</a>
       <a href="#">Roadmap</a>
