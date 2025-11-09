@@ -9,32 +9,48 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
-  <!-- Styles -->
+  <!-- Main CSS -->
   <link rel="stylesheet" href="style.css" />
+
   <meta name="theme-color" content="#0b0a06" />
+
+  <!-- HERO PARTICLES CONTAINER STYLE -->
+  <style>
+    #particles {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .hero { position: relative; overflow: hidden; }
+  </style>
 </head>
+
 <body>
 
-  <!-- BG particles -->
-  <div class="bg fx"></div>
-
   <!-- HEADER -->
-  <header class="nav glass">
+  <header class="nav">
     <div class="brand">Asshok Baggri</div>
     <nav class="menu">
-      <a href="#live" class="navlink">Live</a>
-      <a href="#share" class="navlink">Share</a>
-      <a href="#founder" class="navlink">Founder</a>
-      <a href="#map" class="navlink">Map</a>
+      <a href="#live">Live</a>
+      <a href="#share">Share</a>
+      <a href="#founder">Founder</a>
+      <a href="#map">Map</a>
     </nav>
   </header>
 
   <!-- HERO -->
   <section class="hero">
+
+    <!-- PARTICLES -->
+    <div id="particles"></div>
+
     <h1 class="title">
       Ek Dua Likho, <span class="gold">Duniya Badlo</span> <span class="sparkle">💫</span>
     </h1>
-    <p class="subtitle">Har dua ek vibration hoti hai… aur vibrations hi duniya badalti hain.</p>
+    <p class="subtitle">
+      Har dua ek vibration hoti hai… aur vibrations hi duniya badalti hain.
+    </p>
 
     <div class="composer glass">
       <label class="lbl">Your Blessing</label>
@@ -43,7 +59,7 @@
       <div class="row">
         <input id="countryInput" type="text" value="India" />
         <button id="sendBtn" class="btn-primary">
-          Blessing Add Karo <span aria-hidden="true">✨</span>
+          Blessing Add Karo ✨
         </button>
       </div>
 
@@ -51,7 +67,7 @@
 
       <div class="kpi">
         <span class="dot"></span>
-        <span> Total Blessings: <span id="counter">0</span></span>
+        <span>Total Blessings: <span id="counter">0</span></span>
       </div>
     </div>
   </section>
@@ -66,9 +82,9 @@
   <section id="share" class="share glass">
     <h3>Aapki dua roshni ban kar duniya tak pahunchti hai 🤍</h3>
     <div class="share-row">
-      <button class="btn share wa" id="waShare">WhatsApp</button>
-      <button class="btn share tw" id="twShare">Twitter/X</button>
-      <button class="btn share cp" id="copyShare">Copy Link</button>
+      <button class="btn" id="waShare">WhatsApp</button>
+      <button class="btn" id="twShare">Twitter/X</button>
+      <button class="btn" id="copyShare">Copy Link</button>
     </div>
   </section>
 
@@ -84,10 +100,10 @@
     </div>
   </section>
 
-  <!-- MAP PLACEHOLDER -->
+  <!-- MAP -->
   <section id="map" class="map glass">
     <h3>🌍 Blessings Around The World</h3>
-    <div class="map-box shimmer">World Map (coming soon)</div>
+    <div class="map-box">World Map (coming soon)</div>
   </section>
 
   <!-- FOOTER -->
@@ -100,7 +116,26 @@
     <div class="copy">© 2025 Asshok Baggri — Light For Humanity 🌍✨</div>
   </footer>
 
-  <!-- APP -->
+  <!-- FIREBASE APP -->
   <script type="module" src="./app.js"></script>
+
+  <!-- PARTICLES ENGINE -->
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles-engine"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles-basic"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles-preset-stars"></script>
+
+  <script>
+    (async () => {
+      await tsParticles.load("particles", {
+        preset: "stars",
+        background: { opacity: 0 },
+        particles: {
+          color: { value: ["#ffe27a", "#ffb400", "#ffffff"] },
+          move: { speed: 0.6 }
+        }
+      });
+    })();
+  </script>
+
 </body>
 </html>
