@@ -42,20 +42,24 @@ body{
 }
 
 /* -------- Decorative Layers -------- */
-#goldHalo{
-  position:fixed; inset:0; pointer-events:none;
+#goldHalo {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
   background:
     radial-gradient(600px 300px at 50% 18%, rgba(247,198,106,.25), transparent 60%),
     radial-gradient(800px 360px at 50% 55%, rgba(240,167,59,.14), transparent 70%),
     radial-gradient(900px 420px at 50% 100%, rgba(255,239,179,.08), transparent 72%);
   filter: blur(24px) saturate(120%);
-  z-index:0;
+  z-index: -1;   /* ✅ FIX */
 }
 
-#goldParticles{
-  position:fixed; inset:0; pointer-events:none;
-  z-index:1;
-  display:block;
+#goldParticles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;    /* ✅ FIX */
+  display: block;
 }
 
 /* -------- Header -------- */
