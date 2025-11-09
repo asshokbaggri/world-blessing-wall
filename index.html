@@ -4,24 +4,28 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>World Blessing Wall</title>
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
   <meta name="theme-color" content="#0b0a06" />
 </head>
+<body>
 
-<body class="gold-theme">
-  <!-- floating gold particles -->
-  <canvas id="particles"></canvas>
+  <!-- BG particles -->
+  <div class="bg fx"></div>
 
   <!-- HEADER -->
-  <header class="nav glass-soft">
+  <header class="nav glass">
     <div class="brand">Asshok Baggri</div>
     <nav class="menu">
-      <a href="#live">Live</a>
-      <a href="#share">Share</a>
-      <a href="#founder">Founder</a>
-      <a href="#map">Map</a>
+      <a href="#live" class="navlink">Live</a>
+      <a href="#share" class="navlink">Share</a>
+      <a href="#founder" class="navlink">Founder</a>
+      <a href="#map" class="navlink">Map</a>
     </nav>
   </header>
 
@@ -30,11 +34,9 @@
     <h1 class="title">
       Ek Dua Likho, <span class="gold">Duniya Badlo</span> <span class="sparkle">💫</span>
     </h1>
-    <p class="subtitle">
-      Har dua ek vibration hoti hai… aur vibrations hi duniya badalti hain.
-    </p>
+    <p class="subtitle">Har dua ek vibration hoti hai… aur vibrations hi duniya badalti hain.</p>
 
-    <div class="composer glass card-gold">
+    <div class="composer glass">
       <label class="lbl">Your Blessing</label>
       <textarea id="blessingInput" rows="4" placeholder="Duniya ke liye ek dua likho…"></textarea>
 
@@ -46,6 +48,7 @@
       </div>
 
       <div id="status" class="status" role="status" aria-live="polite"></div>
+
       <div class="kpi">
         <span class="dot"></span>
         <span> Total Blessings: <span id="counter">0</span></span>
@@ -60,17 +63,17 @@
   </section>
 
   <!-- SHARE -->
-  <section id="share" class="share glass card-gold">
+  <section id="share" class="share glass">
     <h3>Aapki dua roshni ban kar duniya tak pahunchti hai 🤍</h3>
     <div class="share-row">
-      <button class="btn" id="waShare">WhatsApp</button>
-      <button class="btn" id="twShare">Twitter/X</button>
-      <button class="btn" id="copyShare">Copy Link</button>
+      <button class="btn share wa" id="waShare">WhatsApp</button>
+      <button class="btn share tw" id="twShare">Twitter/X</button>
+      <button class="btn share cp" id="copyShare">Copy Link</button>
     </div>
   </section>
 
   <!-- FOUNDER -->
-  <section id="founder" class="founder glass card-gold">
+  <section id="founder" class="founder glass">
     <div class="avatar">AB</div>
     <div>
       <h4>Asshok Baggri</h4>
@@ -82,9 +85,9 @@
   </section>
 
   <!-- MAP PLACEHOLDER -->
-  <section id="map" class="map glass card-gold">
+  <section id="map" class="map glass">
     <h3>🌍 Blessings Around The World</h3>
-    <div class="map-box">World Map (coming soon)</div>
+    <div class="map-box shimmer">World Map (coming soon)</div>
   </section>
 
   <!-- FOOTER -->
