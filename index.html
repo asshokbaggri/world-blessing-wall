@@ -13,23 +13,23 @@
   <link rel="stylesheet" href="style.css" />
   <meta name="theme-color" content="#000000" />
 
-  <!-- PARTICLES CSS -->
+  <!-- PAGE FADE ANIMATION -->
   <style>
-    #particles {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
+    body {
+      opacity: 0;
+      animation: pageFade 1.4s ease forwards;
     }
-    .hero { position: relative; overflow: hidden; }
+    @keyframes pageFade {
+      to { opacity: 1; }
+    }
   </style>
-
 </head>
 
 <body>
+
+  <!-- GOLD HALO + PARTICLES BEHIND EVERYTHING -->
   <div id="goldHalo"></div>
   <canvas id="goldParticles"></canvas>
-
 
   <!-- HEADER -->
   <header class="nav glass-nav">
@@ -44,10 +44,6 @@
 
   <!-- HERO -->
   <section class="hero">
-
-    <!-- Particle Stars -->
-    <div id="particles"></div>
-
     <h1 class="title">
       Ek Dua Likho, <span class="gold">Duniya Badlo</span> <span class="sparkle">💫</span>
     </h1>
@@ -72,13 +68,13 @@
   </section>
 
   <!-- LIVE FEED -->
-  <section id="live" class="feed">
+  <section id="live" class="feed fade-section">
     <h2 class="section-title">Live Blessings <span class="sparkle">💫</span></h2>
     <div id="blessingsList" class="cards"></div>
   </section>
 
   <!-- SHARE -->
-  <section id="share" class="share glass">
+  <section id="share" class="share glass fade-section">
     <h3>Aapki dua roshni ban kar duniya tak pahunchti hai 🤍</h3>
     <div class="share-row">
       <button class="btn" id="waShare">WhatsApp</button>
@@ -88,7 +84,7 @@
   </section>
 
   <!-- FOUNDER -->
-  <section id="founder" class="founder glass">
+  <section id="founder" class="founder glass fade-section">
     <div class="avatar">AB</div>
     <div>
       <h4>Asshok Baggri</h4>
@@ -98,13 +94,13 @@
   </section>
 
   <!-- MAP -->
-  <section id="map" class="map glass">
+  <section id="map" class="map glass fade-section">
     <h3>🌍 Blessings Around The World</h3>
     <div class="map-box">World Map (coming soon)</div>
   </section>
 
   <!-- FOOTER -->
-  <footer class="footer">
+  <footer class="footer fade-section">
     <div class="links">
       <a href="#">About</a>
       <a href="#">Roadmap</a>
@@ -115,27 +111,6 @@
 
   <!-- APP -->
   <script type="module" src="app.js"></script>
-
-  <!-- PARTICLES ENGINE -->
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles-engine"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles-basic"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles-preset-stars"></script>
-
-  <script>
-    (async () => {
-      await tsParticles.load("particles", {
-        preset: "stars",
-        background: { opacity: 0 },
-        particles: {
-          color: { value: ["#ffe27a", "#ffb400", "#ffffff"] },
-          move: { speed: 0.45 }
-        }
-      });
-    })();
-  </script>
-
-  <!-- PARTICLES -->
-  <canvas id="goldParticles"></canvas>
 
 </body>
 </html>
