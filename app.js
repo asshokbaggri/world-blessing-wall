@@ -56,6 +56,7 @@ function animateCount(el, to) {
 
 function makeCard({ country, text, created }) {
   const wrap = document.createElement("div");
+  div.classList.add("fade-up");
   wrap.className = "card";
   const timeStr = created?.toDate
     ? created.toDate().toLocaleString()
@@ -118,7 +119,7 @@ const q = query(collection(db,"blessings"), orderBy("created","desc"));
 onSnapshot(q, (snap)=>{
   const docs = snap.docs.map(d=>d.data());
   blessingsList.innerHTML = "";
-  docs.forEach(data => blessingsList.appendChild(makeCard(data))).className = "fade-up";
+  docs.forEach(data => blessingsList.appendChild(makeCard(data)));
   animateCount(counterEl, docs.length);
 });
 
