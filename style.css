@@ -1,5 +1,6 @@
 /* ===========================
    WORLD BLESSING WALL — ULTRA DELUXE THEME
+   FINAL FIXED ✅
    =========================== */
 
 /* -------- Root -------- */
@@ -32,34 +33,36 @@ html,body{height:100%}
 body{
   margin:0;
   color:var(--text);
+  font-family: "Inter", sans-serif;
+  overflow-x:hidden;
+  position: relative;
+  z-index: 5; /* ✅ UI always above particles */
+
   background:
     radial-gradient(1200px 800px at 50% -10%, #1b2130 0%, transparent 60%),
     radial-gradient(1200px 800px at 50% 110%, #10141c 0%, transparent 60%),
     linear-gradient(180deg, var(--bg-1), var(--bg-2));
-  font-family: "Inter", sans-serif;
-  -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
 }
 
 /* -------- Decorative Layers -------- */
-#goldHalo {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
+#goldHalo{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
   background:
     radial-gradient(600px 300px at 50% 18%, rgba(247,198,106,.25), transparent 60%),
     radial-gradient(800px 360px at 50% 55%, rgba(240,167,59,.14), transparent 70%),
     radial-gradient(900px 420px at 50% 100%, rgba(255,239,179,.08), transparent 72%);
   filter: blur(24px) saturate(120%);
-  z-index: -1;   /* ✅ FIX */
+  z-index:-3; /* ✅ VERY bottom */
 }
 
-#goldParticles {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;    /* ✅ FIX */
-  display: block;
+#goldParticles{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  display:block;
+  z-index:-2; /* ✅ under UI */
 }
 
 /* -------- Header -------- */
@@ -74,7 +77,7 @@ body{
   border-radius:999px;
   border:1px solid rgba(255,255,255,.08);
   box-shadow: var(--shadow-sm);
-  z-index:5;
+  z-index:10; /* ✅ always on top */
 }
 
 .menu a{
@@ -110,7 +113,6 @@ body{
   animation: shimmer 3.6s infinite;
 }
 @keyframes shimmer{
-  0%,100%{ filter: brightness(1) }
   50%{ filter: brightness(1.4) }
 }
 .subtitle{ color:var(--text-dim); }
@@ -125,6 +127,7 @@ body{
   border:1px solid rgba(255,255,255,.08);
   box-shadow: var(--shadow-md);
 }
+
 textarea,input[type=text]{
   width:100%;
   padding:16px;
@@ -148,7 +151,7 @@ textarea:focus,input:focus{
   color:#2a2008;
 }
 
-/* -------- Cards -------- */
+/* -------- Cards + Flags -------- */
 .cards{
   display:grid;
   grid-template-columns:repeat(auto-fill, minmax(260px,1fr));
@@ -170,10 +173,13 @@ textarea:focus,input:focus{
   transform:translateY(-4px);
   box-shadow:0 0 20px rgba(247,198,106,.25);
 }
-.blessing-card b{ color:#ffeab0; display:flex; align-items:center; gap:6px; }
-.flag{
-  font-size:18px;
+
+.blessing-card b{
+  color:#ffeab0;
+  display:flex; align-items:center; gap:6px;
 }
+
+.flag{ font-size:18px; }
 
 /* -------- Load More -------- */
 .load-btn{
@@ -192,7 +198,7 @@ textarea:focus,input:focus{
   color:var(--text-dim);
 }
 
-/* -------- Scroll Fade -------- */
+/* -------- Scroll Fade Animation -------- */
 .fade-up{
   opacity:0;
   transform:translateY(20px);
