@@ -1,11 +1,20 @@
 /* ===========================================
-   WORLD BLESSING WALL — ULTRA DELUXE FINAL
-=========================================== */
+   WORLD BLESSING WALL — APP (FINAL DELUXE) ✅
+   - Firebase submit + paginated feed (Load more)
+   - Smooth total counter (uses count API)
+   - Scroll fade (cards + sections)
+   - Country → Flag emoji (auto)
+   - Full-screen gold particles (behind UI)
+   =========================================== */
 
+// ---------- Firebase ----------
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore, collection, addDoc, serverTimestamp,
-  query, orderBy, limit, startAfter, getDocs
+  query, orderBy, limit, startAfter, getDocs, doc, getDoc,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -18,173 +27,281 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const db  = getFirestore(app);
 
 // ---------- DOM ----------
 const blessingInput = document.getElementById("blessingInput");
 const countryInput  = document.getElementById("countryInput");
 const sendBtn       = document.getElementById("sendBtn");
 const statusBox     = document.getElementById("status");
+
 const blessingsList = document.getElementById("blessingsList");
-const counterEl     = document.getElementById("counter");
 const loadMoreBtn   = document.getElementById("loadMore");
 const noMoreEl      = document.getElementById("noMore");
 
-let lastVisible = null;
-const PAGE_SIZE = 12;
+const counterEl     = document.getElementById("counter");
+const waShare   = document.getElementById("waShare");
+const twShare   = document.getElementById("twShare");
+const copyShare = document.getElementById("copyShare");
 
-// ---------- FLAGS ----------
-const countryFlags = {
-  "India":"🇮🇳",
-  "USA":"🇺🇸",
-  "UK":"🇬🇧",
-  "UAE":"🇦🇪",
-  "Pakistan":"🇵🇰",
-  "Bangladesh":"🇧🇩"
+// ---------- Helpers ----------
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const colBless = collection(db, "blessings");
+
+function animateCount(el, to) {
+  const from = Number(el.textContent || 0);
+  const dur = 420;
+  const t0 = performance.now();
+  function tick(t){
+    const p = Math.min(1, (t - t0)/dur);
+    el.textContent = Math.round(from + (to - from)*p);
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// ---------- Flags ----------
+const NAME_TO_ISO = {
+  "india":"IN","bharat":"IN",
+  "united states":"US","usa":"US","us":"US","america":"US",
+  "united kingdom":"GB","uk":"GB","england":"GB","scotland":"GB","wales":"GB",
+  "canada":"CA","australia":"AU","new zealand":"NZ",
+  "pakistan":"PK","bangladesh":"BD","sri lanka":"LK","nepal":"NP","bhutan":"BT",
+  "uae":"AE","saudi arabia":"SA","qatar":"QA","oman":"OM","kuwait":"KW",
+  "germany":"DE","france":"FR","spain":"ES","italy":"IT","portugal":"PT",
+  "netherlands":"NL","switzerland":"CH","sweden":"SE","norway":"NO","denmark":"DK",
+  "japan":"JP","south korea":"KR","china":"CN","singapore":"SG","malaysia":"MY",
+  "indonesia":"ID","philippines":"PH","thailand":"TH","vietnam":"VN",
+  "nigeria":"NG","south africa":"ZA","kenya":"KE","egypt":"EG",
+  "mexico":"MX","brazil":"BR","argentina":"AR","chile":"CL",
+  "russia":"RU","turkey":"TR","israel":"IL"
 };
 
-function getFlag(country){
-  return countryFlags[country] || "🌍";
+function isoToFlag(iso){
+  if (!iso || iso.length !== 2) return "";
+  const A = 0x1F1E6; // Regional Indicator A
+  const upper = iso.toUpperCase();
+  return String.fromCodePoint( A + (upper.charCodeAt(0)-65), A + (upper.charCodeAt(1)-65) );
 }
 
-// ---------- MAKE CARD ----------
-function makeCard(doc){
-  const { text, country, created } = doc.data();
-
-  const card = document.createElement("div");
-  card.className = "blessing-card fade-up";
-
-  const time = created?.toDate()
-    ? created.toDate().toLocaleString()
-    : "";
-
-  card.innerHTML = `
-    <b><span class="flag">${getFlag(country)}</span> ${country}</b>
-    <div>${text}</div>
-    <small>${time}</small>
-  `;
-
-  return card;
+function nameToFlag(name){
+  if (!name) return { flag:"", iso:"" };
+  const key = String(name).trim().toLowerCase();
+  const iso = NAME_TO_ISO[key] || NAME_TO_ISO[key.replace(/\./g,'')] || "";
+  return { flag: iso ? isoToFlag(iso) : "", iso };
 }
 
-// ---------- INITIAL LOAD ----------
-async function loadInitial(){
-  const q = query(collection(db,"blessings"), orderBy("created","desc"), limit(PAGE_SIZE));
-  const snap = await getDocs(q);
-
-  blessingsList.innerHTML = "";
-  snap.forEach(doc => blessingsList.appendChild(makeCard(doc)));
-
-  lastVisible = snap.docs[snap.docs.length - 1];
-
-  animateFade();
-  counterEl.textContent = snap.size;
+function initialsBadge(name){
+  const t = (name||"").trim().toUpperCase().slice(0,2) || "🌍";
+  return `<span class="flag" aria-hidden="true">${t}</span>`;
 }
-loadInitial();
 
-// ---------- LOAD MORE ----------
-loadMoreBtn.addEventListener("click", async ()=>{
-
-  if (!lastVisible) return;
-
-  const q = query(
-    collection(db,"blessings"),
-    orderBy("created","desc"),
-    startAfter(lastVisible),
-    limit(PAGE_SIZE)
-  );
-
-  const snap = await getDocs(q);
-
-  if (snap.empty){
-    noMoreEl.textContent = "No more";
-    loadMoreBtn.style.display = "none";
-    return;
-  }
-
-  snap.forEach(doc => blessingsList.appendChild(makeCard(doc)));
-
-  lastVisible = snap.docs[snap.docs.length - 1];
-
-  animateFade();
-});
-
-// ---------- SUBMIT ----------
-sendBtn.addEventListener("click", async ()=>{
-  const text = blessingInput.value.trim();
-  const country = countryInput.value.trim();
-
-  if (!text) return;
-  if (!country) return;
-
-  await addDoc(collection(db,"blessings"), {
-    text, country,
-    created: serverTimestamp()
-  });
-
-  statusBox.textContent = "Blessing submitted ✅";
-  blessingInput.value = "";
-});
-
-// ---------- FADE ANIMATION ----------
-function animateFade(){
-  document.querySelectorAll(".fade-up").forEach(el=>{
-    const rect = el.getBoundingClientRect();
-    if (rect.top < window.innerHeight - 40){
-      el.classList.add("show");
+// ---------- Scroll Fade (sections + cards) ----------
+const fadeObs = new IntersectionObserver((entries)=>{
+  for (const e of entries){
+    if (e.isIntersecting) {
+      e.target.classList.add("show");
+      fadeObs.unobserve(e.target);
     }
-  });
+  }
+}, { rootMargin: "0px 0px -10% 0px", threshold: 0.1 });
+
+function armFadeFor(selector){
+  document.querySelectorAll(selector).forEach(el=>fadeObs.observe(el));
 }
 
-window.addEventListener("scroll", animateFade);
-window.addEventListener("load", animateFade);
+// ---------- Render one card ----------
+function makeCard({ country, text, created }) {
+  const wrap = document.createElement("div");
+  wrap.className = "blessing-card fade-up";
 
-// ---------- PARTICLES (FULL SCREEN SMOOTH) ----------
-(function(){
+  const { flag } = nameToFlag(country);
+  const timeStr =
+    created?.toDate ? created.toDate().toLocaleString() : new Date().toLocaleString();
+
+  wrap.innerHTML = `
+    <b>${flag ? `<span class="flag">${flag}</span>` : initialsBadge(country)} ${country || ""}</b>
+    <div>${(text || "").replace(/\n/g, "<br>")}</div>
+    <small>${timeStr}</small>
+  `;
+  return wrap;
+}
+
+// ---------- Pagination state ----------
+const PAGE_SIZE = 12;
+let lastDoc = null;
+let reachedEnd = false;
+
+// Fetch and render a page
+async function loadPage(first=false){
+  if (reachedEnd) return;
+
+  const baseQ = query(colBless, orderBy("created","desc"), limit(PAGE_SIZE));
+  const qPaginated = lastDoc ? query(colBless, orderBy("created","desc"), startAfter(lastDoc), limit(PAGE_SIZE)) : baseQ;
+
+  const snap = await getDocs(qPaginated);
+  const docs = snap.docs;
+  if (first) blessingsList.innerHTML = "";
+
+  docs.forEach(d => blessingsList.appendChild(makeCard(d.data())));
+
+  // Fade arm the new cards
+  armFadeFor(".fade-up");
+
+  if (docs.length < PAGE_SIZE){
+    reachedEnd = true;
+    loadMoreBtn.style.display = "none";
+    noMoreEl.textContent = "No more";
+  } else {
+    lastDoc = docs[docs.length-1];
+    loadMoreBtn.style.display = "block";
+    noMoreEl.textContent = "";
+  }
+}
+
+// ---------- Total counter ----------
+async function refreshCount(){
+  try{
+    const snapshot = await getCountFromServer(colBless);
+    animateCount(counterEl, snapshot.data().count || 0);
+  }catch{
+    // silent
+  }
+}
+
+// ---------- Submit ----------
+async function submitBlessing(){
+  const text = blessingInput.value.trim();
+  const country = (countryInput.value || "").trim();
+
+  if (!text) { blessingInput.focus(); return; }
+  if (!country) { countryInput.focus(); return; }
+
+  try{
+    sendBtn.disabled = true;
+    sendBtn.style.opacity = .7;
+
+    await addDoc(colBless, {
+      text, country,
+      created: serverTimestamp(),
+      approved: true
+    });
+
+    statusBox.textContent = "Blessing submitted ✅";
+    statusBox.style.color = "#bfe4c2";
+
+    blessingInput.value = "";
+    await sleep(150);
+
+    // refresh top of feed
+    lastDoc = null;
+    reachedEnd = false;
+    await loadPage(true);
+    await refreshCount();
+
+  }catch(err){
+    statusBox.textContent = "Error: " + (err?.message || "Failed to submit");
+    statusBox.style.color = "#ffb4b4";
+  }finally{
+    sendBtn.disabled = false;
+    sendBtn.style.opacity = 1;
+  }
+}
+
+sendBtn?.addEventListener("click", submitBlessing);
+blessingInput?.addEventListener("keydown", (e)=>{
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") submitBlessing();
+});
+
+// ---------- Share ----------
+const shareText = encodeURIComponent("Ek dua likho, duniya badlo 💫");
+const shareUrl  = encodeURIComponent(location.href.split('#')[0]);
+
+waShare?.addEventListener("click", ()=> window.open(`https://wa.me/?text=${shareText}%20${shareUrl}`,'_blank'));
+twShare?.addEventListener("click", ()=> window.open(`https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`,'_blank'));
+copyShare?.addEventListener("click", async ()=>{
+  try{
+    await navigator.clipboard.writeText(decodeURIComponent(shareUrl));
+    copyShare.textContent = "Link Copied ✅";
+    await sleep(1200);
+    copyShare.textContent = "Copy Link";
+  }catch{}
+});
+
+// ---------- Load more ----------
+loadMoreBtn?.addEventListener("click", ()=> loadPage(false));
+
+/* =======================================================
+   GOLD PARTICLES — Full-screen behind everything
+   (GPU-light radial glow dots)
+   ======================================================= */
+(function initParticles(){
   const canvas = document.getElementById("goldParticles");
-  const ctx = canvas.getContext("2d");
+  if (!canvas) return;
 
-  let W, H, dpr;
+  const ctx = canvas.getContext("2d");
+  let dpr = Math.min(2, window.devicePixelRatio || 1);
+  let W, H;
 
   function resize(){
-    dpr = window.devicePixelRatio || 1;
     W = window.innerWidth;
     H = window.innerHeight;
-    canvas.width = W * dpr;
+    canvas.style.width  = W + "px";
+    canvas.style.height = H + "px";
+    canvas.width  = W * dpr;
     canvas.height = H * dpr;
-    ctx.scale(dpr,dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
   }
   resize();
   window.addEventListener("resize", resize);
 
-  const COUNT = 120;
-  const stars = [];
+  const COUNT = Math.floor((W*H)/28000) + 90; // adaptive
+  const stars = Array.from({length:COUNT}).map(()=>({
+    x: Math.random()*W,
+    y: Math.random()*H,
+    r: Math.random()*1.4 + 0.5,
+    a: Math.random()*0.7 + 0.3,
+    vx: (Math.random()*0.2 - 0.1),
+    vy: (Math.random()*0.18 + 0.04),
+    tw: Math.random()*Math.PI*2,
+    ts: 0.006 + Math.random()*0.012
+  }));
 
-  for(let i=0;i<COUNT;i++){
-    stars.push({
-      x: Math.random()*W,
-      y: Math.random()*H,
-      r: Math.random()*1.8 + .4,
-      vx: (Math.random()-.5)*0.25,
-      vy: Math.random()*0.3+0.05
-    });
-  }
-
-  function draw(){
+  function step(){
     ctx.clearRect(0,0,W,H);
-    stars.forEach(s=>{
-      s.x+=s.vx; s.y+=s.vy;
-      if(s.y>H) s.y=-10;
-      if(s.x>W) s.x=0;
-      if(s.x<0) s.x=W;
+    for (const s of stars){
+      s.x += s.vx;
+      s.y += s.vy;
+      s.tw += s.ts;
+
+      if (s.y > H) { s.y = -10; s.x = Math.random()*W; }
+      if (s.x < -20) s.x = W + 20;
+      if (s.x > W + 20) s.x = -20;
+
+      const pulse = 0.6 + 0.4*Math.sin(s.tw);
+      ctx.globalAlpha = s.a * pulse;
+
+      const grd = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r*6);
+      grd.addColorStop(0, "rgba(255,240,190,1)");
+      grd.addColorStop(1, "rgba(255,240,190,0)");
+      ctx.fillStyle = grd;
 
       ctx.beginPath();
-      ctx.arc(s.x,s.y,s.r*4,0,Math.PI*2);
-      ctx.fillStyle="rgba(255,240,190,.7)";
+      ctx.arc(s.x, s.y, s.r*6, 0, Math.PI*2);
       ctx.fill();
-    });
-
-    requestAnimationFrame(draw);
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(step);
   }
-  draw();
+  requestAnimationFrame(step);
 })();
+
+/* ---------- Boot ---------- */
+window.addEventListener("DOMContentLoaded", async ()=>{
+  // Arm fade for sections that exist on page
+  armFadeFor(".fade-section, .fade-up");
+
+  // Initial data
+  await refreshCount();
+  await loadPage(true);
+});
