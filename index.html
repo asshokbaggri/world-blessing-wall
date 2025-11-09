@@ -13,11 +13,11 @@
   <link rel="stylesheet" href="style.css" />
   <meta name="theme-color" content="#000000" />
 
-  <!-- PAGE FADE ANIMATION -->
+  <!-- PAGE FADE IN -->
   <style>
     body {
       opacity: 0;
-      animation: pageFade 1.4s ease forwards;
+      animation: pageFade 1.2s ease forwards;
     }
     @keyframes pageFade {
       to { opacity: 1; }
@@ -27,11 +27,11 @@
 
 <body>
 
-  <!-- GOLD HALO + PARTICLES BEHIND EVERYTHING -->
+  <!-- GOLD HALO + PARTICLES -->
   <div id="goldHalo"></div>
   <canvas id="goldParticles"></canvas>
 
-  <!-- HEADER -->
+  <!-- HEADER (no fade on scroll) -->
   <header class="nav glass-nav">
     <div class="brand">Asshok Baggri</div>
     <nav class="menu">
@@ -42,14 +42,14 @@
     </nav>
   </header>
 
-  <!-- HERO -->
+  <!-- HERO (Fade on scroll) -->
   <section class="hero fade-section">
     <h1 class="title">
       Ek Dua Likho, <span class="gold">Duniya Badlo</span> <span class="sparkle">💫</span>
     </h1>
     <p class="subtitle">Har dua ek vibration hoti hai… aur vibrations hi duniya badalti hain.</p>
 
-    <div class="composer glass">
+    <div class="composer glass fade-section">
       <label class="lbl">Your Blessing</label>
       <textarea id="blessingInput" rows="4" placeholder="Duniya ke liye ek dua likho…"></textarea>
 
@@ -109,8 +109,25 @@
     <div class="copy">© 2025 Asshok Baggri — Light For Humanity 🌍✨</div>
   </footer>
 
-  <!-- APP -->
+  <!-- APP JS -->
   <script type="module" src="app.js"></script>
+
+  <!-- SCROLL FADE ENGINE -->
+  <script>
+    const fadeItems = document.querySelectorAll(".fade-section");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("fade-visible");
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+
+    fadeItems.forEach((item) => observer.observe(item));
+  </script>
 
 </body>
 </html>
