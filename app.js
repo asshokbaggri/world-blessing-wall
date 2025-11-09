@@ -1,9 +1,5 @@
 /* ===========================================
    WORLD BLESSING WALL — APP (ULTRA DELUXE)
-   - Firebase submit + realtime feed
-   - Smooth total counter
-   - WhatsApp / X / Copy share
-   - GPU-friendly gold particle field
    =========================================== */
 
 // ---------- Firebase ----------
@@ -33,7 +29,6 @@ const statusBox     = document.getElementById("status");
 const blessingsList = document.getElementById("blessingsList");
 const counterEl     = document.getElementById("counter");
 
-// Share buttons (optional in markup)
 const waShare   = document.getElementById("waShare");
 const twShare   = document.getElementById("twShare");
 const copyShare = document.getElementById("copyShare");
@@ -54,13 +49,12 @@ function animateCount(el, to) {
   requestAnimationFrame(tick);
 }
 
+// ---------- Card Builder ----------
 function makeCard({ country, text, created }) {
   const wrap = document.createElement("div");
 
-  // Animation class
-  wrap.classList.add("fade-up");
-
-  wrap.className = "card";
+  // ✅ Premium card + fade animation
+  wrap.className = "blessing-card fade-up";
 
   const timeStr =
     created?.toDate
@@ -94,7 +88,6 @@ async function submitBlessing(){
       approved: true
     });
 
-    // visual feedback
     if (statusBox){
       statusBox.textContent = "Blessing submitted ✅";
       statusBox.style.color = "#bfe4c2";
@@ -115,7 +108,7 @@ async function submitBlessing(){
 
 sendBtn?.addEventListener("click", submitBlessing);
 
-// Enter to submit (Ctrl/Cmd+Enter inside textarea)
+// Enter to submit
 blessingInput?.addEventListener("keydown", (e)=>{
   if ((e.ctrlKey || e.metaKey) && e.key === "Enter") submitBlessing();
 });
@@ -168,8 +161,7 @@ copyShare?.addEventListener("click", async ()=>{
   resize();
   window.addEventListener("resize", resize);
 
-  // particles tuned for perf
-  const COUNT = Math.floor((W*H)/38000) + 60; // adaptive
+  const COUNT = Math.floor((W*H)/38000) + 60;
   const stars = Array.from({length:COUNT}).map(()=>({
     x: Math.random()*W,
     y: Math.random()*H,
@@ -208,16 +200,12 @@ copyShare?.addEventListener("click", async ()=>{
   requestAnimationFrame(step);
 })();
 
-// ---------- Optional: ensure halo exists ----------
+// ---------- FIX duplicated canvas ----------
 (function ensureHalo(){
-  if (!document.getElementById("goldHalo")){
-    const d = document.createElement("div");
-    d.id = "goldHalo";
-    document.body.prepend(d);
-  }
-  if (!document.getElementById("goldParticles")){
-    const c = document.createElement("canvas");
-    c.id = "goldParticles";
-    document.body.prepend(c);
+  const existing = document.querySelectorAll("#goldParticles");
+  if (existing.length > 1){
+    for (let i = 1; i < existing.length; i++){
+      existing[i].remove();
+    }
   }
 })();
