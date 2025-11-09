@@ -96,17 +96,22 @@
         alert("Please write something 🙏");
         return;
       }
+      if (!country) {
+        alert("Please enter country 🌍");
+        return;
+      }
 
       await addDoc(collection(db, "blessings"), {
         text: text,
-        country: country || "Unknown",
+        country: country,
         created: serverTimestamp(),
         approved: true
       });
 
       document.getElementById("blessingText").value = "";
+      document.getElementById("countryInput").value = "";
+      alert("Blessing submitted ✅");
     }
-
 
     // ✅ LIVE BLESSINGS
     const blessingsList = document.getElementById("blessingsList");
