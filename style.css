@@ -265,3 +265,25 @@ textarea:focus, input[type="text"]:focus{
 @media (prefers-reduced-motion: reduce){
   .fade-up, .reveal{ animation:none !important; transition:none !important; opacity:1 !important; transform:none !important }
 }
+
+/* ===== Infinite scroll controls ===== */
+.loadmore-wrap{
+  display:flex; align-items:center; justify-content:center;
+  gap:12px; margin:18px 0 6px;
+}
+.btn.load{
+  padding:10px 18px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.05);
+  border-radius:999px; cursor:pointer;
+}
+.btn.load:disabled{ opacity:.5; cursor:default }
+#scrollSentinel{ height: 40px } /* viewport trigger zone */
+
+.spinner{
+  width:18px; height:18px; border-radius:50%;
+  border:2px solid rgba(255,255,255,.18);
+  border-top-color: var(--gold);
+  animation: spin 0.9s linear infinite; display:none;
+}
+@keyframes spin{ to{ transform: rotate(360deg) } }
