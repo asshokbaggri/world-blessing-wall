@@ -1,4 +1,4 @@
-// Firebase
+// ===== FIREBASE =====
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore, collection, addDoc, serverTimestamp,
@@ -17,119 +17,100 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
-// Elements
+// ===== ELEMENTS =====
 const blessingInput = document.getElementById("blessingInput");
 const countryInput  = document.getElementById("countryInput");
 const sendBtn       = document.getElementById("sendBtn");
 const statusBox     = document.getElementById("status");
-const blessingsList = document.getElementById("blessingsList");
 const counterEl     = document.getElementById("counter");
+const listEl        = document.getElementById("blessingsList");
 
-// Ripple effect on button
-sendBtn.addEventListener("click", (e) => {
-  const r = document.createElement("span");
-  r.className = "ripple";
-  const rect = sendBtn.getBoundingClientRect();
-  r.style.left = (e.clientX - rect.left) + "px";
-  r.style.top  = (e.clientY - rect.top) + "px";
-  sendBtn.appendChild(r);
-  setTimeout(() => r.remove(), 650);
-});
+const waBtn   = document.getElementById("waShare");
+const twBtn   = document.getElementById("twShare");
+const cpBtn   = document.getElementById("copyShare");
 
-// Add Blessing
+// ===== UTIL =====
+const flag = (country="")=>{
+  const C = country.trim().toLowerCase();
+  const map = {
+    "india":"🇮🇳","united states":"🇺🇸","usa":"🇺🇸","uk":"🇬🇧","united kingdom":"🇬🇧",
+    "uae":"🇦🇪","canada":"🇨🇦","australia":"🇦🇺","nepal":"🇳🇵","pakistan":"🇵🇰",
+    "bangladesh":"🇧🇩","sri lanka":"🇱🇰","indonesia":"🇮🇩","germany":"🇩🇪","france":"🇫🇷",
+    "spain":"🇪🇸","italy":"🇮🇹","japan":"🇯🇵","china":"🇨🇳","brazil":"🇧🇷","mexico":"🇲🇽",
+  };
+  return map[C] || "🌍";
+};
+
+// ===== ADD BLESSING =====
 sendBtn.addEventListener("click", async () => {
   const text = blessingInput.value.trim();
   const country = countryInput.value.trim();
 
-  if (!text)  return alert("Write a blessing first 😇");
-  if (!country) return alert("Country batao baby 🌍");
+  if (!text){ alert("Write a blessing first 😇"); return; }
+  if (!country){ alert("Country bhi likho baby 🌍"); return; }
 
-  await addDoc(collection(db, "blessings"), {
-    text, country, created: serverTimestamp(), approved: true
+  await addDoc(collection(db,"blessings"),{
+    text, country, created: serverTimestamp(), approved:true
   });
 
   statusBox.textContent = "Blessing submitted ✅";
   blessingInput.value = "";
+  setTimeout(()=> statusBox.textContent = "", 1800);
 });
 
-// Animated counter
-function animateCount(el, to){
-  const from = Number(el.textContent || 0);
-  const start = performance.now();
-  const dur = 600;
-  function frame(t){
-    const p = Math.min(1, (t - start)/dur);
-    el.textContent = Math.floor(from + (to - from)*p);
-    if(p<1) requestAnimationFrame(frame);
+// ===== LIVE FEED (Realtime) =====
+const q = query(collection(db,"blessings"), orderBy("created","desc"));
+onSnapshot(q, (snap)=>{
+  listEl.innerHTML = "";
+  const total = snap.docs.length;
+  // count-up animation
+  const current = Number(counterEl.textContent || 0);
+  if (total !== current){
+    let i = current;
+    const t = setInterval(()=>{
+      i += (total>current ? 1 : -1);
+      counterEl.textContent = i;
+      if (i === total) clearInterval(t);
+    }, 20);
   }
-  requestAnimationFrame(frame);
-}
 
-// Live listener
-const q = query(collection(db, "blessings"), orderBy("created", "desc"));
-onSnapshot(q, (snap) => {
-  blessingsList.innerHTML = "";
-  animateCount(counterEl, snap.docs.length);
-
-  snap.forEach((doc) => {
+  snap.forEach(doc=>{
     const d = doc.data();
     const card = document.createElement("div");
-    card.className = "blessing-card";
-
-    const created = d.created?.toDate
-      ? d.created.toDate().toLocaleString()
-      : "";
-
+    card.className = "card";
+    const when = d.created?.toDate ? d.created.toDate().toLocaleString() : "";
     card.innerHTML = `
-      <b>${d.country || "—"}</b><br/>
-      ${(d.text || "").replace(/\n/g,"<br>")}
-      <br/><small>${created}</small>
+      <div><span class="flag">${flag(d.country)}</span><b>${d.country || "World"}</b></div>
+      <div style="margin:6px 0 10px">${(d.text||"").replace(/\n/g,"<br>")}</div>
+      <small>${when}</small>
     `;
-    blessingsList.appendChild(card);
+    listEl.appendChild(card);
   });
 });
 
-// Particles (tiny gold dust)
-(function particles(){
-  const canvas = document.getElementById("particles");
-  const ctx = canvas.getContext("2d");
-  let w, h, pxRatio = window.devicePixelRatio || 1;
+// ===== SHARE =====
+const pageUrl = location.href.split("#")[0];
+waBtn?.addEventListener("click", ()=> {
+  const text = encodeURIComponent("Write a blessing ✨ " + pageUrl);
+  window.open(`https://wa.me/?text=${text}`, "_blank");
+});
+twBtn?.addEventListener("click", ()=> {
+  const text = encodeURIComponent("Ek Dua Likho, Duniya Badlo 💫 #WorldBlessingWall " + pageUrl);
+  window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank");
+});
+cpBtn?.addEventListener("click", async ()=>{
+  try{ await navigator.clipboard.writeText(pageUrl);
+       cpBtn.textContent="Copied ✅"; setTimeout(()=>cpBtn.textContent="Copy Link",1200);
+  }catch{ alert("Copy failed"); }
+});
 
-  const N = 80;
-  const dots = [];
-  function resize(){
-    w = canvas.width  = innerWidth * pxRatio;
-    h = canvas.height = innerHeight * pxRatio;
-    canvas.style.width  = innerWidth+"px";
-    canvas.style.height = innerHeight+"px";
-  }
-  function init(){
-    dots.length = 0;
-    for(let i=0;i<N;i++){
-      dots.push({
-        x: Math.random()*w, y: Math.random()*h,
-        r: 0.7 + Math.random()*1.6,
-        a: Math.random()*Math.PI*2,
-        s: 0.2 + Math.random()*0.6
-      });
+// ===== SMOOTH SCROLL + ACTIVE MENU =====
+document.querySelectorAll('.menu a').forEach(a=>{
+  a.addEventListener('click', (e)=>{
+    const id = a.getAttribute('href');
+    if(id?.startsWith('#')){
+      e.preventDefault();
+      document.querySelector(id)?.scrollIntoView({behavior:'smooth', block:'start'});
     }
-  }
-  function step(){
-    ctx.clearRect(0,0,w,h);
-    for(const p of dots){
-      p.x += Math.cos(p.a)*p.s; p.y += Math.sin(p.a)*p.s;
-      if(p.x<0) p.x=w; if(p.x>w) p.x=0;
-      if(p.y<0) p.y=h; if(p.y>h) p.y=0;
-
-      const grd = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*6);
-      grd.addColorStop(0,"rgba(255,223,138,.9)");
-      grd.addColorStop(.4,"rgba(243,201,106,.55)");
-      grd.addColorStop(1,"rgba(243,201,106,0)");
-      ctx.fillStyle = grd;
-      ctx.beginPath(); ctx.arc(p.x,p.y,p.r*6,0,Math.PI*2); ctx.fill();
-    }
-    requestAnimationFrame(step);
-  }
-  window.addEventListener("resize", ()=>{resize(); init();});
-  resize(); init(); step();
-})();
+  });
+});
