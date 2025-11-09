@@ -24,11 +24,10 @@ const db = getFirestore(app);
 // ✅ Elements
 const blessingInput = document.getElementById("blessingInput");
 const countryInput  = document.getElementById("countryInput");
-const submitBtn     = document.getElementById("submitBtn");
+const submitBtn     = document.getElementById("sendBtn");   // ✅ FIXED
 const statusBox     = document.getElementById("status");
 const blessingsList = document.getElementById("blessingsList");
-const totalCount    = document.getElementById("totalCount");
-
+const totalCount    = document.getElementById("counter");   // ✅ FIXED
 
 // ✅ ADD BLESSING
 submitBtn.addEventListener("click", async () => {
@@ -48,7 +47,6 @@ submitBtn.addEventListener("click", async () => {
   statusBox.textContent = "Blessing submitted ✅";
   blessingInput.value = "";
 });
-
 
 // ✅ REALTIME LISTENER
 const q = query(
