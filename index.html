@@ -12,21 +12,16 @@
   <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
   <meta name="theme-color" content="#000000" />
-
-  <!-- Page entry fade -->
-  <style>
-    body{opacity:0;animation:pageFade 1.0s ease forwards}
-    @keyframes pageFade{to{opacity:1}}
-  </style>
 </head>
 
 <body>
-  <!-- Golden ambience layers -->
+
+  <!-- GOLD HALO + PARTICLES BEHIND EVERYTHING -->
   <div id="goldHalo"></div>
   <canvas id="goldParticles"></canvas>
 
   <!-- HEADER -->
-  <header class="nav glass-nav">
+  <header class="nav glass-nav fade-section">
     <div class="brand">Asshok Baggri</div>
     <nav class="menu">
       <a href="#live">Live</a>
@@ -41,9 +36,12 @@
     <h1 class="title">
       Ek Dua Likho, <span class="gold">Duniya Badlo</span> <span class="sparkle">💫</span>
     </h1>
-    <p class="subtitle">Har dua ek vibration hoti hai… aur vibrations hi duniya badalti hain.</p>
 
-    <div class="composer glass">
+    <p class="subtitle">
+      Har dua ek vibration hoti hai… aur vibrations hi duniya badalti hain.
+    </p>
+
+    <div class="composer glass fade-up">
       <label class="lbl">Your Blessing</label>
       <textarea id="blessingInput" rows="4" placeholder="Duniya ke liye ek dua likho…"></textarea>
 
@@ -64,15 +62,10 @@
   <!-- LIVE FEED -->
   <section id="live" class="feed fade-section">
     <h2 class="section-title">Live Blessings <span class="sparkle">💫</span></h2>
-
-    <!-- Newest (realtime) + older (paged) share same grid -->
     <div id="blessingsList" class="cards"></div>
 
-    <!-- Paged loading controls -->
-    <div class="loadmore-wrap">
-      <button id="loadMore" class="btn load-more">Load more</button>
-      <div id="noMore" class="no-more">No more blessings 🙂</div>
-    </div>
+    <button id="loadMore" class="load-btn">Load more</button>
+    <div id="noMore" class="no-more"></div>
   </section>
 
   <!-- SHARE -->
@@ -91,7 +84,9 @@
     <div>
       <h4>Asshok Baggri</h4>
       <div class="role">Consciousness & Peace Architect</div>
-      <blockquote>“Main chahta hoon har insaan ek dua likhe, kyunki blessings hi duniya ki asli currency hain.”</blockquote>
+      <blockquote>
+        “Main chahta hoon har insaan ek dua likhe, kyunki blessings hi duniya ki asli currency hain.”
+      </blockquote>
     </div>
   </section>
 
