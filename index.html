@@ -94,6 +94,18 @@
     <div class="copy">© 2025 Asshok Baggri — Light For Humanity 🌍✨</div>
   </footer>
 
+  <script>
+  document.addEventListener("mousemove", (e) => {
+    const s = document.createElement("div");
+    s.className = "spark";
+    s.style.left = e.pageX + "px";
+    s.style.top = e.pageY + "px";
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 800);
+  });
+  </script>
+
+
   <!-- APP -->
   <script type="module" src="./app.js"></script>
 </body>
