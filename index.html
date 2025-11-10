@@ -10,16 +10,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
   <!-- Styles -->
-  <link rel="stylesheet" href="/world-blessing-wall/style.css" />
+  <link rel="stylesheet" href="style.css" />
   <meta name="theme-color" content="#000000" />
 </head>
 
 <body>
-  <!-- GOLD HALO + PARTICLES (behind everything) -->
   <div id="goldHalo"></div>
   <canvas id="goldParticles"></canvas>
 
-  <!-- HEADER -->
   <header class="nav fade-section" role="banner" aria-label="Main navigation">
     <div class="brand">Asshok Baggri</div>
     <nav class="menu" aria-label="Site sections">
@@ -30,70 +28,63 @@
     </nav>
   </header>
 
-  <!-- HERO -->
   <section class="hero fade-section" id="hero">
     <h1 class="title">
       Ek Dua Likho, <span class="gold">Duniya Badlo</span> <span class="sparkle" aria-hidden="true">💫</span>
     </h1>
     <p class="subtitle">Har dua ek vibration hoti hai… aur vibrations hi duniya badalti hain.</p>
 
-    <div class="composer fade-up" aria-label="Blessing composer">
+    <div class="composer fade-up">
       <label class="lbl" for="blessingInput">Your Blessing</label>
       <textarea id="blessingInput" rows="4" placeholder="Duniya ke liye ek dua likho…"></textarea>
 
       <div class="row">
-        <!-- Tip: user can type “IN India”, “IN”, or “India” — app.js handles it -->
-        <input id="countryInput" type="text" value="IN India" aria-label="Country" />
+        <input id="countryInput" type="text" value="IN India" />
         <button id="sendBtn" class="btn-primary" type="button">Blessing Add Karo ✨</button>
       </div>
 
-      <div id="status" class="status" aria-live="polite"></div>
+      <div id="status" class="status"></div>
 
       <div class="kpi">
-        <span class="dot" aria-hidden="true"></span>
+        <span class="dot"></span>
         <span>Total Blessings: <strong id="counter">0</strong></span>
       </div>
     </div>
   </section>
 
-  <!-- LIVE FEED -->
-  <section id="live" class="feed fade-section" aria-label="Live blessings">
-    <h2 class="section-title">Live Blessings <span class="sparkle" aria-hidden="true">💫</span></h2>
+  <section id="live" class="feed fade-section">
+    <h2 class="section-title">Live Blessings <span class="sparkle">💫</span></h2>
 
-    <div id="blessingsList" class="cards" role="list"></div>
+    <div id="blessingsList" class="cards"></div>
 
     <button id="loadMore" class="load-btn" type="button">Load more</button>
-    <div id="noMore" class="no-more" aria-live="polite"></div>
+    <div id="noMore" class="no-more"></div>
   </section>
 
-  <!-- SHARE -->
-  <section id="share" class="share fade-section" aria-label="Share the wall">
+  <section id="share" class="share fade-section">
     <h3>Aapki dua roshni ban kar duniya tak pahunchti hai 🤍</h3>
     <div class="share-row">
-      <button class="btn" id="waShare" type="button">WhatsApp</button>
-      <button class="btn" id="twShare" type="button">Twitter/X</button>
-      <button class="btn" id="copyShare" type="button">Copy Link</button>
+      <button class="btn" id="waShare">WhatsApp</button>
+      <button class="btn" id="twShare">Twitter/X</button>
+      <button class="btn" id="copyShare">Copy Link</button>
     </div>
   </section>
 
-  <!-- FOUNDER -->
-  <section id="founder" class="founder fade-section" aria-label="Founder">
-    <div class="avatar" aria-hidden="true">AB</div>
+  <section id="founder" class="founder fade-section">
+    <div class="avatar">AB</div>
     <div>
       <h4>Asshok Baggri</h4>
-      <div class="role">Consciousness &amp; Peace Architect</div>
+      <div class="role">Consciousness & Peace Architect</div>
       <blockquote>“Main chahta hoon har insaan ek dua likhe, kyunki blessings hi duniya ki asli currency hain.”</blockquote>
     </div>
   </section>
 
-  <!-- MAP -->
-  <section id="map" class="map fade-section" aria-label="Blessings around the world">
+  <section id="map" class="map fade-section">
     <h3>🌍 Blessings Around The World</h3>
     <div class="map-box">World Map (coming soon)</div>
   </section>
 
-  <!-- FOOTER -->
-  <footer class="footer fade-section" role="contentinfo">
+  <footer class="footer fade-section">
     <div class="links">
       <a href="#">About</a>
       <a href="#">Roadmap</a>
@@ -102,11 +93,6 @@
     <div class="copy">© 2025 Asshok Baggri — Light For Humanity 🌍✨</div>
   </footer>
 
-  <noscript style="color:white; display:block; text-align:center; padding:12px;">
-    Please enable JavaScript to use the World Blessing Wall.
-  </noscript>
-
-  <!-- APP -->
-  <script type="module" src="/world-blessing-wall/app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
