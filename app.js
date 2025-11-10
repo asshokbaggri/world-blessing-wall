@@ -1,5 +1,5 @@
 /* ===========================================
-   WORLD BLESSING WALL — HYBRID ULTRA DELUXE
+   WORLD BLESSING WALL — FIREBASE v2 (NEW DB)
    =========================================== */
 
 // ---------- Firebase ----------
@@ -7,7 +7,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import {
   getFirestore, collection, addDoc, serverTimestamp,
   onSnapshot, query, orderBy, limit, startAfter,
-  getDocs   // ✅ IMPORTANT FIX
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -21,6 +21,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
+
 
 // ---------- DOM ----------
 const blessingInput = document.getElementById("blessingInput");
@@ -39,6 +40,7 @@ const copyShare = document.getElementById("copyShare");
 let lastDoc = null;
 let initialLoaded = false;
 
+
 // ---------- FLAG ----------
 function getFlag(countryName){
   if(!countryName) return "🌍";
@@ -54,23 +56,24 @@ function getFlag(countryName){
   }
 }
 
+
 // ---------- CARD ----------
 function makeCard(data) {
   const wrap = document.createElement("div");
   wrap.classList.add("blessing-card", "fade-up");
 
-  const country = data.country || "";
-  const text = data.text || "";
+  const country   = data.country || "";
+  const text      = data.text || "";
+  const timestamp = data.timestamp;
 
-  // ✅ FLAG SAFE
   const cleanCountry = (country || "").trim().split(" ")[0].toUpperCase();
   const flag = getFlag(cleanCountry);
 
-  // ✅ TIMESTAMP SAFE
+  // ✅ Time Safe
   let timeStr = "";
   try {
-    if (data.created && data.created.toDate) {
-      timeStr = data.created.toDate().toLocaleString();
+    if (timestamp?.toDate) {
+      timeStr = timestamp.toDate().toLocaleString();
     } else {
       timeStr = new Date().toLocaleString();
     }
@@ -102,6 +105,7 @@ function animateCount(el, to){
   requestAnimationFrame(frame);
 }
 
+
 // ---------- SUBMIT ----------
 async function submitBlessing(){
   const text = blessingInput.value.trim();
@@ -112,10 +116,28 @@ async function submitBlessing(){
 
   sendBtn.disabled = true;
 
+  // ✅ NEW FULL FIRESTORE DOCUMENT
   await addDoc(collection(db,"blessings"), {
-    text, country,
-    created: serverTimestamp(),
-    approved: true
+    blessingId: crypto.randomUUID(),
+    text: text,
+    country: country,
+    countryCode: country.slice(0,2).toUpperCase(),
+    language: "auto",
+    device: "web",
+    source: "direct",
+    sentimentScore: 0,
+    status: "approved",
+    username: "",
+    ipHash: "anon",
+
+    geo: {
+      city: "",
+      region: "",
+      lat: 0,
+      lng: 0
+    },
+
+    timestamp: serverTimestamp()
   });
 
   blessingInput.value = "";
@@ -127,11 +149,13 @@ async function submitBlessing(){
 
 sendBtn.addEventListener("click", submitBlessing);
 
+
 // ---------- FIRST LOAD ----------
 async function loadInitial(){
   const q = query(
     collection(db,"blessings"),
-    orderBy("created","desc"),
+    orderBy("status","asc"),
+    orderBy("timestamp","desc"),
     limit(12)
   );
 
@@ -152,10 +176,11 @@ async function loadInitial(){
 
 loadInitial();
 
-// ---------- REALTIME LISTENER (TOP 1 NEW MESSAGE) ----------
+
+// ---------- REALTIME NEW MESSAGE ----------
 const liveTop = query(
   collection(db,"blessings"),
-  orderBy("created","desc"),
+  orderBy("timestamp","desc"),
   limit(1)
 );
 
@@ -165,15 +190,15 @@ onSnapshot(liveTop, snap => {
   snap.docChanges().forEach(change => {
     if(change.type === "added"){
       const data = change.doc.data();
-
       const newCard = makeCard(data);
-      blessingsList.prepend(newCard);
 
+      blessingsList.prepend(newCard);
       animateCount(counterEl, Number(counterEl.textContent) + 1);
       revealOnScroll();
     }
   });
 });
+
 
 // ---------- LOAD MORE ----------
 loadMoreBtn.addEventListener("click", async ()=>{
@@ -181,7 +206,8 @@ loadMoreBtn.addEventListener("click", async ()=>{
 
   const q = query(
     collection(db,"blessings"),
-    orderBy("created","desc"),
+    orderBy("status","asc"),
+    orderBy("timestamp","desc"),
     startAfter(lastDoc),
     limit(12)
   );
@@ -199,6 +225,7 @@ loadMoreBtn.addEventListener("click", async ()=>{
 
   revealOnScroll();
 });
+
 
 // ---------- PARTICLES ----------
 (function initParticles(){
@@ -261,6 +288,7 @@ loadMoreBtn.addEventListener("click", async ()=>{
   animate();
 })();
 
+
 // ---------- SCROLL FADE ----------
 function revealOnScroll(){
   const els = document.querySelectorAll(".fade-up, .fade-section");
@@ -272,5 +300,6 @@ function revealOnScroll(){
     }
   });
 }
+
 window.addEventListener("scroll", revealOnScroll);
 window.addEventListener("load", revealOnScroll);
