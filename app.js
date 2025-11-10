@@ -1,5 +1,5 @@
 /* ===========================================================
-   WORLD BLESSING WALL — HYBRID V2.1 (REALTIME + LOADMORE FIXED)
+   WORLD BLESSING WALL — HYBRID V2.2 (FULL FIXED)
    =========================================================== */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -12,7 +12,8 @@ import {
   orderBy,
   limit,
   startAfter,
-  onSnapshot
+  onSnapshot,
+  getDocs            // ✅ MISSING IMPORT FIXED
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -42,6 +43,18 @@ let lastVisible = null;
 let loadingMore = false;
 let initialLoaded = false;
 
+// ---------------- COUNTRY FLAG HANDLER ----------------
+function getFlag(country) {
+  const c = country.toLowerCase();
+
+  if (c.includes("india") || c === "in") return "🇮🇳";
+  if (c.includes("usa") || c === "us") return "🇺🇸";
+  if (c.includes("uae")) return "🇦🇪";
+  if (c.includes("uk")) return "🇬🇧";
+  
+  return "🌍"; // default
+}
+
 // ---------------- MAKE CARD ----------------
 function makeCard(data) {
   const wrap = document.createElement("div");
@@ -52,7 +65,7 @@ function makeCard(data) {
     : new Date().toLocaleString();
 
   wrap.innerHTML = `
-    <b>🇮🇳 ${data.country}</b>
+    <b>${getFlag(data.country)} ${data.country}</b>
     <div>${(data.text || "").replace(/\n/g, "<br>")}</div>
     <small>${timeStr}</small>
   `;
@@ -79,7 +92,7 @@ async function submitBlessing() {
 
   blessingInput.value = "";
   statusBox.textContent = "Blessing submitted ✅";
-  setTimeout(() => (statusBox.textContent = ""), 1200);
+  setTimeout(() => (statusBox.textContent = ""), 1500);
 
   sendBtn.disabled = false;
 }
@@ -94,18 +107,15 @@ const liveQuery = query(
 );
 
 onSnapshot(liveQuery, (snap) => {
-  if (!initialLoaded) return; // loadMore load hone tak wait
+  if (!initialLoaded) return; // wait for initial load
 
   blessingsList.innerHTML = "";
-
-  snap.docs.forEach((doc) => {
-    blessingsList.appendChild(makeCard(doc.data()));
-  });
+  snap.docs.forEach((doc) => blessingsList.appendChild(makeCard(doc.data())));
 
   animateCount(counterEl, snap.size);
 });
 
-// ---------------- FIRST LOAD (FULL) ----------------
+// ---------------- FIRST LOAD ----------------
 async function loadInitial() {
   const q = query(
     collection(db, "blessings"),
@@ -113,13 +123,12 @@ async function loadInitial() {
     limit(10)
   );
 
-  const snap = await getDocs(q);
+  const snap = await getDocs(q);   // ✅ NOW WORKS
 
   blessingsList.innerHTML = "";
   snap.docs.forEach((doc) => blessingsList.appendChild(makeCard(doc.data())));
 
   lastVisible = snap.docs[snap.docs.length - 1];
-
   initialLoaded = true;
 
   if (snap.size < 10) loadMoreBtn.style.display = "none";
@@ -145,7 +154,7 @@ loadMoreBtn.addEventListener("click", async () => {
 
   if (snap.docs.length < 10) {
     loadMoreBtn.style.display = "none";
-    noMoreText.innerHTML = "No more 🙏";
+    noMoreText.textContent = "No more 🙏";
   }
 
   lastVisible = snap.docs[snap.docs.length - 1];
