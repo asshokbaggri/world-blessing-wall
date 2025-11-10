@@ -1,6 +1,6 @@
-/* ===========================================================
-   WORLD BLESSING WALL — HYBRID V2.2 (FULL FIXED)
-   =========================================================== */
+/* =======================================================
+   WORLD BLESSING WALL — HYBRID V3 (FINAL FIXED + STABLE)
+   ======================================================= */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
@@ -13,9 +13,10 @@ import {
   limit,
   startAfter,
   onSnapshot,
-  getDocs            // ✅ MISSING IMPORT FIXED
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+/* ---------------- FIREBASE ---------------- */
 const firebaseConfig = {
   apiKey: "AIzaSyC8CzspwB_GtrbUm-V2mIvumpPqbbq-f6k",
   authDomain: "world-blessing-wall.firebaseapp.com",
@@ -28,58 +29,51 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// DOM
+/* ---------------- DOM ---------------- */
 const blessingInput = document.getElementById("blessingInput");
-const countryInput = document.getElementById("countryInput");
-const sendBtn = document.getElementById("sendBtn");
+const countryInput  = document.getElementById("countryInput");
+const sendBtn       = document.getElementById("sendBtn");
 const blessingsList = document.getElementById("blessingsList");
-const loadMoreBtn = document.getElementById("loadMore");
-const noMoreText = document.getElementById("noMore");
-const counterEl = document.getElementById("counter");
-const statusBox = document.getElementById("status");
+const loadMoreBtn   = document.getElementById("loadMore");
+const noMoreText    = document.getElementById("noMore");
+const counterEl     = document.getElementById("counter");
+const statusBox     = document.getElementById("status");
 
-// Pagination
-let lastVisible = null;
-let loadingMore = false;
-let initialLoaded = false;
-
-// ---------------- COUNTRY FLAG HANDLER ----------------
+/* ---------------- FLAGS ---------------- */
 function getFlag(country) {
   const c = country.toLowerCase();
-
-  if (c.includes("india") || c === "in") return "🇮🇳";
-  if (c.includes("usa") || c === "us") return "🇺🇸";
-  if (c.includes("uae")) return "🇦🇪";
+  if (c.includes("in")) return "🇮🇳";
+  if (c.includes("us")) return "🇺🇸";
   if (c.includes("uk")) return "🇬🇧";
-  
-  return "🌍"; // default
+  if (c.includes("uae")) return "🇦🇪";
+  return "🌍";
 }
 
-// ---------------- MAKE CARD ----------------
+/* ---------------- MAKE CARD ---------------- */
 function makeCard(data) {
-  const wrap = document.createElement("div");
-  wrap.className = "blessing-card fade-up";
+  const d = document.createElement("div");
+  d.className = "blessing-card fade-up";
 
-  const timeStr = data.created?.toDate
-    ? data.created.toDate().toLocaleString()
-    : new Date().toLocaleString();
+  const timeStr =
+    data.created?.toDate ?
+      data.created.toDate().toLocaleString() :
+      new Date().toLocaleString();
 
-  wrap.innerHTML = `
+  d.innerHTML = `
     <b>${getFlag(data.country)} ${data.country}</b>
-    <div>${(data.text || "").replace(/\n/g, "<br>")}</div>
+    <div>${data.text.replace(/\n/g,"<br>")}</div>
     <small>${timeStr}</small>
   `;
 
-  return wrap;
+  return d;
 }
 
-// ---------------- SUBMIT ----------------
+/* ---------------- SUBMIT ---------------- */
 async function submitBlessing() {
   const text = blessingInput.value.trim();
   const country = countryInput.value.trim();
 
-  if (!text) return;
-  if (!country) return;
+  if (!text || !country) return;
 
   sendBtn.disabled = true;
 
@@ -87,6 +81,7 @@ async function submitBlessing() {
     text,
     country,
     created: serverTimestamp(),
+    created_fallback: Date.now(),   // ✅ CRASH FIX
     approved: true
   });
 
@@ -99,34 +94,23 @@ async function submitBlessing() {
 
 sendBtn.addEventListener("click", submitBlessing);
 
-// ---------------- REALTIME LISTENER (TOP 10 NEWEST) ----------------
-const liveQuery = query(
-  collection(db, "blessings"),
-  orderBy("created", "desc"),
-  limit(10)
-);
+/* ---------------- PAGINATION ---------------- */
+let lastVisible = null;
+let initialLoaded = false;
+let loadingMore = false;
 
-onSnapshot(liveQuery, (snap) => {
-  if (!initialLoaded) return; // wait for initial load
-
-  blessingsList.innerHTML = "";
-  snap.docs.forEach((doc) => blessingsList.appendChild(makeCard(doc.data())));
-
-  animateCount(counterEl, snap.size);
-});
-
-// ---------------- FIRST LOAD ----------------
+/* ---------------- INITIAL LOAD ---------------- */
 async function loadInitial() {
   const q = query(
     collection(db, "blessings"),
-    orderBy("created", "desc"),
+    orderBy("created_fallback", "desc"),
     limit(10)
   );
 
-  const snap = await getDocs(q);   // ✅ NOW WORKS
+  const snap = await getDocs(q);
 
   blessingsList.innerHTML = "";
-  snap.docs.forEach((doc) => blessingsList.appendChild(makeCard(doc.data())));
+  snap.docs.forEach(doc => blessingsList.appendChild(makeCard(doc.data())));
 
   lastVisible = snap.docs[snap.docs.length - 1];
   initialLoaded = true;
@@ -136,21 +120,23 @@ async function loadInitial() {
 
 loadInitial();
 
-// ---------------- LOAD MORE ----------------
+/* ---------------- LOAD MORE ---------------- */
 loadMoreBtn.addEventListener("click", async () => {
   if (loadingMore || !lastVisible) return;
   loadingMore = true;
 
   const q = query(
     collection(db, "blessings"),
-    orderBy("created", "desc"),
+    orderBy("created_fallback","desc"),
     startAfter(lastVisible),
     limit(10)
   );
 
   const snap = await getDocs(q);
 
-  snap.docs.forEach((doc) => blessingsList.appendChild(makeCard(doc.data())));
+  snap.docs.forEach(doc =>
+    blessingsList.appendChild(makeCard(doc.data()))
+  );
 
   if (snap.docs.length < 10) {
     loadMoreBtn.style.display = "none";
@@ -161,14 +147,30 @@ loadMoreBtn.addEventListener("click", async () => {
   loadingMore = false;
 });
 
-// ---------------- COUNTER ----------------
+/* ---------------- REALTIME LISTENER ---------------- */
+const liveQ = query(
+  collection(db, "blessings"),
+  orderBy("created_fallback", "desc"),
+  limit(10)
+);
+
+onSnapshot(liveQ, (snap) => {
+  if (!initialLoaded) return;
+
+  blessingsList.innerHTML = "";
+  snap.docs.forEach(doc => blessingsList.appendChild(makeCard(doc.data())));
+
+  animateCount(counterEl, snap.size);
+});
+
+/* ---------------- COUNTER ---------------- */
 function animateCount(el, to) {
   const from = Number(el.textContent || 0);
-  const duration = 400;
   const start = performance.now();
+  const dur = 400;
 
   function frame(t) {
-    const p = Math.min(1, (t - start) / duration);
+    const p = Math.min(1, (t - start) / dur);
     el.textContent = Math.round(from + (to - from) * p);
     if (p < 1) requestAnimationFrame(frame);
   }
