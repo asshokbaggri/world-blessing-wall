@@ -1,12 +1,12 @@
-/* ===========================================
-   WORLD BLESSING WALL — HYBRID ULTRA DELUXE
-   =========================================== */
+/* ===========================================================
+   WORLD BLESSING WALL — HYBRID ULTRA DELUXE V3 (FINAL FIXED)
+   =========================================================== */
 
 // ---------- Firebase ----------
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore, collection, addDoc, serverTimestamp,
-  onSnapshot, query, orderBy, limit, startAfter
+  onSnapshot, query, orderBy, limit, startAfter, getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -28,140 +28,152 @@ const sendBtn       = document.getElementById("sendBtn");
 const statusBox     = document.getElementById("status");
 const blessingsList = document.getElementById("blessingsList");
 const counterEl     = document.getElementById("counter");
-
-const loadMoreBtn = document.getElementById("loadMore");
-const noMoreEl    = document.getElementById("noMore");
+const loadMoreBtn   = document.getElementById("loadMore");
+const noMoreEl      = document.getElementById("noMore");
 
 const waShare   = document.getElementById("waShare");
 const twShare   = document.getElementById("twShare");
 const copyShare = document.getElementById("copyShare");
 
 let lastDoc = null;
-let firstLoad = true;
+let initialLoaded = false;
 
-const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-
-// ---------- COUNTRY FLAG ----------
+// ---------- FLAG ----------
 function getFlag(countryName){
+  if(!countryName) return "🌍";
+
   try {
-    let code = countryName.trim().slice(0,2).toUpperCase();
-    if(code.length < 2) return "🌍";
+    let c = countryName.trim().slice(0,2).toUpperCase();
     return String.fromCodePoint(
-      0x1F1E6 + (code.charCodeAt(0) - 65),
-      0x1F1E6 + (code.charCodeAt(1) - 65)
+      0x1F1E6 + (c.charCodeAt(0) - 65),
+      0x1F1E6 + (c.charCodeAt(1) - 65)
     );
   } catch {
     return "🌍";
   }
 }
 
-// ---------- COUNTER ----------
-function animateCount(el, to) {
-  const from = Number(el.textContent || 0);
-  const dur = 420;
-  const t0 = performance.now();
-  function tick(t) {
-    const p = Math.min(1, (t - t0) / dur);
-    el.textContent = Math.round(from + (to - from) * p);
-    if (p < 1) requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
-}
-
 // ---------- CARD ----------
-function makeCard({ country, text, created }) {
+function makeCard({country, text, created}) {
   const wrap = document.createElement("div");
   wrap.classList.add("blessing-card", "fade-up");
 
-  const flag = getFlag(country || "");
+  const flag = getFlag(country);
   const timeStr = created?.toDate
     ? created.toDate().toLocaleString()
     : new Date().toLocaleString();
 
   wrap.innerHTML = `
-    <b><span class="flag">${flag}</span> ${country || "—"}</b>
-    <div>${(text || "").replace(/\n/g, "<br>")}</div>
+    <b><span class="flag">${flag}</span> ${country}</b>
+    <div>${(text || "").replace(/\n/g,"<br>")}</div>
     <small>${timeStr}</small>
   `;
   return wrap;
 }
 
-// ---------- SUBMIT ----------
-async function submitBlessing() {
-  const text = blessingInput.value.trim();
-  const country = (countryInput.value || "").trim();
+// ---------- COUNTER ----------
+function animateCount(el, to){
+  const from = Number(el.textContent || 0);
+  const duration = 300;
+  const start = performance.now();
 
-  if (!text) return blessingInput.focus();
-  if (!country) return countryInput.focus();
-
-  try {
-    sendBtn.disabled = true;
-    sendBtn.style.opacity = .7;
-
-    await addDoc(collection(db, "blessings"), {
-      text, country,
-      created: serverTimestamp(),
-      approved: true
-    });
-
-    statusBox.textContent = "Blessing submitted ✅";
-    statusBox.style.color = "#bfe4c2";
-    blessingInput.value = "";
-
-  } catch (err) {
-    statusBox.textContent = "Error: " + (err?.message || "Failed");
-    statusBox.style.color = "#ffb4b4";
-  } finally {
-    sendBtn.disabled = false;
-    sendBtn.style.opacity = 1;
+  function frame(t){
+    const p = Math.min(1, (t - start) / duration);
+    el.textContent = Math.round(from + (to - from) * p);
+    if (p < 1) requestAnimationFrame(frame);
   }
+  requestAnimationFrame(frame);
 }
 
-sendBtn?.addEventListener("click", submitBlessing);
+// ---------- SUBMIT ----------
+async function submitBlessing(){
+  const text = blessingInput.value.trim();
+  const country = countryInput.value.trim();
 
-blessingInput?.addEventListener("keydown", (e)=>{
-  if((e.ctrlKey || e.metaKey) && e.key === "Enter") submitBlessing();
-});
+  if(!text) return;
+  if(!country) return;
 
-// ---------- INITIAL LOAD (LIMITED) ----------
+  sendBtn.disabled = true;
+
+  await addDoc(collection(db,"blessings"), {
+    text, country,
+    created: serverTimestamp(),
+    approved: true
+  });
+
+  blessingInput.value = "";
+  statusBox.textContent = "Blessing added ✅";
+
+  setTimeout(()=> statusBox.textContent="",1200);
+  sendBtn.disabled = false;
+}
+
+sendBtn.addEventListener("click", submitBlessing);
+
+// ---------- FIRST LOAD ----------
 async function loadInitial(){
-  const qLimited = query(
+  const q = query(
     collection(db,"blessings"),
     orderBy("created","desc"),
     limit(12)
   );
 
-  onSnapshot(qLimited, (snap)=>{
-    if(!firstLoad) return; // prevents duplicate renders
-    firstLoad = false;
+  const snap = await getDocs(q);
 
-    blessingsList.innerHTML = "";
-    snap.docs.forEach(doc => blessingsList.appendChild(makeCard(doc.data())));
+  blessingsList.innerHTML = "";
+  snap.docs.forEach(doc => blessingsList.appendChild(makeCard(doc.data())));
 
-    lastDoc = snap.docs[snap.docs.length - 1];
-    animateCount(counterEl, snap.size);
+  lastDoc = snap.docs[snap.docs.length - 1];
+  initialLoaded = true;
 
-    revealOnScroll(); // show fade
-  });
+  animateCount(counterEl, snap.size);
+
+  if(snap.size < 12){
+    loadMoreBtn.style.display = "none";
+  }
 }
+
 loadInitial();
 
+// ---------- REALTIME LISTENER (TOP 1 NEW MESSAGE) ----------
+const liveTop = query(
+  collection(db,"blessings"),
+  orderBy("created","desc"),
+  limit(1)
+);
+
+onSnapshot(liveTop, snap => {
+  if(!initialLoaded) return;
+
+  snap.docChanges().forEach(change => {
+    if(change.type === "added"){
+      const data = change.doc.data();
+
+      const newCard = makeCard(data);
+      blessingsList.prepend(newCard);
+
+      animateCount(counterEl, Number(counterEl.textContent) + 1);
+      revealOnScroll();
+    }
+  });
+});
+
 // ---------- LOAD MORE ----------
-loadMoreBtn?.addEventListener("click", async ()=>{
+loadMoreBtn.addEventListener("click", async ()=>{
   if(!lastDoc) return;
 
-  const qMore = query(
+  const q = query(
     collection(db,"blessings"),
     orderBy("created","desc"),
     startAfter(lastDoc),
     limit(12)
   );
 
-  const snap = await getDocs(qMore);
+  const snap = await getDocs(q);
 
   if(snap.empty){
-    noMoreEl.textContent = "No more blessings 🤍";
     loadMoreBtn.style.display = "none";
+    noMoreEl.textContent = "No more blessings 🤍";
     return;
   }
 
@@ -171,57 +183,39 @@ loadMoreBtn?.addEventListener("click", async ()=>{
   revealOnScroll();
 });
 
-// ---------- SHARE ----------
-const shareText = encodeURIComponent("Ek dua likho, duniya badlo 💫");
-const shareUrl  = encodeURIComponent(location.href.split('#')[0]);
-
-waShare?.addEventListener("click", ()=> {
-  window.open(`https://wa.me/?text=${shareText}%20${shareUrl}`, "_blank");
-});
-twShare?.addEventListener("click", ()=> {
-  window.open(`https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`, "_blank");
-});
-copyShare?.addEventListener("click", async ()=>{
-  try{
-    await navigator.clipboard.writeText(decodeURIComponent(shareUrl));
-    copyShare.textContent = "Link Copied ✅";
-    await sleep(1200);
-    copyShare.textContent = "Copy Link";
-  } catch {}
-});
-
 // ---------- PARTICLES ----------
 (function initParticles(){
   const canvas = document.getElementById("goldParticles");
   const ctx = canvas.getContext("2d");
-  let dpr = Math.min(2, window.devicePixelRatio || 1);
-  let W, H;
 
+  let W, H, dpr;
   function resize(){
+    dpr = Math.min(2, window.devicePixelRatio || 1);
     W = window.innerWidth;
     H = window.innerHeight;
+
     canvas.style.width = W + "px";
     canvas.style.height = H + "px";
     canvas.width = W * dpr;
     canvas.height = H * dpr;
+
     ctx.setTransform(dpr,0,0,dpr,0,0);
   }
   resize();
   window.addEventListener("resize", resize);
 
-  const COUNT = Math.floor((W * H) / 28000) + 90;
+  const COUNT = Math.floor((W*H)/28000) + 90;
   const stars = Array.from({length:COUNT}).map(()=>({
     x: Math.random()*W,
     y: Math.random()*H,
-    r: Math.random()*1.4 + 0.5,
-    a: Math.random()*0.7 + 0.3,
+    r: Math.random()*1.4 + 0.4,
     vx: (Math.random()*0.2 - 0.1),
-    vy: (Math.random()*0.18 + 0.04),
+    vy: (Math.random()*0.25 + 0.1),
     tw: Math.random()*Math.PI*2,
-    ts: 0.006 + Math.random()*0.01
+    ts: 0.005 + Math.random()*0.008
   }));
 
-  function step(){
+  function animate(){
     ctx.clearRect(0,0,W,H);
 
     for(const s of stars){
@@ -230,26 +224,24 @@ copyShare?.addEventListener("click", async ()=>{
       s.tw += s.ts;
 
       if(s.y > H) s.y = -10, s.x = Math.random()*W;
-      if(s.x < -20) s.x = W + 20;
-      if(s.x > W + 20) s.x = -20;
 
-      const pulse = 0.6 + 0.4*Math.sin(s.tw);
-      ctx.globalAlpha = s.a * pulse;
+      const glow = 0.6 + 0.4*Math.sin(s.tw);
+      ctx.globalAlpha = glow;
 
-      const g = ctx.createRadialGradient(s.x,s.y,0, s.x,s.y,s.r*6);
+      const g = ctx.createRadialGradient(s.x,s.y,0, s.x,s.y,s.r*7);
       g.addColorStop(0,"rgba(255,240,190,1)");
       g.addColorStop(1,"rgba(255,240,190,0)");
       ctx.fillStyle = g;
 
       ctx.beginPath();
-      ctx.arc(s.x,s.y,s.r*6,0,Math.PI*2);
+      ctx.arc(s.x,s.y,s.r*7,0,Math.PI*2);
       ctx.fill();
     }
 
     ctx.globalAlpha = 1;
-    requestAnimationFrame(step);
+    requestAnimationFrame(animate);
   }
-  requestAnimationFrame(step);
+  animate();
 })();
 
 // ---------- SCROLL FADE ----------
@@ -258,8 +250,9 @@ function revealOnScroll(){
   const trigger = window.innerHeight * 0.92;
 
   els.forEach(el=>{
-    const rect = el.getBoundingClientRect();
-    if(rect.top < trigger) el.classList.add("show");
+    if(el.getBoundingClientRect().top < trigger){
+      el.classList.add("show");
+    }
   });
 }
 window.addEventListener("scroll", revealOnScroll);
