@@ -40,52 +40,18 @@ let lastDoc = null;
 let initialLoaded = false;
 
 // ---------- FLAG ----------
-function getFlag(country) {
-  if (!country) return "🌍";
+function getFlag(countryName){
+  if(!countryName) return "🌍";
 
-  let c = country.trim().toLowerCase();
-
-  // Clean emojis
-  c = c.replace(/[\u{1F1E6}-\u{1F1FF}]/gu, "").trim();
-
-  // Case 1: If input starts with 2 letters → ISO
-  if (/^[a-z]{2}\b/.test(c)) {
-    const code = c.slice(0,2).toUpperCase();
+  try {
+    let c = countryName.trim().slice(0,2).toUpperCase();
     return String.fromCodePoint(
-      0x1F1E6 + (code.charCodeAt(0) - 65),
-      0x1F1E6 + (code.charCodeAt(1) - 65)
+      0x1F1E6 + (c.charCodeAt(0) - 65),
+      0x1F1E6 + (c.charCodeAt(1) - 65)
     );
+  } catch {
+    return "🌍";
   }
-
-  // Case 2: Country name → ISO mapping
-  const nameToCode = {
-    india: "IN",
-    pakistan: "PK",
-    china: "CN",
-    nepal: "NP",
-    bangladesh: "BD",
-    sri lanka: "LK",
-    united states: "US",
-    usa: "US",
-    united kingdom: "GB",
-    uk: "GB",
-    uae: "AE",
-    dubai: "AE",
-    japan: "JP",
-    france: "FR",
-    germany: "DE"
-  };
-
-  if (nameToCode[c]) {
-    const iso = nameToCode[c];
-    return String.fromCodePoint(
-      0x1F1E6 + (iso.charCodeAt(0) - 65),
-      0x1F1E6 + (iso.charCodeAt(1) - 65)
-    );
-  }
-
-  // Fallback
-  return "🌍";
 }
 
 // ---------- CARD ----------
