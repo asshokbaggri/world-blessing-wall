@@ -54,22 +54,37 @@ function getFlag(countryName){
 }
 
 // ---------- CARD ----------
-function makeCard({country, text, created}) {
+function makeCard(data) {
   const wrap = document.createElement("div");
   wrap.classList.add("blessing-card", "fade-up");
 
+  const country = data.country || "";
+  const text = data.text || "";
+
+  // ✅ FLAG SAFE
   const flag = getFlag(country);
-  const timeStr = created?.toDate
-    ? created.toDate().toLocaleString()
-    : new Date().toLocaleString();
+
+  // ✅ TIMESTAMP SAFE
+  let timeStr = "";
+  try {
+    if (data.created && data.created.toDate) {
+      timeStr = data.created.toDate().toLocaleString();
+    } else {
+      timeStr = new Date().toLocaleString();
+    }
+  } catch {
+    timeStr = new Date().toLocaleString();
+  }
 
   wrap.innerHTML = `
     <b><span class="flag">${flag}</span> ${country}</b>
-    <div>${(text || "").replace(/\n/g,"<br>")}</div>
+    <div>${text.replace(/\n/g, "<br>")}</div>
     <small>${timeStr}</small>
   `;
+
   return wrap;
 }
+
 
 // ---------- COUNTER ----------
 function animateCount(el, to){
