@@ -1,12 +1,13 @@
-/* ===========================================================
-   WORLD BLESSING WALL — HYBRID ULTRA DELUXE V3 (FINAL FIXED)
-   =========================================================== */
+/* ===========================================
+   WORLD BLESSING WALL — HYBRID ULTRA DELUXE
+   =========================================== */
 
 // ---------- Firebase ----------
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore, collection, addDoc, serverTimestamp,
-  onSnapshot, query, orderBy, limit, startAfter, getDocs
+  onSnapshot, query, orderBy, limit, startAfter,
+  getDocs   // ✅ IMPORTANT FIX
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
