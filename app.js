@@ -63,7 +63,8 @@ function makeCard(data) {
   const text = data.text || "";
 
   // ✅ FLAG SAFE
-  const flag = getFlag(country);
+  const cleanCountry = (country || "").trim().split(" ")[0].toUpperCase();
+  const flag = getFlag(cleanCountry);
 
   // ✅ TIMESTAMP SAFE
   let timeStr = "";
