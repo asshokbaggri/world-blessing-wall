@@ -51,12 +51,12 @@ body{
     radial-gradient(800px 360px at 50% 55%, rgba(240,167,59,.14), transparent 70%),
     radial-gradient(900px 420px at 50% 100%, rgba(255,239,179,.08), transparent 72%);
   filter:blur(24px) saturate(120%);
-  z-index:-1;
+  z-index:-1 !important;
 }
 
 #goldParticles{
   position:fixed; inset:0; pointer-events:none;
-  z-index:0;
+  z-index:-1 !important;
   display:block;
 }
 
@@ -216,8 +216,14 @@ textarea:focus,input:focus{
   gap:6px;
   margin-bottom:6px;
 }
-.flag{font-size:18px;}
 
+/* ✅ FIX #1: FLAG VERTICAL ALIGN */
+.flag{
+  font-size:18px;
+  vertical-align:middle;
+}
+
+/* -------- Share -------- */
 .load-btn{
   margin:26px auto 20px;
   display:block;
@@ -339,14 +345,14 @@ footer {
   z-index: 5;
 }
 
-/* --- FIX: FOOTER ALWAYS ON TOP (DESKTOP + MOBILE) --- */
+/* ✅ FIX #2 — FOOTER ALWAYS ABOVE (AND NO DUPLICATE CONFLICT) */
 footer,
 .footer {
   position: relative !important;
-  z-index: 9999 !important;
+  z-index: 50 !important;
 }
 
-/* --- FIX: PARTICLES ALWAYS BEHIND EVERYTHING --- */
+/* ✅ PARTICLES ALWAYS BEHIND */
 #goldParticles,
 #goldHalo {
   z-index: -1 !important;
