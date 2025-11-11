@@ -1,29 +1,15 @@
 /* ===========================================
-   WORLD BLESSING WALL — HYBRID ULTRA DELUXE (FINAL)
-   - Full new schema + backward compat
-   - Realtime newest + manual "Load more"
-   - Auto language detect (hi/en basic)
-   - Country code + flag auto-detect
-   - blessingId backfill
-   - Safe ipHash (hashed, no raw IP)
-   - Optional geo (non-blocking; updates doc if allowed)
+   WORLD BLESSING WALL — FINAL (APP.JS)
    =========================================== */
 
 // ---------- Firebase ----------
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore,
-  collection,
-  addDoc,
-  updateDoc,
-  doc,
+  collection, addDoc, updateDoc, doc,
   serverTimestamp,
-  onSnapshot,
-  query,
-  orderBy,
-  limit,
-  startAfter,
-  getDocs
+  onSnapshot, query, where, orderBy, limit, startAfter,
+  getDocs, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -55,41 +41,37 @@ const copyShare = document.getElementById("copyShare");
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 // ---------- Utils ----------
-const renderedIds = new Set(); // avoid duplicates when realtime prepends
+const renderedIds = new Set();
 
 function animateCount(el, to){
   if (!el) return;
   const from = Number(el.textContent || 0);
-  const duration = 380;
-  const start = performance.now();
-  function frame(t){
-    const p = Math.min(1, (t - start) / duration);
-    el.textContent = Math.round(from + (to - from) * p);
-    if (p < 1) requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
+  const duration = 420;
+  const t0 = performance.now();
+  const tick = (t)=>{
+    const p = Math.min(1, (t - t0)/duration);
+    el.textContent = Math.round(from + (to - from)*p);
+    if(p<1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
 }
 
-// Basic lang detector (Devanagari vs Latin)
 function detectLang(txt=""){
   const dev = (txt.match(/[\u0900-\u097F]/g) || []).length;
   const lat = (txt.match(/[A-Za-z]/g) || []).length;
-  if (dev > 3 && dev > lat) return "hi";
-  return "en";
+  return (dev > 3 && dev > lat) ? "hi" : "en";
 }
 
-// Country normalization: accepts "IN", "IN India", "India"
+// Accepts "IN", "IN India", "India"
 function normalizeCountry(input=""){
   const raw = input.trim();
   if (!raw) return { country:"", countryCode:"" };
 
-  // Common aliases map -> ISO code + Display name
   const map = {
-    "india": ["IN","India"], "in": ["IN","India"],
-    "bharat": ["IN","India"],
+    "india": ["IN","India"], "in": ["IN","India"], "bharat": ["IN","India"],
     "usa": ["US","United States"], "us": ["US","United States"], "united states": ["US","United States"],
     "uae": ["AE","United Arab Emirates"], "dubai": ["AE","United Arab Emirates"],
-    "uk": ["GB","United Kingdom"], "england": ["GB","United Kingdom"], "london": ["GB","United Kingdom"],
+    "uk": ["GB","United Kingdom"], "england": ["GB","United Kingdom"],
     "nepal": ["NP","Nepal"], "pakistan": ["PK","Pakistan"], "bangladesh": ["BD","Bangladesh"],
     "sri lanka": ["LK","Sri Lanka"], "china": ["CN","China"], "japan": ["JP","Japan"],
     "germany": ["DE","Germany"], "france": ["FR","France"], "canada": ["CA","Canada"],
@@ -97,13 +79,10 @@ function normalizeCountry(input=""){
   };
 
   const parts = raw.split(/\s+/);
-  // If first token looks like a 2-letter code, prefer that
   if (parts[0].length === 2) {
     const cc = parts[0].toUpperCase();
-    // Try to map the rest name; else keep rest as name or fallback to cc
-    const restName = parts.slice(1).join(" ").trim();
-    if (restName) return { country: restName, countryCode: cc };
-    // Map common code -> canonical name if known
+    const rest = parts.slice(1).join(" ").trim();
+    if (rest) return { country: rest, countryCode: cc };
     const byCode = Object.values(map).find(([code])=>code===cc);
     return { country: byCode ? byCode[1] : cc, countryCode: cc };
   }
@@ -111,7 +90,6 @@ function normalizeCountry(input=""){
   const key = raw.toLowerCase();
   if (map[key]) return { country: map[key][1], countryCode: map[key][0] };
 
-  // Fallback: keep as name, and derive code from first two letters (not always accurate)
   const guess = raw.slice(0,2).toUpperCase().replace(/[^A-Z]/g,"");
   const cc = guess.length===2 ? guess : "";
   return { country: raw, countryCode: cc };
@@ -124,12 +102,9 @@ function flagFromCode(cc=""){
       0x1F1E6 + (cc.charCodeAt(0) - 65),
       0x1F1E6 + (cc.charCodeAt(1) - 65)
     );
-  }catch{
-    return "🌍";
-  }
+  }catch{ return "🌍"; }
 }
 
-// Safe ipHash (no raw IP; browser-only hash seed)
 async function makeIpHash(){
   const seed = `${navigator.userAgent}::${Intl.DateTimeFormat().resolvedOptions().timeZone}::${Math.random()}`;
   if (crypto?.subtle) {
@@ -137,23 +112,21 @@ async function makeIpHash(){
     const digest = await crypto.subtle.digest("SHA-256", data);
     return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,"0")).join("");
   }
-  // Fallback simple hash
-  let h = 0; for (let i=0;i<seed.length;i++){ h = (h*31 + seed.charCodeAt(i))|0; }
-  return String(h >>> 0);
+  let h=0; for(let i=0;i<seed.length;i++){ h=(h*31+seed.charCodeAt(i))|0; }
+  return String(h>>>0);
 }
 
-// Optional geo grab (non-blocking)
 function getGeoOnce(){
   return new Promise(resolve=>{
     if(!("geolocation" in navigator)) return resolve(null);
     navigator.geolocation.getCurrentPosition(
       p => resolve({
-        city: "", region: "", // unknown without reverse geocode
-        lat: Number(p.coords.latitude.toFixed(5)),
-        lng: Number(p.coords.longitude.toFixed(5))
+        city:"", region:"",
+        lat:Number(p.coords.latitude.toFixed(5)),
+        lng:Number(p.coords.longitude.toFixed(5))
       }),
-      () => resolve(null),
-      { enableHighAccuracy:false, timeout: 2500, maximumAge: 600000 }
+      ()=>resolve(null),
+      { enableHighAccuracy:false, timeout:2500, maximumAge:600000 }
     );
   });
 }
@@ -161,84 +134,91 @@ function getGeoOnce(){
 // ---------- Card ----------
 function makeCard(docData, docId){
   const data = docData || {};
-  const country = (data.country || "").trim();
-  const cc = (data.countryCode || "").toUpperCase() || normalizeCountry(country).countryCode;
+  const cc = (data.countryCode || "").toUpperCase() || normalizeCountry(data.country||"").countryCode;
   const flag = flagFromCode(cc);
 
   let timeStr = "";
   try {
-    // prefer new "timestamp", else legacy "created"
     const ts = data.timestamp || data.created;
     timeStr = ts?.toDate ? ts.toDate().toLocaleString() : new Date().toLocaleString();
-  } catch {
-    timeStr = new Date().toLocaleString();
-  }
+  } catch { timeStr = new Date().toLocaleString(); }
 
   const wrap = document.createElement("div");
   wrap.classList.add("blessing-card","fade-up");
   if (docId) wrap.dataset.id = docId;
 
+  // Desktop “IN IN India” issue removed: show emoji + clean name only
+  const displayCountry = (data.country || cc || "—");
+
   wrap.innerHTML = `
-    <b><span class="flag">${flag}</span> ${country || (cc || "—")}</b>
+    <b><span class="flag">${flag}</span> ${displayCountry}</b>
     <div>${(data.text || "").replace(/\n/g,"<br>")}</div>
     <small>${timeStr}</small>
   `;
   return wrap;
 }
 
-// ---------- Render helpers ----------
 function prependIfNew(docSnap){
   const id = docSnap.id;
   if (renderedIds.has(id)) return false;
-  const el = makeCard(docSnap.data(), id);
-  blessingsList.prepend(el);
+  blessingsList.prepend(makeCard(docSnap.data(), id));
   renderedIds.add(id);
   return true;
 }
-
 function appendIfNew(docSnap){
   const id = docSnap.id;
   if (renderedIds.has(id)) return false;
-  const el = makeCard(docSnap.data(), id);
-  blessingsList.appendChild(el);
+  blessingsList.appendChild(makeCard(docSnap.data(), id));
   renderedIds.add(id);
   return true;
 }
 
-// ---------- Initial load + pagination ----------
+// ---------- Initial load + counter ----------
 let lastDoc = null;
 let initialLoaded = false;
 
+async function refreshCounter(){
+  try{
+    const coll = collection(db,"blessings");
+    const qCount = query(coll, where("status","==","approved"));
+    const snap = await getCountFromServer(qCount);
+    animateCount(counterEl, snap.data().count || 0);
+  }catch{
+    animateCount(counterEl, renderedIds.size);
+  }
+}
+
 async function loadInitial(){
+  const coll = collection(db,"blessings");
   const q1 = query(
-    collection(db,"blessings"),
+    coll,
+    where("status","==","approved"),
     orderBy("timestamp","desc"),
     limit(12)
   );
 
   const snap = await getDocs(q1);
   blessingsList.innerHTML = "";
-
   snap.docs.forEach(d => appendIfNew(d));
   lastDoc = snap.docs[snap.docs.length - 1] || null;
   initialLoaded = true;
 
-  // Counter = number loaded (approx). We’ll bump on realtime adds.
-  animateCount(counterEl, renderedIds.size);
+  await refreshCounter();
 
   if (!lastDoc) {
     loadMoreBtn?.style.setProperty("display","none");
-    if (noMoreEl) noMoreEl.textContent = "No more blessings 🤍";
+    noMoreEl && (noMoreEl.textContent = "No more blessings 🤍");
   }
-
   revealOnScroll();
 }
 loadInitial();
 
 loadMoreBtn?.addEventListener("click", async ()=>{
   if (!lastDoc) return;
+  const coll = collection(db,"blessings");
   const qMore = query(
-    collection(db,"blessings"),
+    coll,
+    where("status","==","approved"),
     orderBy("timestamp","desc"),
     startAfter(lastDoc),
     limit(12)
@@ -247,7 +227,7 @@ loadMoreBtn?.addEventListener("click", async ()=>{
 
   if (snap.empty){
     loadMoreBtn.style.display = "none";
-    if (noMoreEl) noMoreEl.textContent = "No more blessings 🤍";
+    noMoreEl && (noMoreEl.textContent = "No more blessings 🤍");
     return;
   }
 
@@ -256,19 +236,19 @@ loadMoreBtn?.addEventListener("click", async ()=>{
   revealOnScroll();
 });
 
-// ---------- Realtime (newest only) ----------
+// ---------- Realtime newest ----------
 const liveNewest = query(
   collection(db,"blessings"),
+  where("status","==","approved"),
   orderBy("timestamp","desc"),
   limit(1)
 );
-
 onSnapshot(liveNewest, (snap)=>{
   if (!initialLoaded) return;
   snap.docChanges().forEach(ch=>{
     if (ch.type === "added") {
       const added = prependIfNew(ch.doc);
-      if (added) animateCount(counterEl, renderedIds.size);
+      if (added) refreshCounter();
       revealOnScroll();
     }
   });
@@ -298,26 +278,22 @@ async function submitBlessing(){
     const base = {
       text: rawText,
       country,
-      countryCode,                // NEW
-      timestamp: serverTimestamp(), // NEW canonical time
-      created: serverTimestamp(),   // legacy for backward compat
-      status: "approved",         // NEW
-      device: "web",              // NEW
-      source: document.referrer ? new URL(document.referrer).hostname : "direct", // NEW
-      language: lang,             // NEW (basic)
-      sentimentScore: 0,          // NEW (placeholder for Phase 2)
-      ipHash,                     // NEW (safe hash, not raw IP)
-      username: "",               // NEW (optional; future)
-      blessingId: ""              // will backfill after add
+      countryCode,
+      timestamp: serverTimestamp(),
+      created: serverTimestamp(),
+      status: "approved",
+      device: "web",
+      source: document.referrer ? new URL(document.referrer).hostname : "direct",
+      language: lang,
+      sentimentScore: 0,
+      ipHash,
+      username: "",
+      blessingId: ""
     };
 
-    // Add doc
     const ref = await addDoc(collection(db,"blessings"), base);
-
-    // Backfill blessingId
     await updateDoc(doc(db,"blessings", ref.id), { blessingId: ref.id });
 
-    // Optional geo update (non-blocking)
     getGeoOnce().then(geo=>{
       if (geo){
         updateDoc(doc(db,"blessings", ref.id), {
@@ -329,7 +305,7 @@ async function submitBlessing(){
       }
     });
 
-    // UI feedback
+    // ✅ Clean success (no red error lingering)
     statusBox.textContent = "Blessing submitted ✅";
     statusBox.style.color = "#bfe4c2";
     blessingInput.value = "";
@@ -364,29 +340,27 @@ copyShare?.addEventListener("click", async ()=>{
   }catch{}
 });
 
-// ---------- Particles (gold, full-screen, behind UI) ----------
+// ---------- Particles ----------
 (function initParticles(){
   const canvas = document.getElementById("goldParticles");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
 
-  let W, H, dpr;
+  let W,H,dpr;
   function resize(){
     dpr = Math.min(2, window.devicePixelRatio || 1);
-    W = window.innerWidth; H = window.innerHeight;
-    canvas.style.width = W + "px";
-    canvas.style.height = H + "px";
-    canvas.width = W * dpr;
-    canvas.height = H * dpr;
+    W = innerWidth; H = innerHeight;
+    canvas.style.width = W+"px";
+    canvas.style.height = H+"px";
+    canvas.width = W*dpr; canvas.height = H*dpr;
     ctx.setTransform(dpr,0,0,dpr,0,0);
   }
   resize();
-  window.addEventListener("resize", resize);
+  addEventListener("resize", resize);
 
   const COUNT = Math.floor((W*H)/28000) + 90;
   const stars = Array.from({length:COUNT}).map(()=>({
-    x: Math.random()*W,
-    y: Math.random()*H,
+    x: Math.random()*W, y: Math.random()*H,
     r: Math.random()*1.4 + 0.4,
     vx: (Math.random()*0.2 - 0.1),
     vy: (Math.random()*0.25 + 0.1),
@@ -394,11 +368,11 @@ copyShare?.addEventListener("click", async ()=>{
     ts: 0.005 + Math.random()*0.008
   }));
 
-  function animate(){
+  function step(){
     ctx.clearRect(0,0,W,H);
-    for (const s of stars){
+    for(const s of stars){
       s.x += s.vx; s.y += s.vy; s.tw += s.ts;
-      if (s.y > H+8){ s.y = -8; s.x = Math.random()*W; }
+      if(s.y > H+8){ s.y = -8; s.x = Math.random()*W; }
       const glow = 0.6 + 0.4*Math.sin(s.tw);
       ctx.globalAlpha = glow;
       const g = ctx.createRadialGradient(s.x,s.y,0, s.x,s.y,s.r*7);
@@ -408,9 +382,9 @@ copyShare?.addEventListener("click", async ()=>{
       ctx.beginPath(); ctx.arc(s.x,s.y,s.r*7,0,Math.PI*2); ctx.fill();
     }
     ctx.globalAlpha = 1;
-    requestAnimationFrame(animate);
+    requestAnimationFrame(step);
   }
-  animate();
+  step();
 })();
 
 // ---------- Scroll fade ----------
@@ -421,5 +395,5 @@ function revealOnScroll(){
     if (el.getBoundingClientRect().top < trigger) el.classList.add("show");
   });
 }
-window.addEventListener("scroll", revealOnScroll);
-window.addEventListener("load", revealOnScroll);
+addEventListener("scroll", revealOnScroll);
+addEventListener("load", revealOnScroll);
