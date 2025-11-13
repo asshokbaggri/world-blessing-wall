@@ -1,11 +1,7 @@
 /* ============================================================
-   WORLD BLESSING WALL — APP.JS v1.0 (FINAL ULTRA DELUXE)
-   - Full readable source (no minify)
-   - Realtime newest + manual "Load more"
-   - Safe submit + blessingId backfill
-   - Country normalization + flag generation
-   - Counter pop animation (requires .counter-anim CSS)
-   - Non-blocking geo update, safe ipHash
+   WORLD BLESSING WALL — APP.JS v1.1 (FINAL ULTRA DELUXE)
+   - Adds 24x18 flag PNGs via FlagCDN with safe emoji fallback
+   - All other features unchanged from v1.0 (realtime, submit, loadMore)
    ============================================================ */
 
 // ---------- Firebase ----------
@@ -60,11 +56,10 @@ let initialLoaded = false;
 
 // ---------- Utils ----------
 
-// COUNTER POP — requires a small CSS class `.counter-anim` (see note)
+// COUNTER POP — requires CSS (#counter.counter-anim)
 function animateCount(el, to){
   if (!el) return;
 
-  // pop animation: force reflow to retrigger
   el.classList.remove("counter-anim");
   void el.offsetWidth;
   el.classList.add("counter-anim");
@@ -90,7 +85,6 @@ function detectLang(txt = ""){
 }
 
 // normalize country input -> { country, countryCode }
-// Accepts "IN", "IN India", "India", "Bharat", etc.
 function normalizeCountry(input = ""){
   const raw = (input || "").trim();
   if (!raw) return { country:"", countryCode:"" };
@@ -107,26 +101,24 @@ function normalizeCountry(input = ""){
   };
 
   const parts = raw.split(/\s+/);
-  // If first token is two letters treat as code
   if (parts[0].length === 2) {
     const cc = parts[0].toUpperCase();
     const rest = parts.slice(1).join(" ").trim();
     if (rest) return { country: rest, countryCode: cc };
-    const byCode = Object.values(map).find(([code]) => code === cc);
+    const byCode = Object.values(map).find(([code])=>code===cc);
     return { country: byCode ? byCode[1] : cc, countryCode: cc };
   }
 
   const key = raw.toLowerCase();
   if (map[key]) return { country: map[key][1], countryCode: map[key][0] };
 
-  // Fallback: return raw name and guess 2-letter code from first letters
   const guess = raw.slice(0,2).toUpperCase().replace(/[^A-Z]/g,"");
-  const cc = guess.length === 2 ? guess : "";
+  const cc = guess.length===2 ? guess : "";
   return { country: raw, countryCode: cc };
 }
 
-// generate emoji flag from ISO code (two letters)
-function flagFromCode(cc = ""){
+// generate emoji flag from ISO code (two letters) — used as fallback
+function emojiFromCode(cc = ""){
   if (!cc || cc.length !== 2) return "🌍";
   try {
     return String.fromCodePoint(
@@ -138,7 +130,7 @@ function flagFromCode(cc = ""){
   }
 }
 
-// Safe ipHash (no raw IP). Browser-only pseudo-hash using UA + timezone + random
+// Safe ipHash (no raw IP). Browser-only pseudo-hash
 async function makeIpHash(){
   const seed = `${navigator.userAgent}::${Intl.DateTimeFormat().resolvedOptions().timeZone}::${Math.random()}`;
   if (crypto?.subtle) {
@@ -146,20 +138,19 @@ async function makeIpHash(){
     const digest = await crypto.subtle.digest("SHA-256", data);
     return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,"0")).join("");
   }
-  // fallback simple integer hash (not cryptographic)
-  let h = 0; for (let i=0;i<seed.length;i++){ h = (h*31 + seed.charCodeAt(i))|0; }
-  return String(h >>> 0);
+  let h = 0;
+  for (let i=0;i<seed.length;i++) h = (h*31 + seed.charCodeAt(i))|0;
+  return String(h>>>0);
 }
 
-// Non-blocking one-shot geo (returns {lat,lng} or null)
 function getGeoOnce(){
   return new Promise(resolve=>{
     if (!("geolocation" in navigator)) return resolve(null);
     navigator.geolocation.getCurrentPosition(
-      pos => resolve({
-        city: "", region: "",
-        lat: Number(pos.coords.latitude.toFixed(5)),
-        lng: Number(pos.coords.longitude.toFixed(5))
+      p => resolve({
+        city:"", region:"",
+        lat:Number(p.coords.latitude.toFixed(5)),
+        lng:Number(p.coords.longitude.toFixed(5))
       }),
       () => resolve(null),
       { enableHighAccuracy:false, timeout:2500, maximumAge:600000 }
@@ -167,13 +158,21 @@ function getGeoOnce(){
   });
 }
 
+// ---------- Flag HTML (24x18 via flagcdn) ----------
+function flagHtmlFromCode(cc){
+  if (!cc || cc.length !== 2) return `<span class="flag-emoji">🌍</span>`;
+  const low = cc.toLowerCase();
+  // Use flagcdn 24x18 PNG. onerror replaces <img> with emoji fallback.
+  // outerHTML replacement used so DOM ends up with emoji if image cannot load.
+  return `<img class="flag-img" src="https://flagcdn.com/24x18/${low}.png" alt="${cc}" loading="lazy" onerror="this.onerror=null;this.outerHTML='${emojiFromCode(cc)}'">`;
+}
+
 // ---------- Card builder ----------
 function makeCard(docData = {}, docId){
   const data = docData || {};
   const country = (data.country || "").trim();
-  // prefer explicit countryCode, else normalize
   const cc = (data.countryCode || "").toUpperCase() || normalizeCountry(country).countryCode;
-  const flag = flagFromCode(cc);
+  const flagHTML = flagHtmlFromCode(cc);
 
   let timeStr = "";
   try {
@@ -183,15 +182,41 @@ function makeCard(docData = {}, docId){
     timeStr = new Date().toLocaleString();
   }
 
+  // Build DOM element to avoid accidental HTML leaks
   const wrap = document.createElement("div");
   wrap.classList.add("blessing-card", "fade-up");
   if (docId) wrap.dataset.id = docId;
 
-  wrap.innerHTML = `
-    <b><span class="flag">${flag}</span> ${country || cc || "—"}</b>
-    <div>${(data.text || "").replace(/\n/g,"<br>")}</div>
-    <small>${timeStr}</small>
-  `;
+  // Create header (flag + country)
+  const header = document.createElement("b");
+  header.style.display = "flex";
+  header.style.alignItems = "center";
+  header.style.gap = "8px";
+
+  // Insert flag: use a temporary container and set innerHTML for the flag only
+  const flagContainer = document.createElement("span");
+  flagContainer.className = "flag";
+  flagContainer.innerHTML = flagHTML;
+
+  const countryText = document.createElement("span");
+  countryText.textContent = country || cc || "—";
+
+  header.appendChild(flagContainer);
+  header.appendChild(countryText);
+
+  // Body text
+  const bodyDiv = document.createElement("div");
+  const safeText = (data.text || "");
+  // preserve newlines as <br>
+  bodyDiv.innerHTML = safeText.replace(/\n/g,"<br>");
+
+  const small = document.createElement("small");
+  small.textContent = timeStr;
+
+  wrap.appendChild(header);
+  wrap.appendChild(bodyDiv);
+  wrap.appendChild(small);
+
   return wrap;
 }
 
@@ -219,7 +244,6 @@ async function loadInitial(){
     const q1 = query(collection(db,"blessings"), orderBy("timestamp","desc"), limit(12));
     const snap = await getDocs(q1);
 
-    // clear before rendering
     blessingsList.innerHTML = "";
     renderedIds.clear();
 
@@ -236,7 +260,6 @@ async function loadInitial(){
 
     revealOnScroll();
   } catch (err) {
-    // gentle fallback (do not expose raw error to user)
     console.warn("Initial load failed", err);
     if (statusBox) statusBox.textContent = "Unable to load blessings right now.";
   }
@@ -279,9 +302,7 @@ const liveNewest = query(
 );
 
 onSnapshot(liveNewest, (snap)=>{
-  // don't show realtime until initial list is loaded
   if (!initialLoaded) return;
-
   snap.docChanges().forEach(change => {
     if (change.type === "added"){
       const added = prependIfNew(change.doc);
@@ -318,7 +339,6 @@ async function submitBlessing(){
     const { country, countryCode } = normalizeCountry(rawCountry);
     const ipHash = await makeIpHash();
 
-    // canonical payload: timestamp is canonical; created kept for backward compat
     const base = {
       text: rawText,
       country,
@@ -335,13 +355,10 @@ async function submitBlessing(){
       blessingId: ""
     };
 
-    // Add document
     const ref = await addDoc(collection(db,"blessings"), base);
 
-    // Backfill blessingId
     await updateDoc(doc(db,"blessings", ref.id), { blessingId: ref.id }).catch(()=>{});
 
-    // Optional geo: do not block UI
     getGeoOnce().then(geo=>{
       if (geo) {
         updateDoc(doc(db,"blessings", ref.id), {
@@ -353,15 +370,12 @@ async function submitBlessing(){
       }
     });
 
-    // Friendly UI feedback (do NOT expose raw errors)
     if (statusBox) {
       statusBox.textContent = "Blessing submitted ✅";
       statusBox.style.color = "#bfe4c2";
     }
 
-    // clear input but keep country so user can submit multiple quickly
     if (blessingInput) blessingInput.value = "";
-    // small delay and then clear message
     await sleep(1100);
     if (statusBox) {
       statusBox.textContent = "";
@@ -398,9 +412,7 @@ copyShare?.addEventListener("click", async ()=>{
     copyShare.textContent = "Link Copied ✅";
     await sleep(1200);
     copyShare.textContent = prev || "Copy Link";
-  } catch {
-    // ignore
-  }
+  } catch {}
 });
 
 // ---------- Particles (full-screen, always behind) ----------
@@ -460,7 +472,7 @@ copyShare?.addEventListener("click", async ()=>{
   animate();
 })();
 
-// ---------- Scroll fade reveal ----------
+// ---------- Fade on Scroll ----------
 function revealOnScroll(){
   const els = document.querySelectorAll(".fade-up, .fade-section");
   const trigger = window.innerHeight * 0.92;
@@ -472,4 +484,4 @@ window.addEventListener("scroll", revealOnScroll);
 window.addEventListener("load", revealOnScroll);
 
 // ---------- Done ----------
-console.info("World Blessing Wall — app.js v1.0 loaded");
+console.info("World Blessing Wall — app.js v1.1 loaded (flags via FlagCDN)");
