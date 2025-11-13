@@ -1,5 +1,5 @@
 /* =======================================================
-   WORLD BLESSING WALL — HYBRID V2 (FINAL PREMIUM THEME)  
+   WORLD BLESSING WALL — HYBRID V2 (FINAL PREMIUM THEME)
    ======================================================= */
 
 /* -------- Root -------- */
@@ -28,8 +28,8 @@
 }
 
 /* -------- Global -------- */
-*{ box-sizing:border-box }
-html,body{ height:100% }
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
 body{
   margin:0;
   color:var(--text);
@@ -43,9 +43,11 @@ body{
   line-height:1.5;
 }
 
-/* -------- Decorative Layers -------- */
+/* -------- Background Layers -------- */
 #goldHalo{
-  position:fixed; inset:0; pointer-events:none;
+  position:fixed;
+  inset:0;
+  pointer-events:none;
   background:
     radial-gradient(600px 300px at 50% 18%, rgba(247,198,106,.25), transparent 60%),
     radial-gradient(800px 360px at 50% 55%, rgba(240,167,59,.14), transparent 70%),
@@ -55,14 +57,17 @@ body{
 }
 
 #goldParticles{
-  position:fixed; inset:0; pointer-events:none;
-  z-index:-1 !important;
+  position:fixed;
+  inset:0;
+  pointer-events:none;
   display:block;
+  z-index:-1 !important;
 }
 
 /* -------- Header -------- */
 .nav{
-  position:sticky; top:16px;
+  position:sticky;
+  top:16px;
   width:min(1100px,92vw);
   margin:0 auto 32px;
   padding:12px 20px;
@@ -109,8 +114,8 @@ body{
   animation:shimmer 3.6s infinite;
 }
 @keyframes shimmer{
-  0%,100%{filter:brightness(1)}
-  50%{filter:brightness(1.4)}
+  0%,100%{filter:brightness(1);}
+  50%{filter:brightness(1.4);}
 }
 .subtitle{
   color:var(--text-dim);
@@ -128,7 +133,7 @@ body{
   border:1px solid rgba(255,255,255,.08);
   box-shadow:var(--shadow-md);
 }
-textarea,input[type=text]{
+textarea, input[type=text]{
   width:100%;
   padding:16px;
   border-radius:var(--radius-lg);
@@ -136,7 +141,7 @@ textarea,input[type=text]{
   color:var(--text);
   border:1px solid var(--stroke);
 }
-textarea:focus,input:focus{
+textarea:focus, input:focus{
   border-color:var(--gold);
   box-shadow:0 0 0 3px rgba(247,198,106,.25);
 }
@@ -171,7 +176,8 @@ textarea:focus,input:focus{
 }
 .dot{
   display:inline-block;
-  width:8px; height:8px;
+  width:8px;
+  height:8px;
   border-radius:50%;
   background:var(--gold);
   margin-right:6px;
@@ -182,6 +188,7 @@ textarea:focus,input:focus{
   width:min(1100px,92vw);
   margin:40px auto 40px;
 }
+
 .section-title{
   font-size:28px;
   font-weight:600;
@@ -201,7 +208,6 @@ textarea:focus,input:focus{
   padding:16px;
   border-radius:14px;
   backdrop-filter:blur(12px);
-  position:relative;
   overflow:hidden;
   transition:.25s ease;
 }
@@ -217,13 +223,15 @@ textarea:focus,input:focus{
   margin-bottom:6px;
 }
 
-/* ✅ FIX #1: FLAG VERTICAL ALIGN */
+/* -------- FIX #1 FLAG ALIGN -------- */
 .flag{
   font-size:18px;
+  line-height:1;
   vertical-align:middle;
+  display:inline-block;
 }
 
-/* -------- Share -------- */
+/* -------- Load More -------- */
 .load-btn{
   margin:26px auto 20px;
   display:block;
@@ -251,7 +259,6 @@ textarea:focus,input:focus{
   box-shadow:var(--shadow-md);
   text-align:center;
 }
-
 .share-row{
   display:flex;
   justify-content:center;
@@ -274,14 +281,16 @@ textarea:focus,input:focus{
   background:var(--glass);
   border-radius:var(--radius-xl);
   border:1px solid rgba(255,255,255,.08);
-  backdrop-filter:blur(18px);
   box-shadow:var(--shadow-md);
   display:flex;
   gap:16px;
 }
 .avatar{
-  width:52px; height:52px;
-  display:flex; justify-content:center; align-items:center;
+  width:52px;
+  height:52px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
   border-radius:50%;
   background:#fff2c3;
   font-weight:700;
@@ -297,8 +306,8 @@ textarea:focus,input:focus{
   background:var(--glass);
   border-radius:var(--radius-xl);
   border:1px solid rgba(255,255,255,.08);
-  text-align:center;
   box-shadow:var(--shadow-md);
+  text-align:center;
 }
 .map-box{
   margin-top:16px;
@@ -320,7 +329,14 @@ textarea:focus,input:focus{
   text-decoration:none;
 }
 
-/* -------- Animations -------- */
+/* -------- Fix #2 Footer Always On Top -------- */
+footer,
+.footer{
+  position:relative !important;
+  z-index:10 !important;
+}
+
+/* -------- Fade Animations -------- */
 .fade-up{
   opacity:0;
   transform:translateY(20px);
@@ -338,23 +354,4 @@ textarea:focus,input:focus{
 .fade-section.show{
   opacity:1;
   transform:translateY(0);
-}
-
-footer {
-  position: relative;
-  z-index: 5;
-}
-
-/* ✅ FIX #2 — FOOTER ALWAYS ABOVE (AND NO DUPLICATE CONFLICT) */
-footer,
-.footer {
-  position: relative !important;
-  z-index: 50 !important;
-}
-
-/* ✅ PARTICLES ALWAYS BEHIND */
-#goldParticles,
-#goldHalo {
-  z-index: -1 !important;
-  position: fixed !important;
 }
