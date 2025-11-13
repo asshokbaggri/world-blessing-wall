@@ -64,8 +64,9 @@ body{
   z-index:-1 !important;
 }
 
-#goldParticles, #goldHalo {
-  z-index: -2 !important;
+#goldParticles,
+#goldHalo {
+  z-index: -5 !important;
 }
 
 
