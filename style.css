@@ -82,7 +82,6 @@ body{
   z-index:5;
 }
 
-/* -------- Menu -------- */
 .menu a{
   color:var(--text);
   margin:0 8px;
@@ -224,20 +223,8 @@ textarea:focus, input:focus{
   margin-bottom:6px;
 }
 
-/* -------- FLAG IMAGE (24x18) -------- */
-.flag-img{
-  width:24px;
-  height:18px;
-  object-fit:cover;
-  border-radius:2px;
-  vertical-align:middle;
-  display:inline-block;
-  margin-right:6px;
-  flex: 0 0 auto;
-}
-
-/* for cases where emoji fallback used */
-.flag, .flag-emoji {
+/* -------- FIX #1 FLAG ALIGN -------- */
+.flag{
   font-size:18px;
   line-height:1;
   vertical-align:middle;
@@ -342,7 +329,7 @@ textarea:focus, input:focus{
   text-decoration:none;
 }
 
-/* -------- Fix: Footer Always On Top (desktop weirdness) -------- */
+/* -------- Fix #2 Footer Always On Top -------- */
 footer,
 .footer{
   position:relative !important;
