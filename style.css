@@ -64,6 +64,11 @@ body{
   z-index:-1 !important;
 }
 
+#goldParticles, #goldHalo {
+  z-index: -2 !important;
+}
+
+
 /* -------- Header -------- */
 .nav{
   position:sticky;
