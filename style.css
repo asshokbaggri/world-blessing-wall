@@ -323,12 +323,18 @@ textarea:focus, input:focus{
 }
 
 /* -------- Footer -------- */
-.footer{
+.footer {
   width:min(1100px,92vw);
   margin:60px auto 40px;
   text-align:center;
   color:var(--text-dim);
+
+  background: rgba(0,0,0,0.25);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  padding: 24px 0;
 }
+
 .footer .links a{
   color:var(--text-dim);
   margin:0 10px;
@@ -337,9 +343,9 @@ textarea:focus, input:focus{
 
 /* -------- Fix #2 Footer Always On Top -------- */
 footer,
-.footer{
-  position:relative !important;
-  z-index:10 !important;
+.footer {
+  position: relative !important;
+  z-index: 999 !important;
 }
 
 /* -------- Fade Animations -------- */
