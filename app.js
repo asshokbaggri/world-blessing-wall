@@ -473,3 +473,268 @@ onSnapshot(liveNewest, (snap)=>{
    - Reply: "Part 3/4 bhejo" to get it.
 ================================================= */
 
+/* =============== PART 3/4 ===============
+   - Username modal logic (modern HTML modal)
+   - My Blessings realtime subscription + my-count update
+   - Submit flow (username enforced, addDoc, updateDoc, geo backfill)
+   - Safe handlers (attach once)
+========================================= */
+
+/* ---------------- Username Modal (HTML modal) ---------------- */
+// Assumes these DOM nodes exist (declared in Part 1/4 earlier):
+// usernamePopup, usernameInput, saveUsernameBtn, skipUsernameBtn
+
+function openUsernamePopup() {
+  try {
+    if (!usernamePopup) return;
+    usernamePopup.removeAttribute("hidden");
+    // small CSS hook to animate if you added .show in CSS
+    usernamePopup.classList.add("show");
+    // focus with tiny delay to allow modal to become visible
+    setTimeout(() => {
+      try { usernameInput.focus(); } catch(e){}
+    }, 60);
+  } catch (e) { console.warn("openUsernamePopup failed", e); }
+}
+
+function closeUsernamePopup() {
+  try {
+    if (!usernamePopup) return;
+    usernamePopup.classList.remove("show");
+    setTimeout(() => {
+      try { usernamePopup.setAttribute("hidden", true); } catch(e){}
+    }, 180);
+  } catch (e) { console.warn("closeUsernamePopup failed", e); }
+}
+
+function getSavedUsername() {
+  try {
+    return (localStorage.getItem("wbw_username_v1") || "").trim();
+  } catch (e) {
+    return "";
+  }
+}
+
+/**
+ * ensureUsernameModal()
+ * - if user already saved a name, returns it
+ * - otherwise opens modal and returns the chosen name or null (if skipped)
+ * - this returns a Promise that resolves when user chooses
+ */
+function ensureUsernameModal() {
+  const current = getSavedUsername();
+  if (current) return Promise.resolve(current);
+
+  // open modal and wait for user action
+  openUsernamePopup();
+
+  return new Promise((resolve) => {
+    // remove previous handlers if any
+    saveUsernameBtn.onclick = null;
+    skipUsernameBtn.onclick = null;
+
+    saveUsernameBtn.addEventListener("click", function saveHandler() {
+      const v = (usernameInput.value || "").trim();
+      if (!v) {
+        alert("Naam khaali nahi ho sakta ❤️");
+        usernameInput.focus();
+        return;
+      }
+      try { localStorage.setItem("wbw_username_v1", v); } catch(e){}
+      closeUsernamePopup();
+      // cleanup
+      saveUsernameBtn.removeEventListener("click", saveHandler);
+      resolve(v);
+    });
+
+    skipUsernameBtn.addEventListener("click", function skipHandler() {
+      // we make skip warn user that name is required; keep behavior consistent:
+      alert("Blessing post karne ke liye naam zaroori hai 🙏");
+      // cleanup and resolve null (submit flow will respect this)
+      skipUsernameBtn.removeEventListener("click", skipHandler);
+      resolve(null);
+    });
+  });
+}
+
+/* ---------------- My Blessings realtime subscription ---------------- */
+let myUnsub = null;
+
+async function startMyBlss() {
+  try {
+    if (!myList) return;
+    myList.innerHTML = "";
+    if (myEmpty) myEmpty.textContent = "Loading…";
+
+    const ipHash = await makeIpHash();
+    const myQuery = query(
+      collection(db, "blessings"),
+      where("ipHash", "==", ipHash),
+      orderBy("timestamp", "desc"),
+      limit(60)
+    );
+
+    // detach previous listener
+    if (typeof myUnsub === "function") {
+      try { myUnsub(); } catch(e){}
+    }
+
+    myUnsub = onSnapshot(myQuery, (snap) => {
+      myList.innerHTML = "";
+
+      if (snap.empty) {
+        if (myEmpty) myEmpty.textContent = "You haven’t posted any blessings yet 🌟";
+        if (myCountEl) animateCount(myCountEl, 0);
+        return;
+      }
+
+      if (myEmpty) myEmpty.textContent = "";
+
+      snap.docs.forEach((d) => {
+        const el = makeCard(d.data(), d.id);
+        myList.appendChild(el);
+      });
+
+      // update my-count (animate)
+      try {
+        const count = snap.docs.length;
+        if (myCountEl) animateCount(myCountEl, count);
+      } catch (e) { /* ignore */ }
+    }, (err) => {
+      console.warn("MyBlessings snapshot failed", err);
+      if (myEmpty) myEmpty.textContent = "Unable to load your blessings.";
+    });
+  } catch (err) {
+    console.warn("startMyBlss failed", err);
+    if (myEmpty) myEmpty.textContent = "Unable to load your blessings.";
+  }
+}
+
+/* ---------------- Submit flow (uses username modal) ---------------- */
+async function submitBlessing(){
+  try {
+    if (!blessingInput || !countryInput) return;
+    const rawText = (blessingInput.value || "").trim();
+    const rawCountry = (countryInput.value || "").trim();
+
+    if (!rawText) { blessingInput.focus(); return; }
+    if (!rawCountry) { countryInput.focus(); return; }
+
+    // UI guard
+    if (sendBtn) {
+      sendBtn.disabled = true;
+      sendBtn.style.opacity = ".6";
+    }
+    if (statusBox) {
+      statusBox.textContent = "";
+      statusBox.style.color = "";
+    }
+
+    // get username (modal)
+    const username = await ensureUsernameModal();
+    if (!username) {
+      // user skipped / cancelled — show friendly message
+      if (statusBox) {
+        statusBox.textContent = "Posting cancelled — name required to post.";
+        statusBox.style.color = "#ffb4b4";
+      }
+      return;
+    }
+
+    const lang = detectLang(rawText);
+    const { country, countryCode } = normalizeCountry(rawCountry || "");
+    const ipHash = await makeIpHash();
+
+    const base = {
+      text: rawText,
+      country,
+      countryCode,
+      timestamp: serverTimestamp(),
+      created: serverTimestamp(),
+      language: lang,
+      ipHash,
+      username,
+      sentimentScore: 0,
+      status: "approved",
+      device: "web",
+      source: (document.referrer ? new URL(document.referrer).hostname : "direct"),
+      blessingId: ""
+    };
+
+    // write doc
+    const ref = await addDoc(collection(db, "blessings"), base);
+    // backfill blessingId
+    try { await updateDoc(doc(db,"blessings", ref.id), { blessingId: ref.id }); } catch(e){}
+
+    // optional geo backfill (non-blocking)
+    getGeoOnce().then((geo) => {
+      if (geo) {
+        try {
+          updateDoc(doc(db,"blessings", ref.id), {
+            "geo.lat": geo.lat,
+            "geo.lng": geo.lng,
+            "geo.city": geo.city,
+            "geo.region": geo.region
+          }).catch(()=>{});
+        } catch(e){}
+      }
+    });
+
+    // friendly UI feedback
+    if (statusBox) {
+      statusBox.textContent = "Blessing submitted ✅";
+      statusBox.style.color = "#bfe4c2";
+    }
+
+    // micro-animations & toast
+    pulseSendBtn();
+    triggerSparkle(14);
+    showLiveToast("✨ Your blessing is live!");
+
+    // clear input but keep country for fast multi-posting
+    blessingInput.value = "";
+
+    // short delay to let realtime add prepend
+    await sleep(900);
+
+    // clear status
+    if (statusBox) {
+      statusBox.textContent = "";
+      statusBox.style.color = "";
+    }
+
+    // refresh my list (so new item appears immediately)
+    startMyBlss();
+  } catch (err) {
+    console.warn("Submit failed", err);
+    if (statusBox) {
+      statusBox.textContent = "Something went wrong — try again 🙏";
+      statusBox.style.color = "#ffb4b4";
+    }
+  } finally {
+    if (sendBtn) {
+      sendBtn.disabled = false;
+      sendBtn.style.opacity = "1";
+    }
+  }
+}
+
+// make sure submit handlers attached (idempotent)
+if (sendBtn) {
+  sendBtn.removeEventListener("click", submitBlessing);
+  sendBtn.addEventListener("click", submitBlessing);
+}
+if (blessingInput) {
+  blessingInput.removeEventListener("keydown", submitBlessing);
+  blessingInput.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") submitBlessing();
+  });
+}
+
+/* =============== END OF PART 3/4 ===============
+   - Next (Part 4/4) will include:
+     Share handlers, particles (already present), revealOnScroll hooks,
+     final console.info and any CSS hooks for modal.
+   - Reply: "Part 4/4 bhejo" to get final chunk.
+================================================= */
+
