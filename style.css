@@ -449,14 +449,14 @@ footer,
 }
 
 .my-count-box {
-    margin: 12px 0 18px 0;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--text-dim);
+  margin: 10px 0 18px 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-dim);
+  text-align: center;
 
-    white-space: nowrap;      /* ⭐ NEVER BREAK LINE */
-    overflow: visible;        /* safe */
-    display: inline-block;    /* ⭐ Keep in one row */
+  /* prevent line-break */
+  white-space: nowrap;
 }
 
 .my-count-box strong {
