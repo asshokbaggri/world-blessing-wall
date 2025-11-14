@@ -447,3 +447,14 @@ footer,
   color: var(--gold);
   text-align: center;
 }
+
+.my-count-box {
+  margin: 12px 0 18px 2px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-dim);
+}
+.my-count-box strong {
+  font-weight: 700;
+  color: var(--gold);
+}
