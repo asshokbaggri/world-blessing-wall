@@ -47,7 +47,6 @@
       <textarea id="blessingInput" rows="4" placeholder="Duniya ke liye ek dua likho…"></textarea>
 
       <div class="row">
-        <!-- Country input is kept same, detection handled in JS -->
         <input id="countryInput" type="text" value="IN India" aria-label="Country" />
         <button id="sendBtn" class="btn-primary" type="button">Blessing Add Karo ✨</button>
       </div>
@@ -59,6 +58,19 @@
         <span>Total Blessings: <strong id="counter">0</strong></span>
       </div>
     </div>
+
+    <!-- ======= Micro-animation helpers (composer ke turant neeche) ======= -->
+
+    <!-- sparkle burst container -->
+    <div id="sparkleBurst" aria-hidden="true"></div>
+
+    <!-- tiny toast popup for "Your blessing is live!" -->
+    <div id="liveToast" role="status" aria-live="polite" class="live-toast" hidden>
+      <span id="liveToastText">✨ Your blessing is live!</span>
+    </div>
+
+    <!-- ================================================================ -->
+
   </section>
 
   <!-- LIVE FEED -->
@@ -111,6 +123,7 @@
     </div>
   </footer>
 
+  <!-- NO JS -->
   <noscript style="color:white; display:block; text-align:center; padding:12px;">
     Please enable JavaScript to use the World Blessing Wall.
   </noscript>
