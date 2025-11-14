@@ -738,3 +738,171 @@ if (blessingInput) {
    - Reply: "Part 4/4 bhejo" to get final chunk.
 ================================================= */
 
+/* =============== PART 4/4 ===============
+   - finish timeAgo helper
+   - safety for infinite observer (no duplicate)
+   - particles (if not already present)
+   - revealOnScroll hook + initial calls
+   - final console.info
+   - no modal auto-open on page load
+========================================= */
+
+/* -------------------- timeAgo (finish) -------------------- */
+function timeAgo(ts) {
+  if (!ts) return "";
+  let date;
+  try {
+    date = ts.toDate ? ts.toDate() : new Date(ts);
+  } catch (e) {
+    date = new Date(ts);
+  }
+  const sec = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (sec < 0) return "just now";
+  if (sec < 60) return `${sec} seconds ago`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min} minutes ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr} hours ago`;
+  const day = Math.floor(hr / 24);
+  if (day < 7) return `${day} days ago`;
+  // older than a week — show date (short)
+  try {
+    return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  } catch {
+    return date.toLocaleString();
+  }
+}
+
+/* -------------------- Safe infinite observer (idempotent) -------------------- */
+if (!window.__wbw_infinite_setup) {
+  window.__wbw_infinite_setup = true;
+  // sentinel & observer were defined in earlier parts; ensure creation if missing
+  (function ensureSentinelAndObserver(){
+    try {
+      if (!document.getElementById("wbw_sentinel")) {
+        const s = document.createElement("div");
+        s.id = "wbw_sentinel";
+        s.style.width = "1px";
+        s.style.height = "1px";
+        s.style.margin = "1px auto";
+        blessingsList && blessingsList.insertAdjacentElement("afterend", s);
+      }
+    } catch(e){}
+  })();
+}
+
+/* -------------------- Particles (already present in earlier parts, but safe-guard) -------------------- */
+if (!window.__wbw_particles_inited) {
+  window.__wbw_particles_inited = true;
+  (function initParticlesSafe() {
+    const canvas = document.getElementById("goldParticles");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+
+    let W = window.innerWidth;
+    let H = window.innerHeight;
+    let dpr = Math.min(2, window.devicePixelRatio || 1);
+
+    function resize() {
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.style.width = W + "px";
+      canvas.style.height = H + "px";
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    const COUNT = Math.floor((W * H) / 28000) + 90;
+    const stars = Array.from({ length: COUNT }).map(() => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.5 + 0.4,
+      vx: Math.random() * 0.2 - 0.1,
+      vy: Math.random() * 0.25 + 0.1,
+      tw: Math.random() * Math.PI * 2,
+      ts: 0.005 + Math.random() * 0.008,
+    }));
+
+    function animate() {
+      ctx.clearRect(0, 0, W, H);
+      for (const s of stars) {
+        s.x += s.vx;
+        s.y += s.vy;
+        s.tw += s.ts;
+        if (s.y > H + 8) {
+          s.y = -8;
+          s.x = Math.random() * W;
+        }
+        const glow = 0.55 + 0.4 * Math.sin(s.tw);
+        ctx.globalAlpha = glow;
+        const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 7);
+        g.addColorStop(0, "rgba(255,240,190,1)");
+        g.addColorStop(1, "rgba(255,240,190,0)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r * 7, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+  })();
+}
+
+/* -------------------- Reveal on scroll (call once) -------------------- */
+(function initReveal() {
+  try {
+    window.addEventListener("scroll", revealOnScroll);
+    window.addEventListener("load", revealOnScroll);
+    // initial reveal in case some elements are already visible
+    setTimeout(revealOnScroll, 120);
+  } catch (e) { console.warn("initReveal failed", e); }
+})();
+
+/* -------------------- Final safety: attach share handlers if missing -------------------- */
+try {
+  if (waShare && waShare.onclick === null) {
+    waShare.onclick = () => {
+      window.open(`https://wa.me/?text=${shareText}%20${shareUrl}`, "_blank");
+    };
+  }
+  if (twShare && twShare.onclick === null) {
+    twShare.onclick = () => {
+      window.open(`https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`, "_blank");
+    };
+  }
+  if (copyShare && copyShare.onclick === null) {
+    copyShare.onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(decodeURIComponent(shareUrl));
+        const prev = copyShare.textContent;
+        copyShare.textContent = "Link Copied ✅";
+        await sleep(1000);
+        copyShare.textContent = prev || "Copy Link";
+      } catch {}
+    };
+  }
+} catch (e){}
+
+/* -------------------- Final console message -------------------- */
+console.info("World Blessing Wall — app.js v1.3 final part loaded (modal + viral mode).");
+
+/* =================== NOTES (READ BEFORE PASTING) ===================
+  1) You pasted Part1/2/3 earlier. Ensure no duplicate function names across parts.
+  2) The username modal will NOT open on page load. It only opens when user clicks Send
+     and no username is saved. (ensureUsernameModal -> openUsernamePopup)
+  3) If popup showed on load previously, check that index.html DOES NOT call ensureUsernameModal()
+     on load and that usernamePopup HTML is present and has hidden attribute by default.
+  4) If Save/Skip didn't work earlier, confirm index.html contains elements with IDs:
+       - usernamePopup (a container with attribute hidden)
+       - usernameInput (input text)
+       - saveUsername  (button)
+       - skipUsername  (button)
+  5) If infinite scroll disappeared, ensure you pasted earlier sentinel creation (Part 2/3).
+  6) If you want the modal to look different, update CSS (you already added modal CSS in style.css).
+================================================================== */
