@@ -1,10 +1,6 @@
 /* ============================================================
-   WORLD BLESSING WALL — APP.JS v1.3 (VIRAL MODE + Username Modal)
-   - Modern username popup (HTML modal, not prompt)
-   - Username saved in localStorage + in every blessing
-   - Viral card layout (Flag → Text → — Username → Relative Time)
-   - Instagram/TikTok style "time ago"
-   - My Blessings realtime + count animation
+   WORLD BLESSING WALL — APP.JS v1.4 (Viral + Username Modal)
+   Clean + stable + fully working version
    ============================================================ */
 
 /* ---------------- Firebase Init ---------------- */
@@ -35,38 +31,39 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
+const db = getFirestore(app);
 
-/* ---------------- DOM ---------------- */
+/* ---------------- DOM Elements ---------------- */
 const blessingInput = document.getElementById("blessingInput");
-const countryInput  = document.getElementById("countryInput");
-const sendBtn       = document.getElementById("sendBtn");
-const statusBox     = document.getElementById("status");
+const countryInput = document.getElementById("countryInput");
+const sendBtn = document.getElementById("sendBtn");
+const statusBox = document.getElementById("status");
 const blessingsList = document.getElementById("blessingsList");
-const counterEl     = document.getElementById("counter");
-const loadMoreBtn   = document.getElementById("loadMore");
-const noMoreEl      = document.getElementById("noMore");
+const counterEl = document.getElementById("counter");
+const loadMoreBtn = document.getElementById("loadMore");
+const noMoreEl = document.getElementById("noMore");
 
-const waShare   = document.getElementById("waShare");
-const twShare   = document.getElementById("twShare");
+const waShare = document.getElementById("waShare");
+const twShare = document.getElementById("twShare");
 const copyShare = document.getElementById("copyShare");
 
-// My blessings
+/* My blessings */
 const myList = document.getElementById("myBlessingsList");
 const myEmpty = document.getElementById("myEmpty");
 const toggleMy = document.getElementById("toggleMy");
 const refreshMy = document.getElementById("refreshMy");
 const myCountEl = document.getElementById("myCount");
 
-/* Username modal DOM */
+/* Username modal */
 const usernamePopup = document.getElementById("usernamePopup");
 const usernameInput = document.getElementById("usernameInput");
 const saveUsernameBtn = document.getElementById("saveUsername");
 const skipUsernameBtn = document.getElementById("skipUsername");
 
-let sparkleRoot = document.getElementById("sparkleBurst");
-let liveToast   = document.getElementById("liveToast");
-const titleEl   = document.querySelector(".title");
+/* Effects */
+const sparkleRoot = document.getElementById("sparkleBurst");
+const liveToast = document.getElementById("liveToast");
+const titleEl = document.querySelector(".title");
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
@@ -77,123 +74,113 @@ let initialLoaded = false;
 let loadingMore = false;
 const PAGE_LIMIT = 12;
 
-/* -------- Persistent Client ID -------- */
-function getClientId(){
+/* ---------------- Client ID ---------------- */
+function getClientId() {
   try {
     const key = "wbw_client_id_v1";
     let id = localStorage.getItem(key);
     if (id) return id;
 
     const arr = crypto.getRandomValues(new Uint8Array(12));
-    id = [...arr].map(b=>b.toString(16).padStart(2,"0")).join("");
+    id = [...arr].map(b => b.toString(16).padStart(2, "0")).join("");
     localStorage.setItem(key, id);
     return id;
-  } catch(e){
-    const id = "x" + Date.now().toString(36);
+  } catch {
+    let id = "x" + Date.now().toString(36);
     try { localStorage.setItem("wbw_client_id_v1", id); } catch {}
     return id;
   }
 }
 const CLIENT_ID = getClientId();
 
-async function makeIpHash(){
-  const seed = `${CLIENT_ID}::${navigator.userAgent}::${Intl.DateTimeFormat().resolvedOptions().timeZone}`;
-  if (crypto?.subtle) {
-    const data = new TextEncoder().encode(seed);
-    const digest = await crypto.subtle.digest("SHA-256", data);
-    return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,"0")).join("");
-  }
-  let h=0; for (let i=0;i<seed.length;i++){ h=(h*31+seed.charCodeAt(i))|0; }
-  return String(h>>>0);
+async function makeIpHash() {
+  const seed = `${CLIENT_ID}::${navigator.userAgent}`;
+  const data = new TextEncoder().encode(seed);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return [...new Uint8Array(digest)]
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
-/* ---------------- UTILS ---------------- */
+/* ---------------- Utils ---------------- */
 
-// Escape unsafe HTML
-function escapeHTML(s=""){
+function escapeHTML(s = "") {
   return String(s)
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
-    .replace(/'/g,"&#039;");
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
-// Language detect
-function detectLang(txt=""){
-  const dev = (txt.match(/[\u0900-\u097F]/g)||[]).length;
-  const lat = (txt.match(/[A-Za-z]/g)||[]).length;
+function detectLang(txt = "") {
+  const dev = (txt.match(/[\u0900-\u097F]/g) || []).length;
+  const lat = (txt.match(/[A-Za-z]/g) || []).length;
   if (dev > 3 && dev > lat) return "hi";
   return "en";
 }
 
-// Normalize country
-function normalizeCountry(input=""){
-  const raw = (input||"").trim();
-  if (!raw) return {country:"", countryCode:""};
+/* Normalize country → clean + simple */
+function normalizeCountry(input = "") {
+  const raw = (input || "").trim().toLowerCase();
+  if (!raw) return { country: "", countryCode: "" };
 
   const map = {
-    "india":["IN","India"], "in":["IN","India"], "bharat":["IN","India"],
-    "usa":["US","United States"], "us":["US","United States"],
-    "uae":["AE","United Arab Emirates"], "dubai":["AE","United Arab Emirates"],
-    "uk":["GB","United Kingdom"], "england":["GB","United Kingdom"],
+    india: ["IN", "India"],
+    in: ["IN", "India"],
+    bharat: ["IN", "India"],
+
+    usa: ["US", "United States"],
+    us: ["US", "United States"],
+
+    dubai: ["AE", "United Arab Emirates"],
+    uae: ["AE", "United Arab Emirates"],
+
+    uk: ["GB", "United Kingdom"],
+    england: ["GB", "United Kingdom"],
   };
 
-  const parts = raw.split(/\s+/);
-  if (parts[0].length === 2){
-    const cc = parts[0].toUpperCase();
-    const rest = parts.slice(1).join(" ");
-    return { country: rest || cc, countryCode: cc };
-  }
-
-  const key = raw.toLowerCase();
-  if (map[key]) return {country: map[key][1], countryCode: map[key][0]};
-
-  const cc = raw.slice(0,2).toUpperCase();
-  return { country: raw, countryCode: cc };
+  if (map[raw]) return { country: map[raw][1], countryCode: map[raw][0] };
+  const cc = raw.slice(0, 2).toUpperCase();
+  return { country: input, countryCode: cc };
 }
 
-// Flag emoji
-function flagFromCode(cc=""){
-  if (!cc || cc.length!==2) return "🌍";
-  try {
-    return String.fromCodePoint(
-      0x1F1E6 + (cc.charCodeAt(0)-65),
-      0x1F1E6 + (cc.charCodeAt(1)-65)
-    );
-  } catch {
-    return "🌍";
-  }
+/* Flag emoji */
+function flagFromCode(cc = "") {
+  if (!cc || cc.length !== 2) return "🌍";
+  return String.fromCodePoint(
+    0x1F1E6 + (cc.charCodeAt(0) - 65),
+    0x1F1E6 + (cc.charCodeAt(1) - 65)
+  );
 }
 
-// Relative Time (Instagram style)
-function timeAgo(ts){
+/* Instagram style timeAgo */
+function timeAgo(ts) {
   if (!ts) return "";
   const date = ts.toDate ? ts.toDate() : new Date(ts);
-  const sec = Math.floor((Date.now() - date.getTime())/1000);
+  const sec = Math.floor((Date.now() - date.getTime()) / 1000);
 
-  if (sec < 60) return `${sec} seconds ago`;
-  const min = Math.floor(sec/60);
-  if (min < 60) return `${min} minutes ago`;
-  const hr = Math.floor(min/60);
-  if (hr < 24) return `${hr} hours ago`;
-  const day = Math.floor(hr/24);
-  if (day < 7) return `${day} days ago`;
-  return date/* ============================================================
-   PART 2/2 — CARD BUILDER, FEEDS, PAGINATION, USERNAME MODAL,
-   SUBMIT, PARTICLES, SHARE, EVERYTHING FINAL + VIRAL MODE
-   ============================================================ */
+  if (sec < 60) return `${sec}s ago`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const day = Math.floor(hr / 24);
+  if (day < 7) return `${day}d ago`;
 
-/* -------------------- Username Modal Logic -------------------- */
+  return date.toLocaleString();
+}
+
+/* ---------------- Username Modal ---------------- */
 function openUsernamePopup() {
-  usernamePopup.removeAttribute("hidden");
+  usernamePopup.hidden = false;
   usernamePopup.classList.add("show");
   usernameInput.focus();
 }
 
 function closeUsernamePopup() {
   usernamePopup.classList.remove("show");
-  setTimeout(() => usernamePopup.setAttribute("hidden", true), 200);
+  setTimeout(() => usernamePopup.hidden = true, 200);
 }
 
 function getSavedUsername() {
@@ -201,8 +188,8 @@ function getSavedUsername() {
 }
 
 async function ensureUsernameModal() {
-  let current = getSavedUsername();
-  if (current) return current;
+  const saved = getSavedUsername();
+  if (saved) return saved;
 
   openUsernamePopup();
 
@@ -225,184 +212,112 @@ async function ensureUsernameModal() {
   });
 }
 
-/* -------------------- Card Builder -------------------- */
-function makeCard(docData = {}, docId) {
-  const data = docData || {};
-  const country = (data.country || "").trim();
+/* ---------------- Make Card ---------------- */
+function makeCard(data = {}, id) {
+  const country = data.country || "";
   const cc = (data.countryCode || "").toUpperCase();
   const flag = flagFromCode(cc);
+  const user = data.username || "";
+  const relTime = timeAgo(data.timestamp || data.created);
 
-  const username = data.username ? escapeHTML(data.username) : "";
+  const el = document.createElement("div");
+  el.className = "blessing-card fade-up";
+  el.dataset.id = id;
 
-  let relTime = "";
-  try {
-    const ts = data.timestamp || data.created;
-    relTime = timeAgo(ts);
-  } catch {
-    relTime = "";
-  }
-
-  const wrap = document.createElement("div");
-  wrap.classList.add("blessing-card", "fade-up");
-  if (docId) wrap.dataset.id = docId;
-
-  wrap.innerHTML = `
-    <b class="blessing-flag">
-      <span class="flag">${flag}</span> ${escapeHTML(country || cc || "—")}
-    </b>
-
-    <div class="blessing-text">${escapeHTML(data.text || "").replace(/\n/g,"<br>")}</div>
-
-    ${username ? `<div class="blessing-user">— ${username}</div>` : ""}
-
+  el.innerHTML = `
+    <b class="blessing-flag"><span>${flag}</span> ${escapeHTML(country || cc)}</b>
+    <div class="blessing-text">${escapeHTML(data.text || "").replace(/\n/g, "<br>")}</div>
+    ${user ? `<div class="blessing-user">— ${escapeHTML(user)}</div>` : ""}
     <div class="blessing-time">${escapeHTML(relTime)}</div>
   `;
 
-  return wrap;
+  return el;
 }
 
-/* -------------------- Render Helpers -------------------- */
-function prependIfNew(docSnap) {
-  const id = docSnap.id;
-  if (renderedIds.has(id)) return false;
+/* ---------------- Render ---------------- */
 
-  const el = makeCard(docSnap.data(), id);
-  blessingsList.prepend(el);
-  renderedIds.add(id);
+function appendIfNew(d) {
+  if (renderedIds.has(d.id)) return false;
+  blessingsList.appendChild(makeCard(d.data(), d.id));
+  renderedIds.add(d.id);
   return true;
 }
 
-function appendIfNew(docSnap) {
-  const id = docSnap.id;
-  if (renderedIds.has(id)) return false;
-
-  const el = makeCard(docSnap.data(), id);
-  blessingsList.appendChild(el);
-  renderedIds.add(id);
+function prependIfNew(d) {
+  if (renderedIds.has(d.id)) return false;
+  blessingsList.prepend(makeCard(d.data(), d.id));
+  renderedIds.add(d.id);
   return true;
 }
 
-/* -------------------- Initial Load -------------------- */
+/* ---------------- Initial Load ---------------- */
 async function loadInitial() {
-  try {
-    const q1 = query(
-      collection(db, "blessings"),
-      orderBy("timestamp", "desc"),
-      limit(PAGE_LIMIT)
-    );
+  const q1 = query(
+    collection(db, "blessings"),
+    orderBy("timestamp", "desc"),
+    limit(PAGE_LIMIT)
+  );
 
-    const snap = await getDocs(q1);
+  const snap = await getDocs(q1);
 
-    blessingsList.innerHTML = "";
-    renderedIds.clear();
+  blessingsList.innerHTML = "";
+  renderedIds.clear();
 
-    snap.docs.forEach((d) => appendIfNew(d));
-    lastDoc = snap.docs[snap.docs.length - 1] || null;
-    initialLoaded = true;
+  snap.docs.forEach(d => appendIfNew(d));
+  lastDoc = snap.docs[snap.docs.length - 1] || null;
 
-    animateCount(counterEl, renderedIds.size);
+  animateCount(counterEl, renderedIds.size);
+  initialLoaded = true;
 
-    if (!lastDoc) {
-      loadMoreBtn.style.display = "none";
-      noMoreEl.textContent = "No more blessings 🤍";
-    } else {
-      loadMoreBtn.style.display = "block";
-      noMoreEl.textContent = "";
-    }
-
-    revealOnScroll();
-    setupInfiniteObserver();
-  } catch (err) {
-    console.warn("Initial load failed", err);
-    statusBox.textContent = "Unable to load blessings right now.";
-  }
+  revealOnScroll();
+  setupInfiniteObserver();
 }
 loadInitial();
 
-/* -------------------- Load More -------------------- */
+/* ---------------- Load More ---------------- */
 async function loadMore() {
-  if (loadingMore) return;
-  if (!lastDoc) {
-    loadMoreBtn.style.display = "none";
-    noMoreEl.textContent = "No more blessings 🤍";
-    return;
-  }
+  if (!lastDoc || loadingMore) return;
 
   loadingMore = true;
   loadMoreBtn.disabled = true;
 
-  try {
-    const qMore = query(
-      collection(db, "blessings"),
-      orderBy("timestamp", "desc"),
-      startAfter(lastDoc),
-      limit(PAGE_LIMIT)
-    );
+  const q = query(
+    collection(db, "blessings"),
+    orderBy("timestamp", "desc"),
+    startAfter(lastDoc),
+    limit(PAGE_LIMIT)
+  );
 
-    const snap = await getDocs(qMore);
+  const snap = await getDocs(q);
 
-    if (snap.empty) {
-      lastDoc = null;
-      loadMoreBtn.style.display = "none";
-      noMoreEl.textContent = "No more blessings 🤍";
-      return;
-    }
+  snap.docs.forEach(d => appendIfNew(d));
+  lastDoc = snap.docs[snap.docs.length - 1] || null;
 
-    snap.docs.forEach((d) => appendIfNew(d));
-    lastDoc = snap.docs[snap.docs.length - 1] || null;
-
-    revealOnScroll();
-  } catch (err) {
-    statusBox.textContent = "Failed to load more.";
-  } finally {
-    loadingMore = false;
-    loadMoreBtn.disabled = false;
-  }
+  loadingMore = false;
+  loadMoreBtn.disabled = false;
 }
-loadMoreBtn.addEventListener("click", loadMore);
+loadMoreBtn.onclick = loadMore;
 
-/* -------------------- Infinite Scroll -------------------- */
+/* ---------------- Infinite Scroll ---------------- */
 let infiniteObserver = null;
-let sentinel = null;
-
-function createSentinel() {
-  if (document.getElementById("wbw_sentinel"))
-    return document.getElementById("wbw_sentinel");
-
-  sentinel = document.createElement("div");
-  sentinel.id = "wbw_sentinel";
-  sentinel.style.width = "1px";
-  sentinel.style.height = "1px";
-  sentinel.style.margin = "1px auto";
-
-  blessingsList.insertAdjacentElement("afterend", sentinel);
-  return sentinel;
-}
 
 function setupInfiniteObserver() {
   if (infiniteObserver) return;
 
-  sentinel = createSentinel();
+  const sentinel = document.createElement("div");
+  sentinel.id = "wbw_sentinel";
+  blessingsList.insertAdjacentElement("afterend", sentinel);
 
-  infiniteObserver = new IntersectionObserver(
-    async (entries) => {
-      for (const e of entries) {
-        if (e.isIntersecting && initialLoaded && !loadingMore && lastDoc) {
-          await loadMore();
-        }
-      }
-    },
-    {
-      root: null,
-      rootMargin: "380px",
-      threshold: 0,
+  infiniteObserver = new IntersectionObserver(async (entries) => {
+    if (entries[0].isIntersecting) {
+      await loadMore();
     }
-  );
+  });
 
   infiniteObserver.observe(sentinel);
 }
 
-/* -------------------- Live Realtime Top -------------------- */
+/* ---------------- Realtime Top ---------------- */
 const liveNewest = query(
   collection(db, "blessings"),
   orderBy("timestamp", "desc"),
@@ -412,184 +327,130 @@ const liveNewest = query(
 onSnapshot(liveNewest, (snap) => {
   if (!initialLoaded) return;
 
-  snap.docChanges().forEach((change) => {
+  snap.docChanges().forEach(change => {
     if (change.type === "added") {
-      const added = prependIfNew(change.doc);
-      if (added) {
+      if (prependIfNew(change.doc)) {
         animateCount(counterEl, renderedIds.size);
         triggerSparkle(10);
       }
-      revealOnScroll();
     }
   });
 });
 
-/* -------------------- My Blessings -------------------- */
+/* ---------------- My Blessings ---------------- */
 let myUnsub = null;
 
 async function startMyBlss() {
-  myList.innerHTML = "";
-  myEmpty.textContent = "Loading…";
+  const ipHash = await makeIpHash();
 
-  try {
-    const ipHash = await makeIpHash();
+  const myQuery = query(
+    collection(db, "blessings"),
+    where("ipHash", "==", ipHash),
+    orderBy("timestamp", "desc"),
+    limit(60)
+  );
 
-    const myQuery = query(
-      collection(db, "blessings"),
-      where("ipHash", "==", ipHash),
-      orderBy("timestamp", "desc"),
-      limit(60)
-    );
+  if (myUnsub) myUnsub();
 
-    if (typeof myUnsub === "function") myUnsub();
+  myUnsub = onSnapshot(myQuery, (snap) => {
+    myList.innerHTML = "";
 
-    myUnsub = onSnapshot(
-      myQuery,
-      (snap) => {
-        myList.innerHTML = "";
+    if (snap.empty) {
+      myEmpty.textContent = "You haven’t posted any blessings yet 🌼";
+      animateCount(myCountEl, 0);
+      return;
+    }
 
-        if (snap.empty) {
-          myEmpty.textContent = "You haven’t posted any blessings yet 🌟";
-          animateCount(myCountEl, 0);
-          return;
-        }
+    snap.docs.forEach(d => {
+      myList.appendChild(makeCard(d.data(), d.id));
+    });
 
-        myEmpty.textContent = "";
-
-        snap.docs.forEach((d) => {
-          myList.appendChild(makeCard(d.data(), d.id));
-        });
-
-        animateCount(myCountEl, snap.docs.length);
-      },
-      () => {
-        myEmpty.textContent = "Unable to load your blessings.";
-      }
-    );
-  } catch {
-    myEmpty.textContent = "Unable to load your blessings.";
-  }
+    animateCount(myCountEl, snap.docs.length);
+    myEmpty.textContent = "";
+  });
 }
 
 toggleMy.onclick = () => {
   const sec = document.getElementById("myBlessings");
-  if (!sec) return;
-
-  if (sec.style.display === "none") {
-    sec.style.display = "";
-    toggleMy.textContent = "Hide My Blessings";
-  } else {
-    sec.style.display = "none";
-    toggleMy.textContent = "Show My Blessings";
-  }
+  sec.style.display = sec.style.display === "none" ? "" : "none";
 };
 
-refreshMy.onclick = () => startMyBlss();
-
+refreshMy.onclick = startMyBlss;
 startMyBlss();
 
-/* -------------------- SUBMIT FLOW -------------------- */
-sendBtn.addEventListener("click", submitBlessing);
+/* ---------------- Submit Blessing ---------------- */
+async function submitBlessing() {
+  const text = blessingInput.value.trim();
+  const rawCountry = countryInput.value.trim();
+  if (!text) return blessingInput.focus();
+  if (!rawCountry) return countryInput.focus();
+
+  sendBtn.disabled = true;
+  sendBtn.style.opacity = ".6";
+
+  const username = await ensureUsernameModal();
+  if (!username) {
+    sendBtn.disabled = false;
+    sendBtn.style.opacity = "1";
+    return;
+  }
+
+  const lang = detectLang(text);
+  const { country, countryCode } = normalizeCountry(rawCountry);
+  const ipHash = await makeIpHash();
+
+  const base = {
+    text,
+    country,
+    countryCode,
+    language: lang,
+    timestamp: serverTimestamp(),
+    created: serverTimestamp(),
+    username,
+    ipHash,
+    sentimentScore: 0,
+    status: "approved",
+    device: "web",
+    source: document.referrer ? new URL(document.referrer).hostname : "direct",
+    blessingId: ""
+  };
+
+  const ref = await addDoc(collection(db, "blessings"), base);
+  await updateDoc(doc(db, "blessings", ref.id), { blessingId: ref.id });
+
+  pulseSendBtn();
+  triggerSparkle(14);
+  showLiveToast("✨ Your blessing is live!");
+
+  blessingInput.value = "";
+  sendBtn.disabled = false;
+  sendBtn.style.opacity = "1";
+}
+sendBtn.onclick = submitBlessing;
 
 blessingInput.addEventListener("keydown", (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === "Enter") submitBlessing();
 });
 
-async function submitBlessing() {
-  const rawText = blessingInput.value.trim();
-  const rawCountry = countryInput.value.trim();
-
-  if (!rawText) {
-    blessingInput.focus();
-    return;
-  }
-  if (!rawCountry) {
-    countryInput.focus();
-    return;
-  }
-
-  sendBtn.disabled = true;
-  sendBtn.style.opacity = ".6";
-
-  try {
-    const username = await ensureUsernameModal();
-    if (!username) return;
-
-    const lang = detectLang(rawText);
-    const { country, countryCode } = normalizeCountry(rawCountry);
-    const ipHash = await makeIpHash();
-
-    const base = {
-      text: rawText,
-      country,
-      countryCode,
-      timestamp: serverTimestamp(),
-      created: serverTimestamp(),
-      language: lang,
-      ipHash,
-      username,
-      sentimentScore: 0,
-      status: "approved",
-      device: "web",
-      source: document.referrer ? new URL(document.referrer).hostname : "direct",
-      blessingId: ""
-    };
-
-    const ref = await addDoc(collection(db, "blessings"), base);
-
-    await updateDoc(doc(db, "blessings", ref.id), {
-      blessingId: ref.id,
-    });
-
-    getGeoOnce().then((geo) => {
-      if (geo) {
-        updateDoc(doc(db, "blessings", ref.id), {
-          "geo.lat": geo.lat,
-          "geo.lng": geo.lng,
-        });
-      }
-    });
-
-    pulseSendBtn();
-    triggerSparkle(14);
-    showLiveToast("✨ Your blessing is live!");
-
-    blessingInput.value = "";
-
-    await sleep(900);
-    statusBox.textContent = "";
-
-    startMyBlss();
-  } finally {
-    sendBtn.disabled = false;
-    sendBtn.style.opacity = "1";
-  }
-}
-
-/* -------------------- SHARE -------------------- */
+/* ---------------- Share ---------------- */
 const shareText = encodeURIComponent("Ek dua likho, duniya badlo 💫");
 const shareUrl = encodeURIComponent(location.href.split("#")[0]);
 
-waShare.onclick = () => {
-  window.open(`https://wa.me/?text=${shareText}%20${shareUrl}`, "_blank");
-};
+waShare.onclick = () =>
+  window.open(`https://wa.me/?text=${shareText}%20${shareUrl}`);
 
-twShare.onclick = () => {
-  window.open(
-    `https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`,
-    "_blank"
-  );
-};
+twShare.onclick = () =>
+  window.open(`https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`);
 
 copyShare.onclick = async () => {
   await navigator.clipboard.writeText(decodeURIComponent(shareUrl));
   const prev = copyShare.textContent;
   copyShare.textContent = "Link Copied ✅";
-  await sleep(1000);
+  await sleep(1100);
   copyShare.textContent = prev;
 };
 
-/* -------------------- PARTICLES -------------------- */
+/* ---------------- Particles ---------------- */
 (function initParticles() {
   const canvas = document.getElementById("goldParticles");
   if (!canvas) return;
@@ -610,12 +471,11 @@ copyShare.onclick = async () => {
   resize();
   window.addEventListener("resize", resize);
 
-  const COUNT = Math.floor((W * H) / 28000) + 90;
-
+  const COUNT = Math.floor((W * H) / 35000) + 80;
   const stars = Array.from({ length: COUNT }).map(() => ({
     x: Math.random() * W,
     y: Math.random() * H,
-    r: Math.random() * 1.5 + 0.4,
+    r: Math.random() * 1.4 + 0.4,
     vx: Math.random() * 0.2 - 0.1,
     vy: Math.random() * 0.25 + 0.1,
     tw: Math.random() * Math.PI * 2,
@@ -635,12 +495,12 @@ copyShare.onclick = async () => {
         s.x = Math.random() * W;
       }
 
-      const glow = 0.55 + 0.4 * Math.sin(s.tw);
+      const glow = 0.6 + 0.35 * Math.sin(s.tw);
       ctx.globalAlpha = glow;
 
       const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 7);
-      g.addColorStop(0, "rgba(255,240,190,1)");
-      g.addColorStop(1, "rgba(255,240,190,0)");
+      g.addColorStop(0, "rgba(255,240,200,1)");
+      g.addColorStop(1, "rgba(255,240,200,0)");
       ctx.fillStyle = g;
 
       ctx.beginPath();
@@ -655,7 +515,7 @@ copyShare.onclick = async () => {
   animate();
 })();
 
-/* -------------------- Scroll Reveal -------------------- */
+/* ---------------- Scroll Reveal ---------------- */
 function revealOnScroll() {
   const els = document.querySelectorAll(".fade-up, .fade-section");
   const trigger = window.innerHeight * 0.92;
@@ -666,10 +526,7 @@ function revealOnScroll() {
     }
   });
 }
-
 window.addEventListener("scroll", revealOnScroll);
 window.addEventListener("load", revealOnScroll);
 
-console.info("World Blessing Wall — app.js v1.3 loaded 💫 (Viral Mode)");
-.toLocaleString();
-}
+console.info("World Blessing Wall — app.js v1.4 loaded ✨ Viral Mode Activated");
