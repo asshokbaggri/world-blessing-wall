@@ -456,6 +456,9 @@ async function startMyBlss(){
             const el = makeCard(d.data(), d.id);
             myList.appendChild(el);
           });
+
+          document.getElementById("myCount").textContent = snap.size;
+
     }, (err)=>{
       console.warn("MyBlessings snapshot failed", err);
       myEmpty.textContent = "Unable to load your blessings right now.";
