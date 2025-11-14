@@ -439,16 +439,24 @@ async function startMyBlss(){
     // detach previous
     if (typeof myUnsub === "function") myUnsub();
     myUnsub = onSnapshot(myQuery, (snap)=>{
-      myList.innerHTML = "";
-      if (snap.empty){
-        myEmpty.textContent = "You haven't posted any blessings yet — write your first one!";
-        return;
-      }
-      myEmpty.textContent = "";
-      snap.docs.forEach(d=>{
-        const el = makeCard(d.data(), d.id);
-        myList.appendChild(el);
-      });
+          myList.innerHTML = "";
+
+          // ⭐⭐ personal count update ⭐⭐
+          const countEl = document.getElementById("myCount");
+          if (countEl) countEl.textContent = snap.size;
+
+          if (snap.empty){
+            myEmpty.textContent = "You haven't posted any blessings yet — write your first one!";
+            if (countEl) countEl.textContent = "0"; // empty state count
+            return;
+          }
+
+          myEmpty.textContent = "";
+
+          snap.docs.forEach(d=>{
+            const el = makeCard(d.data(), d.id);
+            myList.appendChild(el);
+          });
     }, (err)=>{
       console.warn("MyBlessings snapshot failed", err);
       myEmpty.textContent = "Unable to load your blessings right now.";
