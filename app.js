@@ -1,10 +1,8 @@
 /* ============================================================
-   WORLD BLESSING WALL — APP.JS v1.1 (Infinite-scroll safe patch)
-   - Full readable source
-   - Realtime newest + safe infinite scroll (auto-load older)
-   - Manual "Load more" still supported
-   - Micro-animations: send button pulse, sparkle burst, live toast
-   - Keeps previous behavior (no DB deletions, no duplicates)
+   WORLD BLESSING WALL — APP.JS v1.1 (My-Blessings + infinite)
+   - includes persistent clientId to link user's future submissions
+   - realtime my-blessings + public realtime feed
+   - infinite scroll safe patch + micro-animations
    ============================================================ */
 
 // ---------- Firebase ----------
@@ -21,7 +19,8 @@ import {
   orderBy,
   limit,
   startAfter,
-  getDocs
+  getDocs,
+  where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -50,86 +49,68 @@ const waShare   = document.getElementById("waShare");
 const twShare   = document.getElementById("twShare");
 const copyShare = document.getElementById("copyShare");
 
-// micro-animation targets (may be absent; we'll create fallbacks in JS if needed)
+// my-blessings DOM
+const myList = document.getElementById("myBlessingsList");
+const myEmpty = document.getElementById("myEmpty");
+const toggleMy = document.getElementById("toggleMy");
+const refreshMy = document.getElementById("refreshMy");
+
+// micro-animation targets
 let sparkleRoot = document.getElementById("sparkleBurst");
 let liveToast   = document.getElementById("liveToast");
 const titleEl   = document.querySelector(".title");
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-// ---------- State ----------
-const renderedIds = new Set(); // track DOM rendered doc ids
+// ---------- STATE ----------
+const renderedIds = new Set(); // public feed DOM ids
 let lastDoc = null;
 let initialLoaded = false;
-let loadingMore = false; // guard for pagination
+let loadingMore = false; // guard pagination
 const PAGE_LIMIT = 12;
 
-// ---------- Inject minimal micro-animation CSS (so you don't have to edit style.css) ----------
-(function injectMicroCSS(){
-  if (document.getElementById("__wbw_micro_css")) return;
-  const css = `
-    /* micro animations injected by app.js v1.1 */
-    .btn-primary.pulse { animation: wbw-pulse 900ms ease-in-out; }
-    @keyframes wbw-pulse { 0%{ transform:scale(1); } 50%{ transform:scale(1.04); } 100%{ transform:scale(1); } }
-
-    .live-toast {
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%) translateY(0);
-      bottom: 22vh;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95));
-      color: #2a2008;
-      padding: 10px 18px;
-      border-radius: 999px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-      font-weight:600;
-      z-index: 99999;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .28s ease, transform .28s cubic-bezier(.2,.9,.3,1);
-    }
-    .live-toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
-
-    #sparkleBurst { position: fixed; left: 50%; top: 40vh; transform: translateX(-50%); pointer-events: none; z-index: 99998; }
-    .wbw-spark { position:absolute; width:10px; height:10px; border-radius:50%; background: radial-gradient(circle at 35% 30%, #fff6d8, var(--gold)); opacity:0.95; transform: translate3d(0,0,0) scale(.9); animation: wbw-spark-anim 820ms ease-out forwards; }
-    @keyframes wbw-spark-anim {
-      0% { opacity:1; transform: translate3d(0,0,0) scale(1); }
-      60% { opacity:0.9; }
-      100% { opacity:0; transform: translate3d(var(--tx), var(--ty), 0) scale(.3); }
-    }
-
-    /* temporary shimmer on title when new blessing arrives */
-    .title.shimmer { filter: drop-shadow(0 8px 26px rgba(240,180,60,0.12)); animation: wbw-title-shim 900ms ease-in-out; }
-    @keyframes wbw-title-shim { 0%{ filter: none } 50%{ filter: drop-shadow(0 14px 40px rgba(240,180,60,0.28)) } 100%{ filter:none } }
-  `;
-  const s = document.createElement("style");
-  s.id = "__wbw_micro_css";
-  s.appendChild(document.createTextNode(css));
-  document.head.appendChild(s);
-})();
-
-// ensure micro DOM elements exist (create fallback if missing)
-(function ensureMicroDOM(){
-  if (!sparkleRoot) {
-    sparkleRoot = document.createElement("div");
-    sparkleRoot.id = "sparkleBurst";
-    document.body.appendChild(sparkleRoot);
+// --------- CLIENT ID (persistent) & ipHash strategy ---------
+// We generate and persist a clientId in localStorage so that ipHash is stable per browser.
+// This lets "My Blessings" reliably find future submissions from the same browser.
+//
+// Note: older submissions created before adding this persistent clientId (if any) may
+// have an ipHash that doesn't match. Those older docs won't appear in "My Blessings".
+// Future submissions will be linked correctly.
+function getClientId(){
+  try {
+    const key = "wbw_client_id_v1";
+    let id = localStorage.getItem(key);
+    if (id) return id;
+    // generate random 16-byte id hex
+    const arr = crypto.getRandomValues(new Uint8Array(12));
+    id = [...arr].map(b=>b.toString(16).padStart(2,"0")).join("");
+    localStorage.setItem(key, id);
+    return id;
+  } catch(e){
+    // fallback to timestamp
+    const id = "x" + Date.now().toString(36);
+    try { localStorage.setItem("wbw_client_id_v1", id); } catch {}
+    return id;
   }
-  if (!liveToast) {
-    liveToast = document.createElement("div");
-    liveToast.id = "liveToast";
-    liveToast.className = "live-toast";
-    liveToast.setAttribute("role","status");
-    liveToast.setAttribute("aria-live","polite");
-    liveToast.hidden = true;
-    liveToast.innerHTML = `<span id="liveToastText">✨ Your blessing is live!</span>`;
-    document.body.appendChild(liveToast);
+}
+const CLIENT_ID = getClientId();
+
+// ipHash uses CLIENT_ID (stable) + UA + timezone
+async function makeIpHash(){
+  const seed = `${CLIENT_ID}::${navigator.userAgent}::${Intl.DateTimeFormat().resolvedOptions().timeZone}`;
+  if (crypto?.subtle) {
+    const data = new TextEncoder().encode(seed);
+    const digest = await crypto.subtle.digest("SHA-256", data);
+    return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,"0")).join("");
   }
-})();
+  // fallback
+  let h = 0; for (let i=0;i<seed.length;i++){ h = (h*31 + seed.charCodeAt(i))|0; }
+  return String(h >>> 0);
+}
 
 // ---------- Utils ----------
 
-// COUNTER POP — requires a small CSS class `.counter-anim` (you have this in style.css)
+// COUNTER POP — requires .counter-anim in CSS
 function animateCount(el, to){
   if (!el) return;
   el.classList.remove("counter-anim");
@@ -202,18 +183,6 @@ function flagFromCode(cc = ""){
   }
 }
 
-// Safe ipHash (no raw IP). Browser-only pseudo-hash using UA + timezone + random
-async function makeIpHash(){
-  const seed = `${navigator.userAgent}::${Intl.DateTimeFormat().resolvedOptions().timeZone}::${Math.random()}`;
-  if (crypto?.subtle) {
-    const data = new TextEncoder().encode(seed);
-    const digest = await crypto.subtle.digest("SHA-256", data);
-    return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,"0")).join("");
-  }
-  let h = 0; for (let i=0;i<seed.length;i++){ h = (h*31 + seed.charCodeAt(i))|0; }
-  return String(h >>> 0);
-}
-
 // Non-blocking one-shot geo (returns {lat,lng} or null)
 function getGeoOnce(){
   return new Promise(resolve=>{
@@ -252,31 +221,24 @@ function showLiveToast(text = "✨ Your blessing is live!"){
 
 function triggerSparkle(count = 12){
   if (!sparkleRoot) return;
-  // center point approximate
   const w = window.innerWidth;
   const x0 = Math.round(w/2);
   const y0 = Math.round(window.innerHeight * 0.42);
 
-  const sparks = [];
   for (let i=0;i<count;i++){
     const sp = document.createElement("div");
     sp.className = "wbw-spark";
-    // random direction and distance
     const angle = Math.random()*Math.PI*2;
     const dist = 60 + Math.random()*140;
     const tx = Math.round(Math.cos(angle)*dist) + "px";
     const ty = Math.round(Math.sin(angle)*dist - (20 + Math.random()*40)) + "px";
     sp.style.setProperty("--tx", tx);
     sp.style.setProperty("--ty", ty);
-    // position near center of sparkleRoot
     sp.style.left = (x0 - 6 + (Math.random()*24-12)) + "px";
     sp.style.top  = (y0 - 6 + (Math.random()*24-12)) + "px";
     sparkleRoot.appendChild(sp);
-    sparks.push(sp);
-    // remove after animation
     setTimeout(()=> { try{ sp.remove(); }catch{} }, 900);
   }
-  // small extra: briefly shimmer title
   if (titleEl) {
     titleEl.classList.add("shimmer");
     setTimeout(()=> titleEl.classList.remove("shimmer"), 900);
@@ -361,7 +323,6 @@ async function loadInitial(){
 loadInitial();
 
 async function loadMore(){
-  // safe guard
   if (loadingMore) return;
   if (!lastDoc) {
     if (loadMoreBtn) loadMoreBtn.style.display = "none";
@@ -390,13 +351,6 @@ async function loadMore(){
     snap.docs.forEach(d => appendIfNew(d));
     lastDoc = snap.docs[snap.docs.length - 1] || null;
     revealOnScroll();
-
-    // if fewer than page or exactly equal but no more docs, hide button
-    if (!lastDoc) {
-      if (loadMoreBtn) loadMoreBtn.style.display = "none";
-      if (noMoreEl) noMoreEl.textContent = "No more blessings 🤍";
-    }
-
   } catch (err) {
     console.warn("Load more failed", err);
     if (statusBox) statusBox.textContent = "Failed to load more.";
@@ -426,30 +380,26 @@ function createSentinel(){
 }
 
 function setupInfiniteObserver(){
-  // only create observer once
   if (infiniteObserver) return;
   sentinel = createSentinel();
-  if (!('IntersectionObserver' in window)) return; // fallback: user uses Load more button
+  if (!('IntersectionObserver' in window)) return;
   infiniteObserver = new IntersectionObserver(async (entries) => {
     for (const e of entries){
       if (e.isIntersecting && e.intersectionRatio > 0) {
-        // if initial hasn't loaded, don't auto-load
         if (!initialLoaded) return;
-        // if currently loading or no more docs, skip
         if (loadingMore || !lastDoc) return;
-        // auto-load older blessings (do not block UI)
         await loadMore();
       }
     }
   }, {
     root: null,
-    rootMargin: "400px", // start loading earlier
+    rootMargin: "400px",
     threshold: 0
   });
   if (sentinel) infiniteObserver.observe(sentinel);
 }
 
-// ---------- Realtime (newest only) ----------
+// ---------- Realtime (newest only for public feed) ----------
 const liveNewest = query(
   collection(db,"blessings"),
   orderBy("timestamp","desc"),
@@ -457,7 +407,6 @@ const liveNewest = query(
 );
 
 onSnapshot(liveNewest, (snap)=>{
-  // don't show realtime until initial list is loaded
   if (!initialLoaded) return;
 
   snap.docChanges().forEach(change => {
@@ -465,14 +414,68 @@ onSnapshot(liveNewest, (snap)=>{
       const added = prependIfNew(change.doc);
       if (added) {
         animateCount(counterEl, renderedIds.size);
-        // micro-animations on live arrival
         triggerSparkle(8);
-        // small title shimmer (already in triggerSparkle)
       }
       revealOnScroll();
     }
   });
 });
+
+// ---------- "My Blessings" (realtime) ----------
+let myUnsub = null;
+async function startMyBlss(){
+  if (!myList) return;
+  myList.innerHTML = "";
+  myEmpty.textContent = "Loading…";
+  try {
+    const ipHash = await makeIpHash();
+    const myQuery = query(
+      collection(db,"blessings"),
+      where("ipHash","==", ipHash),
+      orderBy("timestamp","desc"),
+      limit(50)
+    );
+    // detach previous
+    if (typeof myUnsub === "function") myUnsub();
+    myUnsub = onSnapshot(myQuery, (snap)=>{
+      myList.innerHTML = "";
+      if (snap.empty){
+        myEmpty.textContent = "You haven't posted any blessings yet — write your first one!";
+        return;
+      }
+      myEmpty.textContent = "";
+      snap.docs.forEach(d=>{
+        const el = makeCard(d.data(), d.id);
+        myList.appendChild(el);
+      });
+    }, (err)=>{
+      console.warn("MyBlessings snapshot failed", err);
+      myEmpty.textContent = "Unable to load your blessings right now.";
+    });
+  } catch (err) {
+    console.warn("startMyBlss failed", err);
+    myEmpty.textContent = "Unable to load your blessings right now.";
+  }
+}
+
+// toggle / refresh actions
+if (toggleMy) {
+  toggleMy.addEventListener("click", ()=>{
+    const sec = document.getElementById("myBlessings");
+    if (!sec) return;
+    if (sec.style.display === "none") {
+      sec.style.display = "";
+      toggleMy.textContent = "Hide My Blessings";
+    } else {
+      sec.style.display = "none";
+      toggleMy.textContent = "Show My Blessings";
+    }
+  });
+}
+if (refreshMy) refreshMy.addEventListener("click", ()=> startMyBlss());
+
+// start my blessings once app loads (non-blocking)
+startMyBlss();
 
 // ---------- Submit flow ----------
 if (sendBtn) {
@@ -517,13 +520,9 @@ async function submitBlessing(){
       blessingId: ""
     };
 
-    // Add document
     const ref = await addDoc(collection(db,"blessings"), base);
-
-    // Backfill blessingId
     await updateDoc(doc(db,"blessings", ref.id), { blessingId: ref.id }).catch(()=>{});
 
-    // Optional geo: do not block UI
     getGeoOnce().then(geo=>{
       if (geo) {
         updateDoc(doc(db,"blessings", ref.id), {
@@ -535,24 +534,26 @@ async function submitBlessing(){
       }
     });
 
-    // Friendly UI feedback (do NOT expose raw errors)
     if (statusBox) {
       statusBox.textContent = "Blessing submitted ✅";
       statusBox.style.color = "#bfe4c2";
     }
 
-    // micro animations: pulse button, sparkle, toast
+    // micro animations
     pulseSendBtn();
     triggerSparkle(14);
     showLiveToast("✨ Your blessing is live!");
 
-    // clear input but keep country so user can submit multiple quickly
+    // clear input but keep country
     if (blessingInput) blessingInput.value = "";
     await sleep(1100);
     if (statusBox) {
       statusBox.textContent = "";
       statusBox.style.color = "";
     }
+
+    // refresh "My Blessings" after submit (so new item shows without reload)
+    startMyBlss();
   } catch (err) {
     console.warn("Submit failed", err);
     if (statusBox) {
@@ -584,9 +585,7 @@ copyShare?.addEventListener("click", async ()=>{
     copyShare.textContent = "Link Copied ✅";
     await sleep(1200);
     copyShare.textContent = prev || "Copy Link";
-  } catch {
-    // ignore
-  }
+  } catch {}
 });
 
 // ---------- Particles (full-screen, always behind) ----------
@@ -657,5 +656,5 @@ function revealOnScroll(){
 window.addEventListener("scroll", revealOnScroll);
 window.addEventListener("load", revealOnScroll);
 
-// ---------- Done ----------
-console.info("World Blessing Wall — app.js v1.1 loaded (infinite-scroll + micro-animations)");
+// ---------- Start "My Blessings" UI quick hint (runs after client ready) ----------
+console.info("World Blessing Wall — app.js v1.1 loaded (My-Blessings enabled)");
