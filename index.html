@@ -24,6 +24,7 @@
   <header class="nav fade-section" role="banner" aria-label="Main navigation">
     <div class="brand">Asshok Baggri</div>
     <nav class="menu" aria-label="Site sections">
+      <a href="#myBlessings">My Blessings</a>
       <a href="#live">Live</a>
       <a href="#share">Share</a>
       <a href="#founder">Founder</a>
@@ -71,6 +72,19 @@
 
     <!-- ================================================================ -->
 
+  </section>
+
+  <!-- MY BLESSINGS (new) -->
+  <section id="myBlessings" class="feed fade-section" aria-label="My blessings">
+    <h2 class="section-title">My Blessings <small style="font-weight:400; color:var(--text-dim);">(private to you)</small></h2>
+
+    <div class="my-controls" style="display:flex;gap:12px;align-items:center;margin-bottom:14px;">
+      <button id="refreshMy" class="btn" type="button">Refresh</button>
+      <button id="toggleMy" class="btn" type="button">Hide My Blessings</button>
+      <div id="myEmpty" style="color:var(--text-dim); margin-left:auto;">Loading…</div>
+    </div>
+
+    <div id="myBlessingsList" class="cards" role="list" aria-live="polite"></div>
   </section>
 
   <!-- LIVE FEED -->
@@ -123,7 +137,6 @@
     </div>
   </footer>
 
-  <!-- NO JS -->
   <noscript style="color:white; display:block; text-align:center; padding:12px;">
     Please enable JavaScript to use the World Blessing Wall.
   </noscript>
