@@ -681,6 +681,9 @@ function sparkleBurst() {
   const box = document.getElementById("sparkleBurst");
   if (!box) return;
 
+  const btn = document.getElementById("sendBtn");
+  const rect = btn.getBoundingClientRect();
+
   for (let i = 0; i < 12; i++) {
     const s = document.createElement("div");
     s.className = "spark-pop";
@@ -690,6 +693,10 @@ function sparkleBurst() {
 
     s.style.setProperty("--x", `${Math.cos(angle) * dist}px`);
     s.style.setProperty("--y", `${Math.sin(angle) * dist}px`);
+
+    // ⭐ STARTING POINT = button center
+    s.style.left = (rect.left + rect.width / 2) + "px";
+    s.style.top  = (rect.top + rect.height / 2) + "px";
 
     box.appendChild(s);
     setTimeout(() => s.remove(), 600);
