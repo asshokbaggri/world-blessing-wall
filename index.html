@@ -60,17 +60,13 @@
       </div>
     </div>
 
-    <!-- ======= Micro-animation helpers (composer ke turant neeche) ======= -->
-
-    <!-- sparkle burst container -->
+    <!-- burst container -->
     <div id="sparkleBurst" aria-hidden="true"></div>
 
-    <!-- tiny toast popup for "Your blessing is live!" -->
+    <!-- tiny toast popup -->
     <div id="liveToast" role="status" aria-live="polite" class="live-toast" hidden>
       <span id="liveToastText">✨ Your blessing is live!</span>
     </div>
-
-    <!-- ================================================================ -->
 
   </section>
 
@@ -94,7 +90,7 @@
 
   </section>
 
-    <!-- SHARE -->
+  <!-- SHARE -->
   <section id="share" class="share fade-section">
     <h3>Aapki dua roshni ban kar duniya tak pahunchti hai 🤍</h3>
     <div class="share-row">
@@ -104,17 +100,13 @@
     </div>
   </section>
 
-  
   <!-- LIVE FEED -->
   <section id="live" class="feed fade-section" aria-label="Live blessings">
     <h2 class="section-title">Live Blessings <span class="sparkle">💫</span></h2>
-
     <div id="blessingsList" class="cards" role="list"></div>
-
     <button id="loadMore" class="load-btn" type="button">Load more</button>
     <div id="noMore" class="no-more" aria-live="polite"></div>
   </section>
-
 
   <!-- FOUNDER -->
   <section id="founder" class="founder fade-section">
@@ -145,6 +137,23 @@
       © 2025 Asshok Baggri — Light For Humanity 🌍✨
     </div>
   </footer>
+
+
+  <!-- USERNAME POPUP -->
+  <div id="usernamePopup" class="username-popup" hidden>
+    <div class="popup-box">
+      <h3>Apka Naam? 🪶</h3>
+      <p>Username ek baar set hoga — sab blessings me automatic jayega.</p>
+
+      <input type="text" id="usernameInput" placeholder="Aapka naam..." />
+
+      <div class="popup-actions">
+        <button id="saveUsername" class="btn-primary">Save</button>
+        <button id="skipUsername" class="btn">Skip</button>
+      </div>
+    </div>
+  </div>
+
 
   <noscript style="color:white; display:block; text-align:center; padding:12px;">
     Please enable JavaScript to use the World Blessing Wall.
