@@ -1,8 +1,9 @@
 /* ============================================================
-   WORLD BLESSING WALL — APP.JS v1.1 (My-Blessings + infinite)
-   - includes persistent clientId to link user's future submissions
-   - realtime my-blessings + public realtime feed
-   - infinite scroll safe patch + micro-animations
+   WORLD BLESSING WALL — APP.JS v1.2 (My-Blessings + username)
+   - one-time username popup (stored in localStorage)
+   - username saved into each blessing document (field: username)
+   - username shown on public cards + My Blessings
+   - my-count box updates & animates
    ============================================================ */
 
 // ---------- Firebase ----------
@@ -54,6 +55,7 @@ const myList = document.getElementById("myBlessingsList");
 const myEmpty = document.getElementById("myEmpty");
 const toggleMy = document.getElementById("toggleMy");
 const refreshMy = document.getElementById("refreshMy");
+const myCountEl = document.getElementById("myCount");
 
 // micro-animation targets
 let sparkleRoot = document.getElementById("sparkleBurst");
@@ -70,18 +72,12 @@ let loadingMore = false; // guard pagination
 const PAGE_LIMIT = 12;
 
 // --------- CLIENT ID (persistent) & ipHash strategy ---------
-// We generate and persist a clientId in localStorage so that ipHash is stable per browser.
-// This lets "My Blessings" reliably find future submissions from the same browser.
-//
-// Note: older submissions created before adding this persistent clientId (if any) may
-// have an ipHash that doesn't match. Those older docs won't appear in "My Blessings".
-// Future submissions will be linked correctly.
 function getClientId(){
   try {
     const key = "wbw_client_id_v1";
     let id = localStorage.getItem(key);
     if (id) return id;
-    // generate random 16-byte id hex
+    // generate random 12-byte id hex
     const arr = crypto.getRandomValues(new Uint8Array(12));
     id = [...arr].map(b=>b.toString(16).padStart(2,"0")).join("");
     localStorage.setItem(key, id);
@@ -183,6 +179,16 @@ function flagFromCode(cc = ""){
   }
 }
 
+// escape HTML to avoid accidental injection in innerHTML usage
+function escapeHTML(s = ""){
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 // Non-blocking one-shot geo (returns {lat,lng} or null)
 function getGeoOnce(){
   return new Promise(resolve=>{
@@ -197,6 +203,37 @@ function getGeoOnce(){
       { enableHighAccuracy:false, timeout:2500, maximumAge:600000 }
     );
   });
+}
+
+// ---------- Username popup (one-time) ----------
+async function ensureUsername(){
+  const key = "wbw_username_v1";
+  try {
+    let name = localStorage.getItem(key);
+    if (name && name.trim()) return name.trim();
+
+    // prompt loop until non-empty or user cancels and chooses to abort posting
+    while (true) {
+      const resp = prompt("Enter a display name (this will be shown with your blessings):");
+      if (resp === null) {
+        // user cancelled the prompt
+        const retry = confirm("Name is required to post and shown publicly. Try entering a name?");
+        if (!retry) return null;
+        continue; // reopen prompt
+      }
+      const trimmed = (resp || "").trim();
+      if (trimmed.length === 0) {
+        alert("Please enter a valid name (at least one character).");
+        continue;
+      }
+      // store and return
+      try { localStorage.setItem(key, trimmed); } catch(e){}
+      return trimmed;
+    }
+  } catch(e){
+    console.warn("ensureUsername failed", e);
+    return null;
+  }
 }
 
 // ---------- Micro-animation helpers ----------
@@ -260,14 +297,18 @@ function makeCard(docData = {}, docId){
     timeStr = new Date().toLocaleString();
   }
 
+  const username = data.username ? String(data.username).trim() : "";
+
   const wrap = document.createElement("div");
   wrap.classList.add("blessing-card", "fade-up");
   if (docId) wrap.dataset.id = docId;
 
+  // Card HTML: flag + country top, main text, then username line (— Name), then small time
   wrap.innerHTML = `
-    <b><span class="flag">${flag}</span> ${country || cc || "—"}</b>
-    <div>${(data.text || "").replace(/\n/g,"<br>")}</div>
-    <small>${timeStr}</small>
+    <b><span class="flag">${escapeHTML(flag)}</span> ${escapeHTML(country || cc || "—")}</b>
+    <div class="blessing-text">${(escapeHTML(data.text || "")).replace(/\n/g,"<br>")}</div>
+    ${ username ? `<div class="blessing-username">— ${escapeHTML(username)}</div>` : "" }
+    <small class="blessing-time">${escapeHTML(timeStr)}</small>
   `;
   return wrap;
 }
@@ -322,6 +363,7 @@ async function loadInitial(){
 }
 loadInitial();
 
+// ---------- loadMore ----------
 async function loadMore(){
   if (loadingMore) return;
   if (!lastDoc) {
@@ -426,7 +468,7 @@ let myUnsub = null;
 async function startMyBlss(){
   if (!myList) return;
   myList.innerHTML = "";
-  myEmpty.textContent = "Loading…";
+  if (myEmpty) myEmpty.textContent = "Loading…";
   try {
     const ipHash = await makeIpHash();
     const myQuery = query(
@@ -438,34 +480,29 @@ async function startMyBlss(){
     // detach previous
     if (typeof myUnsub === "function") myUnsub();
     myUnsub = onSnapshot(myQuery, (snap)=>{
-          myList.innerHTML = "";
-
-          // ⭐⭐ personal count update ⭐⭐
-          const countEl = document.getElementById("myCount");
-          if (countEl) countEl.textContent = snap.size;
-
-          if (snap.empty){
-            myEmpty.textContent = "You haven't posted any blessings yet — write your first one!";
-            if (countEl) countEl.textContent = "0"; // empty state count
-            return;
-          }
-
-          myEmpty.textContent = "";
-
-          snap.docs.forEach(d=>{
-            const el = makeCard(d.data(), d.id);
-            myList.appendChild(el);
-          });
-
-          document.getElementById("myCount").textContent = snap.size;
-
+      myList.innerHTML = "";
+      if (snap.empty){
+        if (myEmpty) myEmpty.textContent = "You haven't posted any blessings yet — write your first one!";
+        if (myCountEl) animateCount(myCountEl, 0);
+        return;
+      }
+      if (myEmpty) myEmpty.textContent = "";
+      snap.docs.forEach(d=>{
+        const el = makeCard(d.data(), d.id);
+        myList.appendChild(el);
+      });
+      // update my-count
+      try {
+        const count = snap.docs.length;
+        if (myCountEl) animateCount(myCountEl, count);
+      } catch(e){}
     }, (err)=>{
       console.warn("MyBlessings snapshot failed", err);
-      myEmpty.textContent = "Unable to load your blessings right now.";
+      if (myEmpty) myEmpty.textContent = "Unable to load your blessings right now.";
     });
   } catch (err) {
     console.warn("startMyBlss failed", err);
-    myEmpty.textContent = "Unable to load your blessings right now.";
+    if (myEmpty) myEmpty.textContent = "Unable to load your blessings right now.";
   }
 }
 
@@ -511,6 +548,17 @@ async function submitBlessing(){
   }
 
   try {
+    // ensure username (one-time popup)
+    const username = await ensureUsername();
+    if (!username) {
+      // user cancelled name entry
+      if (statusBox) {
+        statusBox.textContent = "Posting cancelled — name required to post.";
+        statusBox.style.color = "#ffb4b4";
+      }
+      return;
+    }
+
     const lang = detectLang(rawText);
     const { country, countryCode } = normalizeCountry(rawCountry);
     const ipHash = await makeIpHash();
@@ -527,7 +575,7 @@ async function submitBlessing(){
       language: lang,
       sentimentScore: 0,
       ipHash,
-      username: "",
+      username: username,
       blessingId: ""
     };
 
@@ -668,4 +716,4 @@ window.addEventListener("scroll", revealOnScroll);
 window.addEventListener("load", revealOnScroll);
 
 // ---------- Start "My Blessings" UI quick hint (runs after client ready) ----------
-console.info("World Blessing Wall — app.js v1.1 loaded (My-Blessings enabled)");
+console.info("World Blessing Wall — app.js v1.2 loaded (My-Blessings + username)");
