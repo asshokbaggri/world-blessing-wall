@@ -541,10 +541,10 @@ async function submitBlessing(){
       statusBox.style.color = "#bfe4c2";
     }
 
-    // Phase-3 micro-animations
-    buttonPulse();
-    sparkleBurst();
-    showToast();
+    // micro animations: pulse button, sparkle, toast
+    pulseSendBtn();
+    triggerSparkle(14);
+    showLiveToast("✨ Your blessing is live!");
 
     // clear input but keep country so user can submit multiple quickly
     if (blessingInput) blessingInput.value = "";
@@ -656,53 +656,6 @@ function revealOnScroll(){
 }
 window.addEventListener("scroll", revealOnScroll);
 window.addEventListener("load", revealOnScroll);
-
-/* ===== PHASE 3 — Micro-Animations ===== */
-
-function showToast(msg = "✨ Your blessing is live!") {
-  const toast = document.getElementById("liveToast");
-  const text = document.getElementById("liveToastText");
-  text.textContent = msg;
-  toast.hidden = false;
-  toast.classList.add("show");
-  setTimeout(() => {
-    toast.classList.remove("show");
-    setTimeout(()=> toast.hidden = true, 500);
-  }, 2000);
-}
-
-function buttonPulse() {
-  const btn = document.getElementById("sendBtn");
-  btn.classList.add("pulse");
-  setTimeout(() => btn.classList.remove("pulse"), 350);
-}
-
-function sparkleBurst() {
-  const box = document.getElementById("sparkleBurst");
-  if (!box) return;
-
-  const btn = document.getElementById("sendBtn");
-  const rect = btn.getBoundingClientRect();
-
-  for (let i = 0; i < 12; i++) {
-    const s = document.createElement("div");
-    s.className = "spark-pop";
-
-    const angle = (Math.PI * 2 * i) / 12;
-    const dist = 40;
-
-    s.style.setProperty("--x", `${Math.cos(angle) * dist}px`);
-    s.style.setProperty("--y", `${Math.sin(angle) * dist}px`);
-
-    // ⭐ STARTING POINT = button center
-    s.style.left = (rect.left + rect.width / 2) + "px";
-    s.style.top  = (rect.top + rect.height / 2) + "px";
-
-    box.appendChild(s);
-    setTimeout(() => s.remove(), 600);
-  }
-}
-
 
 // ---------- Done ----------
 console.info("World Blessing Wall — app.js v1.1 loaded (infinite-scroll + micro-animations)");
