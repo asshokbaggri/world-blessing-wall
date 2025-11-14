@@ -321,7 +321,6 @@ async function loadInitial(){
   }
 }
 loadInitial();
-loadMyBlessings();
 
 async function loadMore(){
   if (loadingMore) return;
