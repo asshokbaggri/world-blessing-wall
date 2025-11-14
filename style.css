@@ -449,11 +449,16 @@ footer,
 }
 
 .my-count-box {
-  margin: 12px 0 18px 2px;
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--text-dim);
+    margin: 12px 0 18px 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-dim);
+
+    white-space: nowrap;      /* ⭐ NEVER BREAK LINE */
+    overflow: visible;        /* safe */
+    display: inline-block;    /* ⭐ Keep in one row */
 }
+
 .my-count-box strong {
   font-weight: 700;
   color: var(--gold);
