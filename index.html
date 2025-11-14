@@ -139,13 +139,14 @@
   </footer>
 
 
-  <!-- USERNAME POPUP -->
+  <!-- USERNAME POPUP (one-time + optional) -->
   <div id="usernamePopup" class="username-popup" hidden>
-    <div class="popup-box">
-      <h3>Apka Naam? 🪶</h3>
-      <p>Username ek baar set hoga — sab blessings me automatic jayega.</p>
+    <div class="popup-backdrop"></div>
+    <div class="popup-box" role="dialog" aria-modal="true" aria-labelledby="popupTitle">
+      <h3 id="popupTitle">Naam Drop Karo — Apna display naam set karo ✨</h3>
+      <p class="muted">Ek baar set karoge — har blessing ke saath yeh naam automatic dikhega. (You can change it later.)</p>
 
-      <input type="text" id="usernameInput" placeholder="Aapka naam..." />
+      <input type="text" id="usernameInput" placeholder="Asshok" aria-label="Enter display name" />
 
       <div class="popup-actions">
         <button id="saveUsername" class="btn-primary">Save</button>
