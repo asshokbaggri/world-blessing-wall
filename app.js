@@ -255,3 +255,221 @@ function triggerSparkle(count = 12){
    - Reply: "Part 2/4 bhejo" to get the next part.
 ================================================= */
 
+/* =============== PART 2/4 ===============
+   - timeAgo helper (Instagram/TikTok style)
+   - Card builder (flag → text → — username → relative time)
+   - prepend/append helpers to avoid duplicates
+   - initial load, loadMore, infinite scroll sentinel
+   - realtime newest listener (top of feed)
+========================================= */
+
+/* ---------------- Relative Time helper ---------------- */
+function timeAgo(ts){
+  try {
+    if (!ts) return "";
+    const date = ts.toDate ? ts.toDate() : new Date(ts);
+    const sec = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (sec < 60) return `${sec} seconds ago`;
+    const min = Math.floor(sec / 60);
+    if (min < 60) return `${min} minutes ago`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr} hours ago`;
+    const day = Math.floor(hr / 24);
+    if (day < 7) return `${day} days ago`;
+    // fallback to short date for older
+    return date.toLocaleDateString();
+  } catch (e) {
+    return "";
+  }
+}
+
+/* ---------------- Card builder ---------------- */
+function makeCard(docData = {}, docId){
+  const data = docData || {};
+  const country = (data.country || "").trim();
+  const cc = (data.countryCode || "").toUpperCase() || normalizeCountry(country).countryCode;
+  const flag = flagFromCode(cc);
+
+  let rel = "";
+  try {
+    const ts = data.timestamp || data.created;
+    rel = timeAgo(ts);
+  } catch(e){
+    rel = "";
+  }
+
+  const username = data.username ? String(data.username).trim() : "";
+
+  const wrap = document.createElement("div");
+  wrap.classList.add("blessing-card","fade-up");
+  if (docId) wrap.dataset.id = docId;
+
+  // make card markup (keeps structure compact, safe-escaped)
+  wrap.innerHTML = `
+    <b class="blessing-flag"><span class="flag">${escapeHTML(flag)}</span> ${escapeHTML(country || cc || "—")}</b>
+
+    <div class="blessing-text">${(escapeHTML(data.text || "")).replace(/\n/g,"<br>")}</div>
+
+    ${ username ? `<div class="blessing-user">— ${escapeHTML(username)}</div>` : "" }
+
+    <div class="blessing-time">${escapeHTML(rel)}</div>
+  `;
+  return wrap;
+}
+
+/* ---------------- Render helpers (prevent duplicates) ---------------- */
+function prependIfNew(docSnap){
+  const id = docSnap.id;
+  if (renderedIds.has(id)) return false;
+  const el = makeCard(docSnap.data(), id);
+  blessingsList.prepend(el);
+  renderedIds.add(id);
+  return true;
+}
+
+function appendIfNew(docSnap){
+  const id = docSnap.id;
+  if (renderedIds.has(id)) return false;
+  const el = makeCard(docSnap.data(), id);
+  blessingsList.appendChild(el);
+  renderedIds.add(id);
+  return true;
+}
+
+/* ---------------- Pagination: loadInitial ---------------- */
+async function loadInitial(){
+  try {
+    const q1 = query(collection(db,"blessings"), orderBy("timestamp","desc"), limit(PAGE_LIMIT));
+    const snap = await getDocs(q1);
+
+    blessingsList.innerHTML = "";
+    renderedIds.clear();
+
+    snap.docs.forEach(d => appendIfNew(d));
+    lastDoc = snap.docs[snap.docs.length - 1] || null;
+    initialLoaded = true;
+
+    // animate main counter
+    try { animateCount(counterEl, renderedIds.size); } catch(e){}
+
+    if (!lastDoc) {
+      if (loadMoreBtn) loadMoreBtn.style.display = "none";
+      if (noMoreEl) noMoreEl.textContent = "No more blessings 🤍";
+    } else {
+      if (loadMoreBtn) loadMoreBtn.style.display = "block";
+      if (noMoreEl) noMoreEl.textContent = "";
+    }
+
+    revealOnScroll();
+    setupInfiniteObserver();
+  } catch (err) {
+    console.warn("Initial load failed", err);
+    if (statusBox) statusBox.textContent = "Unable to load blessings right now.";
+  }
+}
+
+/* ---------------- Pagination: loadMore ---------------- */
+async function loadMore(){
+  if (loadingMore) return;
+  if (!lastDoc) {
+    if (loadMoreBtn) loadMoreBtn.style.display = "none";
+    if (noMoreEl) noMoreEl.textContent = "No more blessings 🤍";
+    return;
+  }
+  loadingMore = true;
+  if (loadMoreBtn) loadMoreBtn.disabled = true;
+
+  try {
+    const qMore = query(
+      collection(db,"blessings"),
+      orderBy("timestamp","desc"),
+      startAfter(lastDoc),
+      limit(PAGE_LIMIT)
+    );
+    const snap = await getDocs(qMore);
+
+    if (snap.empty){
+      lastDoc = null;
+      if (loadMoreBtn) loadMoreBtn.style.display = "none";
+      if (noMoreEl) noMoreEl.textContent = "No more blessings 🤍";
+      return;
+    }
+
+    snap.docs.forEach(d => appendIfNew(d));
+    lastDoc = snap.docs[snap.docs.length - 1] || null;
+    revealOnScroll();
+  } catch (err) {
+    console.warn("Load more failed", err);
+    if (statusBox) statusBox.textContent = "Failed to load more.";
+  } finally {
+    loadingMore = false;
+    if (loadMoreBtn) loadMoreBtn.disabled = false;
+  }
+}
+
+if (loadMoreBtn) loadMoreBtn.addEventListener("click", loadMore);
+
+/* ---------------- Infinite scroll sentinel / observer ---------------- */
+let infiniteObserver = null;
+let sentinel = null;
+
+function createSentinel(){
+  if (document.getElementById("wbw_sentinel")) return document.getElementById("wbw_sentinel");
+  sentinel = document.createElement("div");
+  sentinel.id = "wbw_sentinel";
+  sentinel.style.width = "1px";
+  sentinel.style.height = "1px";
+  sentinel.style.margin = "1px auto";
+  blessingsList.insertAdjacentElement("afterend", sentinel);
+  return sentinel;
+}
+
+function setupInfiniteObserver(){
+  if (infiniteObserver) return;
+  sentinel = createSentinel();
+  if (!('IntersectionObserver' in window)) return;
+  infiniteObserver = new IntersectionObserver(async (entries) => {
+    for (const e of entries){
+      if (e.isIntersecting && e.intersectionRatio > 0) {
+        if (!initialLoaded) return;
+        if (loadingMore || !lastDoc) return;
+        await loadMore();
+      }
+    }
+  }, {
+    root: null,
+    rootMargin: "400px", // preload earlier
+    threshold: 0
+  });
+  if (sentinel) infiniteObserver.observe(sentinel);
+}
+
+/* ---------------- Realtime (newest top) ---------------- */
+const liveNewest = query(
+  collection(db,"blessings"),
+  orderBy("timestamp","desc"),
+  limit(1)
+);
+
+onSnapshot(liveNewest, (snap)=>{
+  if (!initialLoaded) return;
+
+  snap.docChanges().forEach(change => {
+    if (change.type === "added"){
+      const added = prependIfNew(change.doc);
+      if (added) {
+        try { animateCount(counterEl, renderedIds.size); } catch(e){}
+        triggerSparkle(8);
+      }
+      revealOnScroll();
+    }
+  });
+});
+
+/* =============== END OF PART 2/4 ===============
+   - Next chunk (Part 3/4) will include:
+     My Blessings realtime subscription, username modal logic
+     and submit flow (including username save + doc writes).
+   - Reply: "Part 3/4 bhejo" to get it.
+================================================= */
+
