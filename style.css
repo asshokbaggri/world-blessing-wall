@@ -408,24 +408,30 @@ footer,
   transition: transform 0.35s cubic-bezier(.2,.9,.3,1);
 }
 
-/* Sparkle burst */
 #sparkleBurst {
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 99998;
+  overflow: visible;
 }
 
-.spark {
+.spark-pop {
   position: absolute;
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
+  background: #ffe9a3;
   border-radius: 50%;
-  background: radial-gradient(circle, #fff7d4, #f2c15a);
-  animation: sparkAnim 0.7s ease-out forwards;
+  opacity: 0;
+  animation: spark-pop 600ms ease-out forwards;
 }
 
-@keyframes sparkAnim {
-  0% { transform: scale(1); opacity: 1; }
-  100% { transform: scale(2.4) translateY(-20px); opacity: 0; }
+@keyframes spark-pop {
+  0% {
+    transform: scale(0.4);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--x), var(--y)) scale(1.8);
+    opacity: 0;
+  }
 }
