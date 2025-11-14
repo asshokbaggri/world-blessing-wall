@@ -541,6 +541,12 @@ async function submitBlessing(){
       statusBox.style.color = "#bfe4c2";
     }
 
+    // Phase-3 micro-animations
+    buttonPulse();
+    sparkleBurst();
+    showToast();
+
+
     // micro animations: pulse button, sparkle, toast
     pulseSendBtn();
     triggerSparkle(14);
