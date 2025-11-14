@@ -657,5 +657,38 @@ function revealOnScroll(){
 window.addEventListener("scroll", revealOnScroll);
 window.addEventListener("load", revealOnScroll);
 
+/* ===== PHASE 3 — Micro-Animations ===== */
+
+function showToast(msg = "✨ Your blessing is live!") {
+  const toast = document.getElementById("liveToast");
+  const text = document.getElementById("liveToastText");
+  text.textContent = msg;
+  toast.hidden = false;
+  toast.classList.add("show");
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(()=> toast.hidden = true, 500);
+  }, 2000);
+}
+
+function buttonPulse() {
+  const btn = document.getElementById("sendBtn");
+  btn.classList.add("pulse");
+  setTimeout(() => btn.classList.remove("pulse"), 350);
+}
+
+function sparkleBurst() {
+  const box = document.getElementById("sparkleBurst");
+  for (let i = 0; i < 16; i++) {
+    const s = document.createElement("div");
+    s.className = "spark";
+    s.style.left = (window.innerWidth / 2 + (Math.random()*120-60)) + "px";
+    s.style.top  = (170 + Math.random()*40) + "px";
+    box.appendChild(s);
+    setTimeout(() => s.remove(), 650);
+  }
+}
+
+
 // ---------- Done ----------
 console.info("World Blessing Wall — app.js v1.1 loaded (infinite-scroll + micro-animations)");
