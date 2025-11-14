@@ -535,3 +535,15 @@ footer,
 @media (max-width:600px){
   .username-popup .popup-box { padding:16px; }
 }
+
+#usernamePopup[hidden] {
+  display: none !important;
+}
+
+.username-popup {
+  display: flex;
+}
+
+.username-popup:not(.show) {
+  display: none !important;
+}
