@@ -679,13 +679,20 @@ function buttonPulse() {
 
 function sparkleBurst() {
   const box = document.getElementById("sparkleBurst");
-  for (let i = 0; i < 16; i++) {
+  if (!box) return;
+
+  for (let i = 0; i < 12; i++) {
     const s = document.createElement("div");
-    s.className = "spark";
-    s.style.left = (window.innerWidth / 2 + (Math.random()*120-60)) + "px";
-    s.style.top  = (170 + Math.random()*40) + "px";
+    s.className = "spark-pop";
+
+    const angle = (Math.PI * 2 * i) / 12;
+    const dist = 40;
+
+    s.style.setProperty("--x", `${Math.cos(angle) * dist}px`);
+    s.style.setProperty("--y", `${Math.sin(angle) * dist}px`);
+
     box.appendChild(s);
-    setTimeout(() => s.remove(), 650);
+    setTimeout(() => s.remove(), 600);
   }
 }
 
