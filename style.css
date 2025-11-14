@@ -463,3 +463,28 @@ footer,
   font-weight: 700;
   color: var(--gold);
 }
+
+/* --- FIX: Your written count correct position + full center --- */
+#myCountBox {
+    width: 100%;
+    text-align: center !important;
+    margin: 20px auto 10px auto !important;
+    padding: 6px 0;
+    position: relative;
+    z-index: 10;  /* prevents overlap issues */
+}
+
+/* Text styling inside count */
+#myCountBox span,
+#myCountBox strong {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gold);
+}
+
+/* Fix feed class shifting section */
+#myBlessings.feed {
+    margin-top: 40px !important;
+    display: block !important;
+    position: relative !important;
+}
