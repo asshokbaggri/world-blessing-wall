@@ -1,10 +1,10 @@
 /* ============================================================
    WORLD BLESSING WALL — APP.JS v1.1 (Infinite-scroll safe patch)
-   - Minimal, surgical changes only:
-     * Replaces manual "Load more" UX with automatic infinite-scroll
-     * Keeps all existing behavior (realtime, submit flow, card builder)
-     * Non-invasive: existing functions preserved; new small helpers added
-   - NOTE: I only touched the pagination area and added a sentinel + observer.
+   - Full readable source
+   - Realtime newest + safe infinite scroll (auto-load older)
+   - Manual "Load more" still supported
+   - Micro-animations: send button pulse, sparkle burst, live toast
+   - Keeps previous behavior (no DB deletions, no duplicates)
    ============================================================ */
 
 // ---------- Firebase ----------
@@ -43,12 +43,17 @@ const sendBtn       = document.getElementById("sendBtn");
 const statusBox     = document.getElementById("status");
 const blessingsList = document.getElementById("blessingsList");
 const counterEl     = document.getElementById("counter");
-const loadMoreBtn   = document.getElementById("loadMore"); // left in place (will be hidden)
+const loadMoreBtn   = document.getElementById("loadMore");
 const noMoreEl      = document.getElementById("noMore");
 
 const waShare   = document.getElementById("waShare");
 const twShare   = document.getElementById("twShare");
 const copyShare = document.getElementById("copyShare");
+
+// micro-animation targets (may be absent; we'll create fallbacks in JS if needed)
+let sparkleRoot = document.getElementById("sparkleBurst");
+let liveToast   = document.getElementById("liveToast");
+const titleEl   = document.querySelector(".title");
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
@@ -56,16 +61,77 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const renderedIds = new Set(); // track DOM rendered doc ids
 let lastDoc = null;
 let initialLoaded = false;
-let isLoadingPage = false;     // NEW: prevent double-fetch
-let reachedEnd = false;        // NEW: whether we've exhausted backend
+let loadingMore = false; // guard for pagination
+const PAGE_LIMIT = 12;
+
+// ---------- Inject minimal micro-animation CSS (so you don't have to edit style.css) ----------
+(function injectMicroCSS(){
+  if (document.getElementById("__wbw_micro_css")) return;
+  const css = `
+    /* micro animations injected by app.js v1.1 */
+    .btn-primary.pulse { animation: wbw-pulse 900ms ease-in-out; }
+    @keyframes wbw-pulse { 0%{ transform:scale(1); } 50%{ transform:scale(1.04); } 100%{ transform:scale(1); } }
+
+    .live-toast {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%) translateY(0);
+      bottom: 22vh;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95));
+      color: #2a2008;
+      padding: 10px 18px;
+      border-radius: 999px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      font-weight:600;
+      z-index: 99999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .28s ease, transform .28s cubic-bezier(.2,.9,.3,1);
+    }
+    .live-toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+
+    #sparkleBurst { position: fixed; left: 50%; top: 40vh; transform: translateX(-50%); pointer-events: none; z-index: 99998; }
+    .wbw-spark { position:absolute; width:10px; height:10px; border-radius:50%; background: radial-gradient(circle at 35% 30%, #fff6d8, var(--gold)); opacity:0.95; transform: translate3d(0,0,0) scale(.9); animation: wbw-spark-anim 820ms ease-out forwards; }
+    @keyframes wbw-spark-anim {
+      0% { opacity:1; transform: translate3d(0,0,0) scale(1); }
+      60% { opacity:0.9; }
+      100% { opacity:0; transform: translate3d(var(--tx), var(--ty), 0) scale(.3); }
+    }
+
+    /* temporary shimmer on title when new blessing arrives */
+    .title.shimmer { filter: drop-shadow(0 8px 26px rgba(240,180,60,0.12)); animation: wbw-title-shim 900ms ease-in-out; }
+    @keyframes wbw-title-shim { 0%{ filter: none } 50%{ filter: drop-shadow(0 14px 40px rgba(240,180,60,0.28)) } 100%{ filter:none } }
+  `;
+  const s = document.createElement("style");
+  s.id = "__wbw_micro_css";
+  s.appendChild(document.createTextNode(css));
+  document.head.appendChild(s);
+})();
+
+// ensure micro DOM elements exist (create fallback if missing)
+(function ensureMicroDOM(){
+  if (!sparkleRoot) {
+    sparkleRoot = document.createElement("div");
+    sparkleRoot.id = "sparkleBurst";
+    document.body.appendChild(sparkleRoot);
+  }
+  if (!liveToast) {
+    liveToast = document.createElement("div");
+    liveToast.id = "liveToast";
+    liveToast.className = "live-toast";
+    liveToast.setAttribute("role","status");
+    liveToast.setAttribute("aria-live","polite");
+    liveToast.hidden = true;
+    liveToast.innerHTML = `<span id="liveToastText">✨ Your blessing is live!</span>`;
+    document.body.appendChild(liveToast);
+  }
+})();
 
 // ---------- Utils ----------
 
-// COUNTER POP — requires a small CSS class `.counter-anim` (see note)
+// COUNTER POP — requires a small CSS class `.counter-anim` (you have this in style.css)
 function animateCount(el, to){
   if (!el) return;
-
-  // pop animation: force reflow to retrigger
   el.classList.remove("counter-anim");
   void el.offsetWidth;
   el.classList.add("counter-anim");
@@ -91,7 +157,6 @@ function detectLang(txt = ""){
 }
 
 // normalize country input -> { country, countryCode }
-// Accepts "IN", "IN India", "India", "Bharat", etc.
 function normalizeCountry(input = ""){
   const raw = (input || "").trim();
   if (!raw) return { country:"", countryCode:"" };
@@ -108,7 +173,6 @@ function normalizeCountry(input = ""){
   };
 
   const parts = raw.split(/\s+/);
-  // If first token is two letters treat as code
   if (parts[0].length === 2) {
     const cc = parts[0].toUpperCase();
     const rest = parts.slice(1).join(" ").trim();
@@ -120,7 +184,6 @@ function normalizeCountry(input = ""){
   const key = raw.toLowerCase();
   if (map[key]) return { country: map[key][1], countryCode: map[key][0] };
 
-  // Fallback: return raw name and guess 2-letter code from first letters
   const guess = raw.slice(0,2).toUpperCase().replace(/[^A-Z]/g,"");
   const cc = guess.length === 2 ? guess : "";
   return { country: raw, countryCode: cc };
@@ -147,7 +210,6 @@ async function makeIpHash(){
     const digest = await crypto.subtle.digest("SHA-256", data);
     return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,"0")).join("");
   }
-  // fallback simple integer hash (not cryptographic)
   let h = 0; for (let i=0;i<seed.length;i++){ h = (h*31 + seed.charCodeAt(i))|0; }
   return String(h >>> 0);
 }
@@ -168,11 +230,63 @@ function getGeoOnce(){
   });
 }
 
+// ---------- Micro-animation helpers ----------
+function pulseSendBtn(){
+  if (!sendBtn) return;
+  sendBtn.classList.add("pulse");
+  setTimeout(()=> sendBtn.classList.remove("pulse"), 900);
+}
+
+function showLiveToast(text = "✨ Your blessing is live!"){
+  try {
+    const txtEl = document.getElementById("liveToastText");
+    if (txtEl) txtEl.textContent = text;
+    liveToast.hidden = false;
+    liveToast.classList.add("show");
+    setTimeout(()=> {
+      liveToast.classList.remove("show");
+      setTimeout(()=> liveToast.hidden = true, 300);
+    }, 1100);
+  } catch(e){}
+}
+
+function triggerSparkle(count = 12){
+  if (!sparkleRoot) return;
+  // center point approximate
+  const w = window.innerWidth;
+  const x0 = Math.round(w/2);
+  const y0 = Math.round(window.innerHeight * 0.42);
+
+  const sparks = [];
+  for (let i=0;i<count;i++){
+    const sp = document.createElement("div");
+    sp.className = "wbw-spark";
+    // random direction and distance
+    const angle = Math.random()*Math.PI*2;
+    const dist = 60 + Math.random()*140;
+    const tx = Math.round(Math.cos(angle)*dist) + "px";
+    const ty = Math.round(Math.sin(angle)*dist - (20 + Math.random()*40)) + "px";
+    sp.style.setProperty("--tx", tx);
+    sp.style.setProperty("--ty", ty);
+    // position near center of sparkleRoot
+    sp.style.left = (x0 - 6 + (Math.random()*24-12)) + "px";
+    sp.style.top  = (y0 - 6 + (Math.random()*24-12)) + "px";
+    sparkleRoot.appendChild(sp);
+    sparks.push(sp);
+    // remove after animation
+    setTimeout(()=> { try{ sp.remove(); }catch{} }, 900);
+  }
+  // small extra: briefly shimmer title
+  if (titleEl) {
+    titleEl.classList.add("shimmer");
+    setTimeout(()=> titleEl.classList.remove("shimmer"), 900);
+  }
+}
+
 // ---------- Card builder ----------
 function makeCard(docData = {}, docId){
   const data = docData || {};
   const country = (data.country || "").trim();
-  // prefer explicit countryCode, else normalize
   const cc = (data.countryCode || "").toUpperCase() || normalizeCountry(country).countryCode;
   const flag = flagFromCode(cc);
 
@@ -214,64 +328,12 @@ function appendIfNew(docSnap){
   return true;
 }
 
-// ---------- Pagination helpers (NEW: fetchNextPage + sentinel) ----------
-
-async function fetchNextPage(pageSize = 12){
-  // Returns number of docs fetched (0 -> end)
-  if (isLoadingPage || reachedEnd) return 0;
-  isLoadingPage = true;
-  if (loadMoreBtn) loadMoreBtn.disabled = true;
-
-  try {
-    const qMore = lastDoc ? query(
-      collection(db,"blessings"),
-      orderBy("timestamp","desc"),
-      startAfter(lastDoc),
-      limit(pageSize)
-    ) : query(collection(db,"blessings"), orderBy("timestamp","desc"), limit(pageSize));
-
-    const snap = await getDocs(qMore);
-
-    if (snap.empty){
-      // no more documents
-      reachedEnd = true;
-      if (loadMoreBtn) loadMoreBtn.style.display = "none";
-      if (noMoreEl) noMoreEl.textContent = "No more blessings 🤍";
-      // disconnect observer via sentinel if exists
-      disconnectSentinelObserver();
-      return 0;
-    }
-
-    snap.docs.forEach(d => appendIfNew(d));
-    lastDoc = snap.docs[snap.docs.length - 1] || lastDoc;
-    revealOnScroll();
-    animateCount(counterEl, renderedIds.size);
-    return snap.docs.length;
-  } catch (err) {
-    console.warn("Fetch page failed", err);
-    if (statusBox) statusBox.textContent = "Failed to load more.";
-    return 0;
-  } finally {
-    isLoadingPage = false;
-    if (loadMoreBtn) loadMoreBtn.disabled = false;
-  }
-}
-
-// Backwards-compatible: keep existing loadMoreBtn click behavior but reuse fetchNextPage
-if (loadMoreBtn) {
-  loadMoreBtn.addEventListener("click", async ()=>{
-    if (!lastDoc && initialLoaded === false) return; // still loading
-    await fetchNextPage(12);
-  });
-}
-
-// ---------- Initial load + pagination ----------
+// ---------- Pagination (loadInitial + loadMore) ----------
 async function loadInitial(){
   try {
-    const q1 = query(collection(db,"blessings"), orderBy("timestamp","desc"), limit(12));
+    const q1 = query(collection(db,"blessings"), orderBy("timestamp","desc"), limit(PAGE_LIMIT));
     const snap = await getDocs(q1);
 
-    // clear before rendering
     blessingsList.innerHTML = "";
     renderedIds.clear();
 
@@ -284,25 +346,108 @@ async function loadInitial(){
     if (!lastDoc) {
       if (loadMoreBtn) loadMoreBtn.style.display = "none";
       if (noMoreEl) noMoreEl.textContent = "No more blessings 🤍";
-      reachedEnd = true;
     } else {
-      // Ensure loadMore button is hidden when using infinite scroll UI (we keep it for fallback)
-      if (loadMoreBtn) loadMoreBtn.style.display = "none";
+      if (loadMoreBtn) loadMoreBtn.style.display = "block";
+      if (noMoreEl) noMoreEl.textContent = "";
     }
 
-    // Set up infinite sentinel observer AFTER initial render
-    installSentinelObserver();
-
     revealOnScroll();
+    setupInfiniteObserver(); // start observing after initial load
   } catch (err) {
-    // gentle fallback (do not expose raw error to user)
     console.warn("Initial load failed", err);
     if (statusBox) statusBox.textContent = "Unable to load blessings right now.";
-    // still install sentinel to allow retry
-    installSentinelObserver();
   }
 }
 loadInitial();
+
+async function loadMore(){
+  // safe guard
+  if (loadingMore) return;
+  if (!lastDoc) {
+    if (loadMoreBtn) loadMoreBtn.style.display = "none";
+    if (noMoreEl) noMoreEl.textContent = "No more blessings 🤍";
+    return;
+  }
+  loadingMore = true;
+  if (loadMoreBtn) loadMoreBtn.disabled = true;
+
+  try {
+    const qMore = query(
+      collection(db,"blessings"),
+      orderBy("timestamp","desc"),
+      startAfter(lastDoc),
+      limit(PAGE_LIMIT)
+    );
+    const snap = await getDocs(qMore);
+
+    if (snap.empty){
+      lastDoc = null;
+      if (loadMoreBtn) loadMoreBtn.style.display = "none";
+      if (noMoreEl) noMoreEl.textContent = "No more blessings 🤍";
+      return;
+    }
+
+    snap.docs.forEach(d => appendIfNew(d));
+    lastDoc = snap.docs[snap.docs.length - 1] || null;
+    revealOnScroll();
+
+    // if fewer than page or exactly equal but no more docs, hide button
+    if (!lastDoc) {
+      if (loadMoreBtn) loadMoreBtn.style.display = "none";
+      if (noMoreEl) noMoreEl.textContent = "No more blessings 🤍";
+    }
+
+  } catch (err) {
+    console.warn("Load more failed", err);
+    if (statusBox) statusBox.textContent = "Failed to load more.";
+  } finally {
+    loadingMore = false;
+    if (loadMoreBtn) loadMoreBtn.disabled = false;
+  }
+}
+
+if (loadMoreBtn) {
+  loadMoreBtn.addEventListener("click", loadMore);
+}
+
+// ---------- Infinite scroll (sentinel + IntersectionObserver) ----------
+let infiniteObserver = null;
+let sentinel = null;
+
+function createSentinel(){
+  if (document.getElementById("wbw_sentinel")) return document.getElementById("wbw_sentinel");
+  sentinel = document.createElement("div");
+  sentinel.id = "wbw_sentinel";
+  sentinel.style.width = "1px";
+  sentinel.style.height = "1px";
+  sentinel.style.margin = "1px auto";
+  blessingsList.insertAdjacentElement("afterend", sentinel);
+  return sentinel;
+}
+
+function setupInfiniteObserver(){
+  // only create observer once
+  if (infiniteObserver) return;
+  sentinel = createSentinel();
+  if (!('IntersectionObserver' in window)) return; // fallback: user uses Load more button
+  infiniteObserver = new IntersectionObserver(async (entries) => {
+    for (const e of entries){
+      if (e.isIntersecting && e.intersectionRatio > 0) {
+        // if initial hasn't loaded, don't auto-load
+        if (!initialLoaded) return;
+        // if currently loading or no more docs, skip
+        if (loadingMore || !lastDoc) return;
+        // auto-load older blessings (do not block UI)
+        await loadMore();
+      }
+    }
+  }, {
+    root: null,
+    rootMargin: "400px", // start loading earlier
+    threshold: 0
+  });
+  if (sentinel) infiniteObserver.observe(sentinel);
+}
 
 // ---------- Realtime (newest only) ----------
 const liveNewest = query(
@@ -318,7 +463,12 @@ onSnapshot(liveNewest, (snap)=>{
   snap.docChanges().forEach(change => {
     if (change.type === "added"){
       const added = prependIfNew(change.doc);
-      if (added) animateCount(counterEl, renderedIds.size);
+      if (added) {
+        animateCount(counterEl, renderedIds.size);
+        // micro-animations on live arrival
+        triggerSparkle(8);
+        // small title shimmer (already in triggerSparkle)
+      }
       revealOnScroll();
     }
   });
@@ -351,7 +501,6 @@ async function submitBlessing(){
     const { country, countryCode } = normalizeCountry(rawCountry);
     const ipHash = await makeIpHash();
 
-    // canonical payload: timestamp is canonical; created kept for backward compat
     const base = {
       text: rawText,
       country,
@@ -392,9 +541,13 @@ async function submitBlessing(){
       statusBox.style.color = "#bfe4c2";
     }
 
+    // micro animations: pulse button, sparkle, toast
+    pulseSendBtn();
+    triggerSparkle(14);
+    showLiveToast("✨ Your blessing is live!");
+
     // clear input but keep country so user can submit multiple quickly
     if (blessingInput) blessingInput.value = "";
-    // small delay and then clear message
     await sleep(1100);
     if (statusBox) {
       statusBox.textContent = "";
@@ -504,61 +657,5 @@ function revealOnScroll(){
 window.addEventListener("scroll", revealOnScroll);
 window.addEventListener("load", revealOnScroll);
 
-// ---------- Infinite sentinel + IntersectionObserver (NEW) ----------
-let sentinel = null;
-let sentinelObserver = null;
-
-function installSentinelObserver(){
-  // If already installed => return
-  if (sentinelObserver) return;
-
-  // Create sentinel element after the list if not present
-  sentinel = document.getElementById("infiniteSentinel");
-  if (!sentinel){
-    sentinel = document.createElement("div");
-    sentinel.id = "infiniteSentinel";
-    sentinel.style.width = "100%";
-    sentinel.style.height = "24px";
-    sentinel.style.display = "block";
-    sentinel.style.margin = "12px 0";
-    // place after blessingsList
-    if (blessingsList && blessingsList.parentNode){
-      blessingsList.parentNode.insertBefore(sentinel, blessingsList.nextSibling);
-    } else {
-      document.body.appendChild(sentinel);
-    }
-  }
-
-  // If we've already reached end, no need to observe
-  if (reachedEnd) return;
-
-  sentinelObserver = new IntersectionObserver(async (entries) => {
-    for (const e of entries){
-      if (e.isIntersecting) {
-        // When user scrolls near sentinel, fetch next page
-        // Use a slightly larger page size for first auto loads
-        await fetchNextPage(12);
-      }
-    }
-  }, {
-    root: null,
-    rootMargin: "400px", // trigger before user hits bottom
-    threshold: 0.01
-  });
-
-  sentinelObserver.observe(sentinel);
-}
-
-function disconnectSentinelObserver(){
-  if (sentinelObserver){
-    try { sentinelObserver.disconnect(); } catch {}
-    sentinelObserver = null;
-  }
-  if (sentinel && sentinel.parentNode){
-    // keep sentinel node but hide it
-    sentinel.style.display = "none";
-  }
-}
-
 // ---------- Done ----------
-console.info("World Blessing Wall — app.js v1.1 (infinite scroll) loaded");
+console.info("World Blessing Wall — app.js v1.1 loaded (infinite-scroll + micro-animations)");
