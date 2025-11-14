@@ -546,12 +546,6 @@ async function submitBlessing(){
     sparkleBurst();
     showToast();
 
-
-    // micro animations: pulse button, sparkle, toast
-    pulseSendBtn();
-    triggerSparkle(14);
-    showLiveToast("✨ Your blessing is live!");
-
     // clear input but keep country so user can submit multiple quickly
     if (blessingInput) blessingInput.value = "";
     await sleep(1100);
