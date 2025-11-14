@@ -1,11 +1,10 @@
 /* ============================================================
-   WORLD BLESSING WALL — APP.JS v1.0 (FINAL ULTRA DELUXE)
-   - Full readable source (no minify)
-   - Realtime newest + manual "Load more"
-   - Safe submit + blessingId backfill
-   - Country normalization + flag generation
-   - Counter pop animation (requires .counter-anim CSS)
-   - Non-blocking geo update, safe ipHash
+   WORLD BLESSING WALL — APP.JS v1.1 (Infinite-scroll safe patch)
+   - Minimal, surgical changes only:
+     * Replaces manual "Load more" UX with automatic infinite-scroll
+     * Keeps all existing behavior (realtime, submit flow, card builder)
+     * Non-invasive: existing functions preserved; new small helpers added
+   - NOTE: I only touched the pagination area and added a sentinel + observer.
    ============================================================ */
 
 // ---------- Firebase ----------
@@ -44,7 +43,7 @@ const sendBtn       = document.getElementById("sendBtn");
 const statusBox     = document.getElementById("status");
 const blessingsList = document.getElementById("blessingsList");
 const counterEl     = document.getElementById("counter");
-const loadMoreBtn   = document.getElementById("loadMore");
+const loadMoreBtn   = document.getElementById("loadMore"); // left in place (will be hidden)
 const noMoreEl      = document.getElementById("noMore");
 
 const waShare   = document.getElementById("waShare");
@@ -57,6 +56,8 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const renderedIds = new Set(); // track DOM rendered doc ids
 let lastDoc = null;
 let initialLoaded = false;
+let isLoadingPage = false;     // NEW: prevent double-fetch
+let reachedEnd = false;        // NEW: whether we've exhausted backend
 
 // ---------- Utils ----------
 
@@ -213,6 +214,57 @@ function appendIfNew(docSnap){
   return true;
 }
 
+// ---------- Pagination helpers (NEW: fetchNextPage + sentinel) ----------
+
+async function fetchNextPage(pageSize = 12){
+  // Returns number of docs fetched (0 -> end)
+  if (isLoadingPage || reachedEnd) return 0;
+  isLoadingPage = true;
+  if (loadMoreBtn) loadMoreBtn.disabled = true;
+
+  try {
+    const qMore = lastDoc ? query(
+      collection(db,"blessings"),
+      orderBy("timestamp","desc"),
+      startAfter(lastDoc),
+      limit(pageSize)
+    ) : query(collection(db,"blessings"), orderBy("timestamp","desc"), limit(pageSize));
+
+    const snap = await getDocs(qMore);
+
+    if (snap.empty){
+      // no more documents
+      reachedEnd = true;
+      if (loadMoreBtn) loadMoreBtn.style.display = "none";
+      if (noMoreEl) noMoreEl.textContent = "No more blessings 🤍";
+      // disconnect observer via sentinel if exists
+      disconnectSentinelObserver();
+      return 0;
+    }
+
+    snap.docs.forEach(d => appendIfNew(d));
+    lastDoc = snap.docs[snap.docs.length - 1] || lastDoc;
+    revealOnScroll();
+    animateCount(counterEl, renderedIds.size);
+    return snap.docs.length;
+  } catch (err) {
+    console.warn("Fetch page failed", err);
+    if (statusBox) statusBox.textContent = "Failed to load more.";
+    return 0;
+  } finally {
+    isLoadingPage = false;
+    if (loadMoreBtn) loadMoreBtn.disabled = false;
+  }
+}
+
+// Backwards-compatible: keep existing loadMoreBtn click behavior but reuse fetchNextPage
+if (loadMoreBtn) {
+  loadMoreBtn.addEventListener("click", async ()=>{
+    if (!lastDoc && initialLoaded === false) return; // still loading
+    await fetchNextPage(12);
+  });
+}
+
 // ---------- Initial load + pagination ----------
 async function loadInitial(){
   try {
@@ -232,44 +284,25 @@ async function loadInitial(){
     if (!lastDoc) {
       if (loadMoreBtn) loadMoreBtn.style.display = "none";
       if (noMoreEl) noMoreEl.textContent = "No more blessings 🤍";
+      reachedEnd = true;
+    } else {
+      // Ensure loadMore button is hidden when using infinite scroll UI (we keep it for fallback)
+      if (loadMoreBtn) loadMoreBtn.style.display = "none";
     }
+
+    // Set up infinite sentinel observer AFTER initial render
+    installSentinelObserver();
 
     revealOnScroll();
   } catch (err) {
     // gentle fallback (do not expose raw error to user)
     console.warn("Initial load failed", err);
     if (statusBox) statusBox.textContent = "Unable to load blessings right now.";
+    // still install sentinel to allow retry
+    installSentinelObserver();
   }
 }
 loadInitial();
-
-if (loadMoreBtn) {
-  loadMoreBtn.addEventListener("click", async ()=>{
-    if (!lastDoc) return;
-    try {
-      const qMore = query(
-        collection(db,"blessings"),
-        orderBy("timestamp","desc"),
-        startAfter(lastDoc),
-        limit(12)
-      );
-      const snap = await getDocs(qMore);
-
-      if (snap.empty){
-        loadMoreBtn.style.display = "none";
-        if (noMoreEl) noMoreEl.textContent = "No more blessings 🤍";
-        return;
-      }
-
-      snap.docs.forEach(d => appendIfNew(d));
-      lastDoc = snap.docs[snap.docs.length - 1] || null;
-      revealOnScroll();
-    } catch (err) {
-      console.warn("Load more failed", err);
-      if (statusBox) statusBox.textContent = "Failed to load more.";
-    }
-  });
-}
 
 // ---------- Realtime (newest only) ----------
 const liveNewest = query(
@@ -471,5 +504,61 @@ function revealOnScroll(){
 window.addEventListener("scroll", revealOnScroll);
 window.addEventListener("load", revealOnScroll);
 
+// ---------- Infinite sentinel + IntersectionObserver (NEW) ----------
+let sentinel = null;
+let sentinelObserver = null;
+
+function installSentinelObserver(){
+  // If already installed => return
+  if (sentinelObserver) return;
+
+  // Create sentinel element after the list if not present
+  sentinel = document.getElementById("infiniteSentinel");
+  if (!sentinel){
+    sentinel = document.createElement("div");
+    sentinel.id = "infiniteSentinel";
+    sentinel.style.width = "100%";
+    sentinel.style.height = "24px";
+    sentinel.style.display = "block";
+    sentinel.style.margin = "12px 0";
+    // place after blessingsList
+    if (blessingsList && blessingsList.parentNode){
+      blessingsList.parentNode.insertBefore(sentinel, blessingsList.nextSibling);
+    } else {
+      document.body.appendChild(sentinel);
+    }
+  }
+
+  // If we've already reached end, no need to observe
+  if (reachedEnd) return;
+
+  sentinelObserver = new IntersectionObserver(async (entries) => {
+    for (const e of entries){
+      if (e.isIntersecting) {
+        // When user scrolls near sentinel, fetch next page
+        // Use a slightly larger page size for first auto loads
+        await fetchNextPage(12);
+      }
+    }
+  }, {
+    root: null,
+    rootMargin: "400px", // trigger before user hits bottom
+    threshold: 0.01
+  });
+
+  sentinelObserver.observe(sentinel);
+}
+
+function disconnectSentinelObserver(){
+  if (sentinelObserver){
+    try { sentinelObserver.disconnect(); } catch {}
+    sentinelObserver = null;
+  }
+  if (sentinel && sentinel.parentNode){
+    // keep sentinel node but hide it
+    sentinel.style.display = "none";
+  }
+}
+
 // ---------- Done ----------
-console.info("World Blessing Wall — app.js v1.0 loaded");
+console.info("World Blessing Wall — app.js v1.1 (infinite scroll) loaded");
