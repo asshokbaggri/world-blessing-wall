@@ -76,7 +76,7 @@
 
   <!-- MY BLESSINGS (new) -->
   <section id="myBlessings" class="feed fade-section" aria-label="My blessings">
-    <h2 class="section-title">My Blessings <small style="font-weight:400; color:var(--text-dim);">(private to you)</small></h2>
+    <h2 class="section-title">My Blessings</h2>
 
     <div class="my-controls" style="display:flex;gap:12px;align-items:center;margin-bottom:14px;">
       <button id="refreshMy" class="btn" type="button">Refresh</button>
@@ -85,8 +85,21 @@
     </div>
 
     <div id="myBlessingsList" class="cards" role="list" aria-live="polite"></div>
+    <div id="myBlessingsCount" class="status" style="margin-top:12px; text-align:center;"></div>
+
   </section>
 
+    <!-- SHARE -->
+  <section id="share" class="share fade-section">
+    <h3>Aapki dua roshni ban kar duniya tak pahunchti hai 🤍</h3>
+    <div class="share-row">
+      <button class="btn" id="waShare" type="button">WhatsApp</button>
+      <button class="btn" id="twShare" type="button">Twitter/X</button>
+      <button class="btn" id="copyShare" type="button">Copy Link</button>
+    </div>
+  </section>
+
+  
   <!-- LIVE FEED -->
   <section id="live" class="feed fade-section" aria-label="Live blessings">
     <h2 class="section-title">Live Blessings <span class="sparkle">💫</span></h2>
@@ -97,15 +110,6 @@
     <div id="noMore" class="no-more" aria-live="polite"></div>
   </section>
 
-  <!-- SHARE -->
-  <section id="share" class="share fade-section">
-    <h3>Aapki dua roshni ban kar duniya tak pahunchti hai 🤍</h3>
-    <div class="share-row">
-      <button class="btn" id="waShare" type="button">WhatsApp</button>
-      <button class="btn" id="twShare" type="button">Twitter/X</button>
-      <button class="btn" id="copyShare" type="button">Copy Link</button>
-    </div>
-  </section>
 
   <!-- FOUNDER -->
   <section id="founder" class="founder fade-section">
