@@ -557,6 +557,17 @@ onSnapshot(liveNewest, (snap)=>{
   });
 });
 
+// Load streak on page open
+(function loadStreak(){
+  const streak = localStorage.getItem("wbw_streak_v1") || 0;
+  const best = localStorage.getItem("wbw_streak_best_v1") || 0;
+
+  const streakEl = document.getElementById("streakCurrent");
+  const bestEl = document.getElementById("streakBest");
+  if (streakEl) streakEl.textContent = streak;
+  if (bestEl) bestEl.textContent = best;
+})();
+
 // ---------- "My Blessings" (realtime) ----------
 let myUnsub = null;
 async function startMyBlss(){
