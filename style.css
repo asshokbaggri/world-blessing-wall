@@ -561,34 +561,46 @@ footer,
   .username-popup h3 { font-size:18px; }
 }
 
-/* CUSTOM GLASS ALERT STYLE */
+/* Glass Alert */
 .glass-alert {
   position: fixed;
-  top: 22%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(25, 25, 30, 0.65);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 18px 24px;
-  border-radius: 14px;
-  color: #fff;
-  font-size: 15px;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+.glass-alert-inner {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(18px);
+  border-radius: 16px;
+  padding: 22px 26px;
+  width: 82%;
+  max-width: 340px;
   text-align: center;
-  z-index: 9999;
-  width: auto;
-  max-width: 82%;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .25s ease-out, transform .25s ease-out;
+  color: #fff;
+  animation: fadeInUp .25s ease;
 }
 
-.glass-alert.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
+.glass-alert-inner p {
+  margin-bottom: 18px;
+  font-size: 15px;
+  line-height: 1.4;
 }
 
-.glass-alert.hide {
-  opacity: 0;
+.glass-alert-ok {
+  background: #fff;
+  color: #222;
+  border: none;
+  padding: 8px 26px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
