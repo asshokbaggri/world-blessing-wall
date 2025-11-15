@@ -561,6 +561,11 @@ footer,
   .username-popup h3 { font-size:18px; }
 }
 
+/* Lower z-index for username popup so alert comes on top */
+.username-popup {
+    z-index: 50 !important;
+}
+
 /* Glass Alert */
 .glass-alert {
   position: fixed;
