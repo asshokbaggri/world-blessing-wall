@@ -245,7 +245,7 @@ function ensureUsernameModal() {
     saveUsernameBtn.onclick = () => {
       const name = usernameInput.value.trim();
       if (!name) {
-        alert("Naam ek vibration hota hai… bas ek shabd likh do 🤍✨");
+        showGlassAlert("Naam ek vibration hota hai… bas ek shabd likh do 🤍✨");
         return;
       }
       localStorage.setItem("wbw_username_v1", name);
@@ -255,7 +255,7 @@ function ensureUsernameModal() {
 
     // cancel button
     skipUsernameBtn.onclick = () => {
-      alert("Blessing post karne ke liye naam zaroori hai 🤍");
+      showGlassAlert("Blessing post karne ke liye naam zaroori hai 🤍");
       closeUsernamePopup();   // <-- popup close
       resolve(null);
     };
