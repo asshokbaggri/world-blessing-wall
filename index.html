@@ -139,32 +139,27 @@
   </footer>
 
 
-  <div id="usernamePopup" class="username-modal" hidden>
-    <div class="username-modal-content">
-  
-      <h2 class="username-title">✨ Naam Drop Karo</h2>
-      <p class="username-sub">
-        Aapka naam har blessing ke saath chalega —  
-        log dekhenge kisne duniya mein light bheji 🔥✨
-      </p>
+  <!-- USERNAME POPUP (one-time + optional) - REPLACE existing block -->
+  <div id="usernamePopup" class="username-popup" hidden aria-hidden="true">
+    <div class="popup-backdrop" data-role="backdrop"></div>
 
-      <label class="username-label">Display name</label>
-      <input 
-        id="usernameInput"
-        class="username-input"
-        type="text"
-        placeholder="Aapka display naam (e.g. Asshok)"
-      />
+    <div class="popup-box" role="dialog" aria-modal="true" aria-labelledby="popupTitle">
+      <h3 id="popupTitle">✨ Naam Drop Karo</h3>
+      <p class="muted">Aapka naam har blessing ke saath chalega — log dekhenge kisne duniya mein light bheji 🔥✨</p>
 
-      <div class="username-btn-row">
-        <button id="saveUsernameBtn" class="btn-save">Save & Shine ✨</button>
-        <button id="skipUsernameBtn" class="btn-skip">Skip</button>
+      <label for="usernameInput" class="sr-only">Display name</label>
+      <input type="text" id="usernameInput" placeholder="Aapka display naam (e.g. Ashhok)" aria-label="Enter display name" autocomplete="name" />
+
+      <div id="usernameError" class="username-error" aria-live="polite" hidden>Naam thoda chhota lag raha hai — ek acha sa display name daalo ✨</div>
+
+      <div class="popup-actions">
+        <button id="saveUsername" class="btn-primary">Save &amp; Shine ✨</button>
+        <button id="skipUsername" class="btn">Skip</button>
       </div>
 
-      <p class="username-note">
+      <div class="popup-footer muted" style="margin-top:10px; font-size:13px;">
         Naam safe local device par save rahega — aap kabhi bhi badal sakte ho.
-      </p>
-
+      </div>
     </div>
   </div>
   
