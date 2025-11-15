@@ -692,6 +692,48 @@ async function submitBlessing(){
       }
     });
 
+    // ---------- STREAK SYSTEM ----------
+    const streakKey = "wbw_streak_v1";
+    const streakLastKey = "wbw_streak_last_v1";
+    const streakBestKey = "wbw_streak_best_v1";
+
+    // local streak values
+    let streak = Number(localStorage.getItem(streakKey) || 0);
+    let lastDate = localStorage.getItem(streakLastKey) || "";
+    let best = Number(localStorage.getItem(streakBestKey) || 0);
+
+    const today = new Date();
+    const todayStr = today.toISOString().split("T")[0];
+
+    if (!lastDate) {
+        streak = 1; // first ever
+    } else {
+        const last = new Date(lastDate);
+        const diff = (today - last) / (1000 * 60 * 60 * 24);
+
+        if (diff < 1) {
+            streak = streak || 1; // already blessed today
+        } else if (diff < 2) {
+            streak += 1; // yesterday blessed
+        } else {
+            streak = 1; // missed days → reset
+        }
+    }
+
+    // update best streak
+    if (streak > best) best = streak;
+
+    // save streak
+    localStorage.setItem(streakKey, streak);
+    localStorage.setItem(streakLastKey, todayStr);
+    localStorage.setItem(streakBestKey, best);
+
+    // update UI if visible
+    const streakEl = document.getElementById("streakCurrent");
+    const bestEl = document.getElementById("streakBest");
+    if (streakEl) streakEl.textContent = streak;
+    if (bestEl) bestEl.textContent = best;
+
     if (statusBox) {
       statusBox.textContent = "Blessing submitted ✅";
       statusBox.style.color = "#bfe4c2";
