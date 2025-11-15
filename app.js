@@ -726,19 +726,38 @@ async function submitBlessing(){
   }
 }
 
-// ---------- Share buttons ----------
-const shareText = encodeURIComponent("Ek dua likho, duniya badlo 💫");
-const shareUrl  = encodeURIComponent(location.href.split('#')[0] || window.location.href);
+// ---------- Share buttons (with personal /me/slug) ----------
 
-waShare?.addEventListener("click", ()=>{
-  window.open(`https://wa.me/?text=${shareText}%20${shareUrl}`, "_blank");
+// 1) Get personal slug
+const mySlug = localStorage.getItem("wbw_slug_v1") || "";
+
+// 2) Build personal link
+const myPersonalLink = `${location.origin}/me/${mySlug}`;
+
+// 3) Final spiritual share message (Asshok vibe)  
+const shareText = encodeURIComponent(
+  `Maine aaj ek choti si blessing likhi… 💫\n` +
+  `Dil halka ho jata hai jab kuch achha likhte ho.\n` +
+  `Tum bhi ek dua likho — duniya ko thoda sa aur roshan karte hain 🤍✨\n👇\n${myPersonalLink}`
+);
+
+// 4) WhatsApp
+waShare?.addEventListener("click", () => {
+  window.open(`https://wa.me/?text=${shareText}`, "_blank");
 });
-twShare?.addEventListener("click", ()=>{
-  window.open(`https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`, "_blank");
+
+// 5) Twitter
+twShare?.addEventListener("click", () => {
+  window.open(
+    `https://twitter.com/intent/tweet?text=${shareText}`,
+    "_blank"
+  );
 });
-copyShare?.addEventListener("click", async ()=>{
+
+// 6) Copy Link
+copyShare?.addEventListener("click", async () => {
   try {
-    await navigator.clipboard.writeText(decodeURIComponent(shareUrl));
+    await navigator.clipboard.writeText(myPersonalLink);
     const prev = copyShare.textContent;
     copyShare.textContent = "Link Copied ✅";
     await sleep(1200);
