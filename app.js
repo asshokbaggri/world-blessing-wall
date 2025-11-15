@@ -110,86 +110,22 @@ async function makeIpHash(){
   return String(h >>> 0);
 }
 
-// --------- Clean Hindi → English Transliteration (human-friendly) ----------
-function transliterateHindiToEnglish(name = "") {
-  if (!name) return "";
-
-  // ---- Step 1: Base character map ----
-  const map = {
-    "अ": "a", "आ": "aa", "इ": "i", "ई": "ee",
-    "उ": "u", "ऊ": "oo", "ए": "e", "ऐ": "ai",
-    "ओ": "o", "औ": "au",
-
-    "ा": "a", "ि": "i", "ी": "ee", "ु": "u", "ू": "oo",
-    "े": "e", "ै": "ai", "ो": "o", "ौ": "au",
-    "ं": "n", "ँ": "n", "ः":"h",
-
-    "क": "k", "ख": "kh", "ग": "g", "घ": "gh", "ङ": "n",
-    "च": "ch", "छ": "chh", "ज": "j", "झ": "jh", "ञ": "ny",
-    "ट": "t", "ठ": "th", "ड": "d", "ढ": "dh", "ण":"n",
-    "त": "t", "थ": "th", "द": "d", "ध": "dh", "न": "n",
-    "प": "p", "फ": "ph", "ब": "b", "भ": "bh", "म": "m",
-    "य": "y", "र": "r", "ल": "l", "व": "v",
-    "श": "sh", "ष": "sh", "स": "s", "ह": "h"
-  };
-
-  // ---- Step 2: Basic transliteration ----
-  let out = "";
-  for (let char of name) {
-    out += map[char] || char;
-  }
-
-  out = out.toLowerCase();
-
-  // ---- Step 3: Smart phonetic corrections (PERMANENT) ----
-
-  const fixes = [
-    [/llit/g, "lalit"],
-    [/chnd/g, "chandra"],
-    [/jagd?eesh|jgdish|jgdeesh/g, "jagdish"],
-    [/prasad|prsad/g, "prasad"],
-    [/prajapat|p-rjapt/g, "prajapat"],
-    [/solnkee|solnki|solanki/g, "solanki"],
-    [/kumr|kumar/g, "kumar"],
-    [/singh|sngh/g, "singh"],
-    [/chndr/g, "chandra"],
-  ];
-
-  fixes.forEach(([regex, replacement]) => {
-    out = out.replace(regex, replacement);
-  });
-
-  // ---- Step 4: Cleanup for URL ----
-  out = out
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-
-  return out;
-}
-
-
 // ---------- Slug generator (unique personal link) ----------
 function getOrCreateSlug(username) {
   const key = "wbw_user_slug_v1";
   let existing = localStorage.getItem(key);
   if (existing) return existing;
 
-  let base = String(username || "user").trim().toLowerCase();
+  // clean username
+  let base = String(username || "user")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
 
-  // detect Hindi
-  const hasHindi = /[\u0900-\u097F]/.test(base);
-
-  if (hasHindi) {
-    base = transliterateHindiToEnglish(base);
-  } else {
-    base = base.replace(/[^a-z0-9]/g, "-");
-  }
-
-  base = base.replace(/^-+|-+$/g, "") || "user";
-
+  // random 6-char id
   const rand = Math.random().toString(36).substring(2, 8);
-  const slug = `${base}-${rand}`;
 
+  const slug = `${base}-${rand}`;
   localStorage.setItem(key, slug);
   return slug;
 }
