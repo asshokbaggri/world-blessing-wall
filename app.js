@@ -112,6 +112,31 @@ async function makeIpHash(){
 
 // ---------- Utils ----------
 
+// CUSTOM GLASS ALERT (REPLACES BROWSER ALERT)
+function showGlassAlert(msg = "") {
+  const box = document.getElementById("glassAlert");
+  const txt = document.getElementById("glassAlertText");
+
+  if (!box || !txt) return;
+
+  txt.textContent = msg;
+  box.hidden = false;
+
+  // show animation
+  box.classList.remove("hide");
+  box.classList.add("show");
+
+  setTimeout(() => {
+    box.classList.remove("show");
+    box.classList.add("hide");
+
+    setTimeout(() => {
+      box.hidden = true;
+    }, 250);
+  }, 1600);
+}
+
+
 // COUNTER POP — requires .counter-anim in CSS
 function animateCount(el, to){
   if (!el) return;
