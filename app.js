@@ -653,6 +653,9 @@ async function submitBlessing(){
       return;
     }
 
+    // create/get personal slug
+    const slug = getOrCreateSlug(username);
+
     const lang = detectLang(rawText);
     const { country, countryCode } = normalizeCountry(rawCountry);
     const ipHash = await makeIpHash();
