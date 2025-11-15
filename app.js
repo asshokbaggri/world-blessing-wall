@@ -57,6 +57,12 @@ const toggleMy = document.getElementById("toggleMy");
 const refreshMy = document.getElementById("refreshMy");
 const myCountEl = document.getElementById("myCount");
 
+// ---- Username popup DOM ----
+const usernamePopup = document.getElementById("usernamePopup");
+const usernameInput = document.getElementById("usernameInput");
+const saveUsernameBtn = document.getElementById("saveUsername");
+const skipUsernameBtn = document.getElementById("skipUsername");
+
 // micro-animation targets
 let sparkleRoot = document.getElementById("sparkleBurst");
 let liveToast   = document.getElementById("liveToast");
