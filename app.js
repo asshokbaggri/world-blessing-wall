@@ -111,46 +111,60 @@ async function makeIpHash(){
 }
 
 // --------- Clean Hindi → English Transliteration (human-friendly) ----------
-function transliterateHindiToEnglish(str = "") {
+function transliterateHindiToEnglish(name = "") {
+  if (!name) return "";
 
+  // ---- Step 1: Base character map ----
   const map = {
-    "अ": "a","आ": "aa","इ": "i","ई": "ee","उ": "u","ऊ": "oo",
-    "ए": "e","ऐ": "ai","ओ": "o","औ": "au",
+    "अ": "a", "आ": "aa", "इ": "i", "ई": "ee",
+    "उ": "u", "ऊ": "oo", "ए": "e", "ऐ": "ai",
+    "ओ": "o", "औ": "au",
 
-    "ा": "a","ि": "i","ी": "ee","ु": "u","ू": "oo",
-    "े": "e","ै": "ai","ो": "o","ौ": "au",
-    "ं": "n","ँ": "n","ः": "h",
+    "ा": "a", "ि": "i", "ी": "ee", "ु": "u", "ू": "oo",
+    "े": "e", "ै": "ai", "ो": "o", "ौ": "au",
+    "ं": "n", "ँ": "n", "ः":"h",
 
-    "क": "k","ख": "kh","ग": "g","घ": "gh","ङ": "n",
-    "च": "ch","छ": "chh","ज": "j","झ": "jh","ञ": "ny",
-    "ट": "t","ठ": "th","ड": "d","ढ": "dh","ण": "n",
-    "त": "t","थ": "th","द": "d","ध": "dh","न": "n",
-    "प": "p","फ": "ph","ब": "b","भ": "bh","म": "m",
-    "य": "y","र": "r","ल": "l","व": "v",
-    "श": "sh","ष": "sh","स": "s","ह": "h",
-
-    "त्र": "tra","ज्ञ": "gya","क्ष": "ksh"
+    "क": "k", "ख": "kh", "ग": "g", "घ": "gh", "ङ": "n",
+    "च": "ch", "छ": "chh", "ज": "j", "झ": "jh", "ञ": "ny",
+    "ट": "t", "ठ": "th", "ड": "d", "ढ": "dh", "ण":"n",
+    "त": "t", "थ": "th", "द": "d", "ध": "dh", "न": "n",
+    "प": "p", "फ": "ph", "ब": "b", "भ": "bh", "म": "m",
+    "य": "y", "र": "r", "ल": "l", "व": "v",
+    "श": "sh", "ष": "sh", "स": "s", "ह": "h"
   };
 
+  // ---- Step 2: Basic transliteration ----
   let out = "";
-
-  for (let ch of str) {
-    out += map[ch] || ch;
+  for (let char of name) {
+    out += map[char] || char;
   }
 
-  // Smart corrections for Indian names
-  out = out
-    .replace(/jagd?eesh/i, "jagdish")
-    .replace(/prasa?d/i, "prasad")
-    .replace(/sola?nki/i, "solanki")
-    .replace(/sha?rm?a/i, "sharma")
-    .replace(/singh/i, "singh")
-    .replace(/kuma?r/i, "kumar")
-    .replace(/yad(a|aa)v/i, "yadav");
+  out = out.toLowerCase();
 
-  return out.toLowerCase()
+  // ---- Step 3: Smart phonetic corrections (PERMANENT) ----
+
+  const fixes = [
+    [/llit/g, "lalit"],
+    [/chnd/g, "chandra"],
+    [/jagd?eesh|jgdish|jgdeesh/g, "jagdish"],
+    [/prasad|prsad/g, "prasad"],
+    [/prajapat|p-rjapt/g, "prajapat"],
+    [/solnkee|solnki|solanki/g, "solanki"],
+    [/kumr|kumar/g, "kumar"],
+    [/singh|sngh/g, "singh"],
+    [/chndr/g, "chandra"],
+  ];
+
+  fixes.forEach(([regex, replacement]) => {
+    out = out.replace(regex, replacement);
+  });
+
+  // ---- Step 4: Cleanup for URL ----
+  out = out
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+
+  return out;
 }
 
 
