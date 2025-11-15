@@ -110,6 +110,26 @@ async function makeIpHash(){
   return String(h >>> 0);
 }
 
+// ---------- Basic Hindi → English Transliteration ----------
+function transliterateHindiToEnglish(str = "") {
+  const map = {
+      "अ":"a","आ":"aa","इ":"i","ई":"ee","उ":"u","ऊ":"oo","ए":"e","ऐ":"ai","ओ":"o","औ":"au",
+      "ा":"a","ि":"i","ी":"ee","ु":"u","ू":"oo","े":"e","ै":"ai","ो":"o","ौ":"au",
+      "क":"k","ख":"kh","ग":"g","घ":"gh","च":"ch","छ":"chh","ज":"j","झ":"jh","ट":"t","ठ":"th",
+      "ड":"d","ढ":"dh","त":"t","थ":"th","द":"d","ध":"dh","न":"n","प":"p","फ":"ph","ब":"b",
+      "भ":"bh","म":"m","य":"y","र":"r","ल":"l","व":"v","स":"s","ह":"h",
+      "ण":"n","ञ":"ny","श":"sh","ष":"sh","श्र":"shr",
+      "ृ":"ri","ॅ":"e","ॉ":"o"
+  };
+
+  let out = "";
+  for (let ch of str) {
+    out += map[ch] || ch;
+  }
+
+  return out.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+}
+
 // ---------- Slug generator (unique personal link) ----------
 function getOrCreateSlug(username) {
   const key = "wbw_user_slug_v1";
