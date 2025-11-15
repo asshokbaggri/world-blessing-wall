@@ -116,15 +116,16 @@ async function makeIpHash(){
 function showGlassAlert(msg = "") {
   const box = document.getElementById("glassAlertBox");
   const txt = document.getElementById("glassAlertText");
-  const okBtn = document.getElementById("glassAlertOk");
-
-  if (!box || !txt || !okBtn) return;
+  if (!box || !txt) return;
 
   txt.textContent = msg;
   box.hidden = false;
+  box.classList.add("show");
 
+  const okBtn = document.getElementById("glassAlertOk");
   okBtn.onclick = () => {
-    box.hidden = true;
+    box.classList.remove("show");
+    setTimeout(() => { box.hidden = true; }, 250);
   };
 }
 
