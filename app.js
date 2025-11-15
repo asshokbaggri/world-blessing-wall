@@ -113,13 +113,15 @@ async function makeIpHash(){
 // ---------- Basic Hindi → English Transliteration ----------
 function transliterateHindiToEnglish(str = "") {
   const map = {
-      "अ":"a","आ":"aa","इ":"i","ई":"ee","उ":"u","ऊ":"oo","ए":"e","ऐ":"ai","ओ":"o","औ":"au",
-      "ा":"a","ि":"i","ी":"ee","ु":"u","ू":"oo","े":"e","ै":"ai","ो":"o","ौ":"au",
-      "क":"k","ख":"kh","ग":"g","घ":"gh","च":"ch","छ":"chh","ज":"j","झ":"jh","ट":"t","ठ":"th",
-      "ड":"d","ढ":"dh","त":"t","थ":"th","द":"d","ध":"dh","न":"n","प":"p","फ":"ph","ब":"b",
-      "भ":"bh","म":"m","य":"y","र":"r","ल":"l","व":"v","स":"s","ह":"h",
-      "ण":"n","ञ":"ny","श":"sh","ष":"sh","श्र":"shr",
-      "ृ":"ri","ॅ":"e","ॉ":"o"
+    "अ":"a","आ":"aa","इ":"i","ई":"ee","उ":"u","ऊ":"oo",
+    "ए":"e","ऐ":"ai","ओ":"o","औ":"au",
+    "ा":"a","ि":"i","ी":"ee","ु":"u","ू":"oo","े":"e","ै":"ai",
+    "ो":"o","ौ":"au","ं":"n","ः":"h",
+
+    "क":"k","ख":"kh","ग":"g","घ":"gh","च":"ch","छ":"chh","ज":"j","झ":"jh",
+    "ट":"t","ठ":"th","ड":"d","ढ":"dh","त":"t","थ":"th","द":"d","ध":"dh",
+    "न":"n","प":"p","फ":"ph","ब":"b","भ":"bh","म":"m","य":"y","र":"r",
+    "ल":"l","व":"v","स":"s","ह":"h","श":"sh","ष":"sh","ज्ञ":"gy"
   };
 
   let out = "";
@@ -127,33 +129,36 @@ function transliterateHindiToEnglish(str = "") {
     out += map[ch] || ch;
   }
 
-  return out.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+  return out
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
-// ---------- Slug generator (unique personal link) ----------function getOrCreateSlug(username) {
+
+// ---------- Slug generator (unique personal link) ----------
+function getOrCreateSlug(username) {
   const key = "wbw_user_slug_v1";
   let existing = localStorage.getItem(key);
   if (existing) return existing;
 
   let base = String(username || "user").trim().toLowerCase();
 
-  // ✔ Step A — Detect Hindi characters
+  // detect Hindi
   const hasHindi = /[\u0900-\u097F]/.test(base);
 
   if (hasHindi) {
-      base = transliterateHindiToEnglish(base); // convert Hindi → English slug
+    base = transliterateHindiToEnglish(base);
   } else {
-      base = base.replace(/[^a-z0-9]+/g, "-");
+    base = base.replace(/[^a-z0-9]/g, "-");
   }
 
   base = base.replace(/^-+|-+$/g, "") || "user";
 
-  // random ID
   const rand = Math.random().toString(36).substring(2, 8);
-
   const slug = `${base}-${rand}`;
-  localStorage.setItem(key, slug);
 
+  localStorage.setItem(key, slug);
   return slug;
 }
 
