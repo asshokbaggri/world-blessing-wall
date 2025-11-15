@@ -595,7 +595,7 @@ async function submitBlessing(){
 
   try {
     // ensure username (one-time popup)
-    const username = await ensureUsername();
+    const username = await ensureUsernameModal();
     if (!username) {
       // user cancelled name entry
       if (statusBox) {
