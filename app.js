@@ -252,31 +252,35 @@ function getSavedUsername() {
 }
 
 function ensureUsernameModal() {
-  const existing = getSavedUsername();
-  if (existing) return Promise.resolve(existing);
+    const existing = getSavedUsername();
+    if (existing) return Promise.resolve(existing);
 
-  openUsernamePopup();
+    openUsernamePopup();
 
-  return new Promise((resolve) => {
-    // save
-    saveUsernameBtn.onclick = () => {
-      const name = usernameInput.value.trim();
-      if (!name) {
-        showGlassAlert("Naam ek vibration hota hai… bas ek shabd likh do 🤍✨");
-        return;
-      }
-      localStorage.setItem("wbw_username_v1", name);
-      closeUsernamePopup();
-      resolve(name);
-    };
+    return new Promise((resolve) => {
 
-    // cancel button
-    skipUsernameBtn.onclick = () => {
-      showGlassAlert("Blessing post karne ke liye naam zaroori hai 🤍");
-      closeUsernamePopup();   // <-- popup close
-      resolve(null);
-    };
-  });
+        // ---------- SAVE BUTTON ----------
+        saveUsernameBtn.onclick = () => {
+            const name = usernameInput.value.trim();
+
+            if (!name) {
+                showGlassAlert("Naam ek vibration hota hai… bas ek shabd likh do 🤍✨");
+                return;
+            }
+
+            localStorage.setItem("wbw_username_v1", name);
+            closeUsernamePopup();
+            resolve(name);
+        };
+
+        // ---------- SKIP BUTTON ----------
+        skipUsernameBtn.onclick = () => {
+            showGlassAlert("Blessing post karne ke liye naam zaroori hai 🤍");
+            closeUsernamePopup();
+            resolve(null);
+        };
+
+    });
 }
 
 
