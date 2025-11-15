@@ -673,7 +673,7 @@ async function submitBlessing(){
       sentimentScore: 0,
       ipHash,
       username: username,
-      userSlug: userSlug,     // ⭐ personal slug
+      userSlug: slug,     // ⭐ personal slug
       slugCreated: true,      // ⭐ flag
       blessingId: ""
     };
