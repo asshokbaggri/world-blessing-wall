@@ -130,23 +130,30 @@ function transliterateHindiToEnglish(str = "") {
   return out.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
 }
 
-// ---------- Slug generator (unique personal link) ----------
-function getOrCreateSlug(username) {
+// ---------- Slug generator (unique personal link) ----------function getOrCreateSlug(username) {
   const key = "wbw_user_slug_v1";
   let existing = localStorage.getItem(key);
   if (existing) return existing;
 
-  // clean username
-  let base = String(username || "user")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
+  let base = String(username || "user").trim().toLowerCase();
 
-  // random 6-char id
+  // ✔ Step A — Detect Hindi characters
+  const hasHindi = /[\u0900-\u097F]/.test(base);
+
+  if (hasHindi) {
+      base = transliterateHindiToEnglish(base); // convert Hindi → English slug
+  } else {
+      base = base.replace(/[^a-z0-9]+/g, "-");
+  }
+
+  base = base.replace(/^-+|-+$/g, "") || "user";
+
+  // random ID
   const rand = Math.random().toString(36).substring(2, 8);
 
   const slug = `${base}-${rand}`;
   localStorage.setItem(key, slug);
+
   return slug;
 }
 
