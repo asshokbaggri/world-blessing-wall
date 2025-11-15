@@ -110,28 +110,46 @@ async function makeIpHash(){
   return String(h >>> 0);
 }
 
-// ---------- Basic Hindi → English Transliteration ----------
+// --------- Clean Hindi → English Transliteration (human-friendly) ----------
 function transliterateHindiToEnglish(str = "") {
-  const map = {
-    "अ":"a","आ":"aa","इ":"i","ई":"ee","उ":"u","ऊ":"oo",
-    "ए":"e","ऐ":"ai","ओ":"o","औ":"au",
-    "ा":"a","ि":"i","ी":"ee","ु":"u","ू":"oo","े":"e","ै":"ai",
-    "ो":"o","ौ":"au","ं":"n","ः":"h",
 
-    "क":"k","ख":"kh","ग":"g","घ":"gh","च":"ch","छ":"chh","ज":"j","झ":"jh",
-    "ट":"t","ठ":"th","ड":"d","ढ":"dh","त":"t","थ":"th","द":"d","ध":"dh",
-    "न":"n","प":"p","फ":"ph","ब":"b","भ":"bh","म":"m","य":"y","र":"r",
-    "ल":"l","व":"v","स":"s","ह":"h","श":"sh","ष":"sh","ज्ञ":"gy"
+  const map = {
+    "अ": "a","आ": "aa","इ": "i","ई": "ee","उ": "u","ऊ": "oo",
+    "ए": "e","ऐ": "ai","ओ": "o","औ": "au",
+
+    "ा": "a","ि": "i","ी": "ee","ु": "u","ू": "oo",
+    "े": "e","ै": "ai","ो": "o","ौ": "au",
+    "ं": "n","ँ": "n","ः": "h",
+
+    "क": "k","ख": "kh","ग": "g","घ": "gh","ङ": "n",
+    "च": "ch","छ": "chh","ज": "j","झ": "jh","ञ": "ny",
+    "ट": "t","ठ": "th","ड": "d","ढ": "dh","ण": "n",
+    "त": "t","थ": "th","द": "d","ध": "dh","न": "n",
+    "प": "p","फ": "ph","ब": "b","भ": "bh","म": "m",
+    "य": "y","र": "r","ल": "l","व": "v",
+    "श": "sh","ष": "sh","स": "s","ह": "h",
+
+    "त्र": "tra","ज्ञ": "gya","क्ष": "ksh"
   };
 
   let out = "";
+
   for (let ch of str) {
     out += map[ch] || ch;
   }
 
-  return out
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "-")
+  // Smart corrections for Indian names
+  out = out
+    .replace(/jagd?eesh/i, "jagdish")
+    .replace(/prasa?d/i, "prasad")
+    .replace(/sola?nki/i, "solanki")
+    .replace(/sha?rm?a/i, "sharma")
+    .replace(/singh/i, "singh")
+    .replace(/kuma?r/i, "kumar")
+    .replace(/yad(a|aa)v/i, "yadav");
+
+  return out.toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
 
