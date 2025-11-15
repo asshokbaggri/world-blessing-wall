@@ -205,36 +205,56 @@ function getGeoOnce(){
   });
 }
 
-// ---------- Username popup (one-time) ----------
-async function ensureUsername(){
-  const key = "wbw_username_v1";
-  try {
-    let name = localStorage.getItem(key);
-    if (name && name.trim()) return name.trim();
+// ---------- Username MODAL (NEW — final selected) ----------
 
-    // prompt loop until non-empty or user cancels and chooses to abort posting
-    while (true) {
-      const resp = prompt("Enter a display name (this will be shown with your blessings):");
-      if (resp === null) {
-        // user cancelled the prompt
-        const retry = confirm("Name is required to post and shown publicly. Try entering a name?");
-        if (!retry) return null;
-        continue; // reopen prompt
-      }
-      const trimmed = (resp || "").trim();
-      if (trimmed.length === 0) {
-        alert("Please enter a valid name (at least one character).");
-        continue;
-      }
-      // store and return
-      try { localStorage.setItem(key, trimmed); } catch(e){}
-      return trimmed;
-    }
-  } catch(e){
-    console.warn("ensureUsername failed", e);
-    return null;
+function openUsernamePopup() {
+  usernamePopup.removeAttribute("hidden");
+  usernamePopup.classList.add("show");
+  setTimeout(() => usernameInput.focus(), 80);
+}
+
+function closeUsernamePopup() {
+  usernamePopup.classList.remove("show");
+  setTimeout(() => {
+    usernamePopup.setAttribute("hidden", true);
+  }, 180);
+}
+
+function getSavedUsername() {
+  try {
+    return (localStorage.getItem("wbw_username_v1") || "").trim();
+  } catch {
+    return "";
   }
 }
+
+function ensureUsernameModal() {
+  const existing = getSavedUsername();
+  if (existing) return Promise.resolve(existing);
+
+  openUsernamePopup();
+
+  return new Promise((resolve) => {
+    // save
+    saveUsernameBtn.onclick = () => {
+      const name = usernameInput.value.trim();
+      if (!name) {
+        alert("Naam ek vibration hota hai… ek shabd likh do 🤍✨");
+        return;
+      }
+      localStorage.setItem("wbw_username_v1", name);
+      closeUsernamePopup();
+      resolve(name);
+    };
+
+    // cancel button
+    skipUsernameBtn.onclick = () => {
+      alert("Blessing post karne ke liye naam zaroori hai 🤍");
+      resolve(null);
+    };
+  });
+}
+
 
 // ---------- Micro-animation helpers ----------
 function pulseSendBtn(){
