@@ -139,23 +139,30 @@
   </footer>
 
 
-  <!-- USERNAME POPUP (one-time + optional) -->
-  <div id="usernamePopup" class="username-popup" hidden>
-    <div class="popup-backdrop"></div>
-    <div class="popup-box" role="dialog" aria-modal="true" aria-labelledby="popupTitle">
-      <h3 id="popupTitle">Naam Drop Karo — Apna display naam set karo ✨</h3>
-      <p class="muted">Ek baar set karoge — har blessing ke saath yeh naam automatic dikhega. (You can change it later.)</p>
+  <!-- USERNAME POPUP (one-time + optional) - REPLACE existing block -->
+  <div id="usernamePopup" class="username-popup" hidden aria-hidden="true">
+    <div class="popup-backdrop" data-role="backdrop"></div>
 
-      <input type="text" id="usernameInput" placeholder="Asshok" aria-label="Enter display name" />
+    <div class="popup-box" role="dialog" aria-modal="true" aria-labelledby="popupTitle">
+      <h3 id="popupTitle">✨ Naam Drop Karo</h3>
+      <p class="muted">Aapka naam har blessing ke saath chalega — log dekhenge kisne duniya mein light bheji 🔥✨</p>
+
+      <label for="usernameInput" class="sr-only">Display name</label>
+      <input type="text" id="usernameInput" placeholder="Aapka display naam (e.g. Ashhok)" aria-label="Enter display name" autocomplete="name" />
+
+      <div id="usernameError" class="username-error" aria-live="polite" hidden>Naam thoda chhota lag raha hai — ek acha sa display name daalo ✨</div>
 
       <div class="popup-actions">
-        <button id="saveUsername" class="btn-primary">Save</button>
+        <button id="saveUsername" class="btn-primary">Save &amp; Shine ✨</button>
         <button id="skipUsername" class="btn">Skip</button>
+      </div>
+
+      <div class="popup-footer muted" style="margin-top:10px; font-size:13px;">
+        Naam safe local device par save rahega — aap kabhi bhi badal sakte ho.
       </div>
     </div>
   </div>
-
-
+  
   <noscript style="color:white; display:block; text-align:center; padding:12px;">
     Please enable JavaScript to use the World Blessing Wall.
   </noscript>
