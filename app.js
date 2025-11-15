@@ -110,6 +110,26 @@ async function makeIpHash(){
   return String(h >>> 0);
 }
 
+// ---------- Slug generator (unique personal link) ----------
+function getOrCreateSlug(username) {
+  const key = "wbw_user_slug_v1";
+  let existing = localStorage.getItem(key);
+  if (existing) return existing;
+
+  // clean username
+  let base = String(username || "user")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+  // random 6-char id
+  const rand = Math.random().toString(36).substring(2, 8);
+
+  const slug = `${base}-${rand}`;
+  localStorage.setItem(key, slug);
+  return slug;
+}
+
 // ---------- Utils ----------
 
 // CUSTOM GLASS ALERT (REPLACES BROWSER ALERT)
