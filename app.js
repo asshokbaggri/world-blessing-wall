@@ -289,13 +289,8 @@ function makeCard(docData = {}, docId){
   const cc = (data.countryCode || "").toUpperCase() || normalizeCountry(country).countryCode;
   const flag = flagFromCode(cc);
 
-  let timeStr = "";
-  try {
-    const ts = data.timestamp || data.created;
-    timeStr = ts?.toDate ? ts.toDate().toLocaleString() : new Date().toLocaleString();
-  } catch {
-    timeStr = new Date().toLocaleString();
-  }
+  const ts = data.timestamp || data.created;
+  const timeStr = timeAgo(ts);
 
   const username = data.username ? String(data.username).trim() : "";
 
