@@ -729,7 +729,7 @@ async function submitBlessing(){
 // ---------- Share buttons (with personal /me/slug) ----------
 
 // 1) Get personal slug
-const mySlug = localStorage.getItem("wbw_slug_v1") || "";
+const mySlug = localStorage.getItem("wbw_user_slug_v1") || "";
 
 // 2) Build personal link
 const myPersonalLink = `${location.origin}/me/${mySlug}`;
