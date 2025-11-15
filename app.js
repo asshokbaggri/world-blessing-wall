@@ -733,6 +733,12 @@ async function submitBlessing(){
     const bestEl = document.getElementById("streakBest");
     if (streakEl) streakEl.textContent = streak;
     if (bestEl) bestEl.textContent = best;
+    
+     // 🔥 pop animation
+    if (streakEl) {
+        streakEl.classList.add("streak-pop");
+        setTimeout(() => streakEl.classList.remove("streak-pop"), 600);
+    }
 
     if (statusBox) {
       statusBox.textContent = "Blessing submitted ✅";
