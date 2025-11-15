@@ -757,7 +757,13 @@ twShare?.addEventListener("click", () => {
 // 6) Copy Link
 copyShare?.addEventListener("click", async () => {
   try {
-    await navigator.clipboard.writeText(myPersonalLink);
+    await navigator.clipboard.writeText(
+      `Maine aaj ek choti si blessing likhi… 💫
+    Dil halka ho jata hai jab kuch achha likhte ho.
+    Tum bhi ek dua likho — duniya ko thoda sa aur roshan karte hain 🤍✨
+    👇
+    ${myPersonalLink}`
+    );
     const prev = copyShare.textContent;
     copyShare.textContent = "Link Copied ✅";
     await sleep(1200);
