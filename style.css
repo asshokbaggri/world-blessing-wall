@@ -560,3 +560,35 @@ footer,
   .username-popup .popup-box { padding:14px; width:92vw; border-radius:12px; }
   .username-popup h3 { font-size:18px; }
 }
+
+/* CUSTOM GLASS ALERT STYLE */
+.glass-alert {
+  position: fixed;
+  top: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(25, 25, 30, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 18px 24px;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 15px;
+  text-align: center;
+  z-index: 9999;
+  width: auto;
+  max-width: 82%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease-out, transform .25s ease-out;
+}
+
+.glass-alert.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.glass-alert.hide {
+  opacity: 0;
+}
