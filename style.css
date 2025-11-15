@@ -604,3 +604,15 @@ footer,
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* --- FIX: Glass Alert should be hidden by default --- */
+#glassAlert {
+  display: none !important;
+  opacity: 0;
+}
+
+/* When JS adds .show → visible */
+#glassAlert.show {
+  display: flex !important;
+  opacity: 1;
+}
