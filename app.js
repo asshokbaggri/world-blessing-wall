@@ -114,7 +114,7 @@ async function makeIpHash(){
 
 // CUSTOM GLASS ALERT (REPLACES BROWSER ALERT)
 function showGlassAlert(msg = "") {
-  const box = document.getElementById("glassAlertBox");
+  const box = document.getElementById("glassAlert");
   const txt = document.getElementById("glassAlertText");
   if (!box || !txt) return;
 
