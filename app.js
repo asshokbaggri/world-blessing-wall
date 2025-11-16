@@ -1,4 +1,4 @@
-/ ============================================================
+/* ============================================================
    WORLD BLESSING WALL — APP.JS v1.2 (My-Blessings + username)
    - one-time username popup (stored in localStorage)
    - username saved into each blessing document (field: username)
