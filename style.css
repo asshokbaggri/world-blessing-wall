@@ -622,30 +622,56 @@ footer,
   opacity: 1;
 }
 
-/* ---- STREAK BADGE ---- */
+/* ---------- PREMIUM STREAK BADGE ---------- */
+
 .streak-box {
-  margin: 20px auto;
+  width: 94%;
+  margin: 25px auto;
+  padding: 20px 25px;
   text-align: center;
-  padding: 12px 22px;
-  font-size: 18px;
-  background: rgba(255,255,255,0.13);
-  backdrop-filter: blur(14px);
-  border-radius: 14px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 18px;
   border: 1px solid rgba(255,255,255,0.25);
-  color: #ffd37a;
-  font-weight: 600;
-  box-shadow: 0 0 16px rgba(255, 215, 130, 0.45);
-  animation: streakGlow 3s infinite ease-in-out;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 0 20px rgba(255,225,150,0.28);
+  animation: streakGlow 4s infinite ease-in-out;
 }
 
-.streak-box small {
+.streak-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffd267;
+  margin-bottom: 12px;
+}
+
+.streak-numbers {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.streak-item .label {
+  font-size: 14px;
   color: #fff;
   opacity: 0.85;
-  margin-left: 8px;
-  font-size: 14px;
 }
 
-/* ---- Text pop when streak increases ---- */
+.streak-item .value {
+  display: block;
+  font-size: 26px;
+  color: #ffd267;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+/* Divider */
+.divider {
+  width: 1px;
+  background: rgba(255,255,255,0.25);
+  height: 36px;
+}
+
+/* Pop when streak increases */
 .streak-pop {
   animation: streakPop 0.55s ease-out;
 }
@@ -656,9 +682,9 @@ footer,
   100% { transform: scale(1); }
 }
 
-/* ---- Soft glowing loop ---- */
+/* Aura glow */
 @keyframes streakGlow {
-  0%   { box-shadow: 0 0 6px rgba(255,215,130,0.25); }
-  50%  { box-shadow: 0 0 18px rgba(255,215,130,0.55); }
-  100% { box-shadow: 0 0 6px rgba(255,215,130,0.25); }
+  0%   { box-shadow: 0 0 14px rgba(255,225,150,0.28); }
+  50%  { box-shadow: 0 0 22px rgba(255,225,150,0.45); }
+  100% { box-shadow: 0 0 14px rgba(255,225,150,0.28); }
 }
