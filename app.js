@@ -765,9 +765,7 @@ async function submitBlessing(){
 
         // WhatsApp auto-open ONLY
         const wa = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-        setTimeout(() => {
-            window.open(wa, "_blank");
-        }, 700);
+        window.location.href = wa;   // iOS friendly
 
     } catch (e) {
         console.log("Auto share failed", e);
