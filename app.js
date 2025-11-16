@@ -760,23 +760,14 @@ async function submitBlessing(){
 
     // ---- AUTO SHARE AFTER BLESSING ---- //
     try {
-        // Auto-share message (HTML se le raha hai)
-        const textBox = document.getElementById("autoShareMsg");
-        const msg = textBox ? textBox.textContent.trim() : "";
+        const box = document.getElementById("autoShareMsg");
+        const msg = box ? box.textContent.trim() : "";
 
-        // WhatsApp auto-open
+        // WhatsApp auto-open ONLY
         const wa = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-
         setTimeout(() => {
             window.open(wa, "_blank");
-        }, 700);   // Small delay after submit
-
-        // Twitter/X auto-open (after WhatsApp)
-        const tw = `https://twitter.com/intent/tweet?text=${encodeURIComponent(msg)}`;
-
-        setTimeout(() => {
-            window.open(tw, "_blank");
-        }, 1700);  // WhatsApp ke 1 sec baad
+        }, 700);
 
     } catch (e) {
         console.log("Auto share failed", e);
