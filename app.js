@@ -410,17 +410,18 @@ function makeCard(docData = {}, docId){
 }
 
 // ----------- READ COUNTER (Safe Increment on Visible) ----------- //
-function incrementRead(blessingId) {
+async function incrementRead(blessingId) {
   try {
-    window._readHits ??= {};
-    if (window._readHits[blessingId]) return; 
-    window._readHits[blessingId] = true;
+    // one-time guard per client session
+    window._readHits ??= new Set();
+    if (window._readHits.has(blessingId)) return;
+    window._readHits.add(blessingId);
 
-    updateDoc(doc(db, "blessings", blessingId), {
+    await updateDoc(doc(db, "blessings", blessingId), {
       reads: increment(1)
     });
   } catch(e) {
-    console.log("read error",e);
+    console.log("read error", e);
   }
 }
 
