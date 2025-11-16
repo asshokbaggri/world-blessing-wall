@@ -398,6 +398,8 @@ function makeCard(docData = {}, docId){
   wrap.classList.add("blessing-card", "fade-up");
   if (docId) wrap.dataset.id = docId;
 
+  if (readObserver) readObserver.observe(wrap);
+
   // Card HTML: flag + country top, main text, then username line (— Name), then small time
   wrap.innerHTML = `
     <b><span class="flag">${escapeHTML(flag)}</span> ${escapeHTML(country || cc || "—")}</b>
