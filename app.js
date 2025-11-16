@@ -407,6 +407,21 @@ function makeCard(docData = {}, docId){
   return wrap;
 }
 
+// ----------- READ COUNTER (Safe Increment on Visible) ----------- //
+function incrementRead(blessingId) {
+  try {
+    window._readHits ??= {};
+    if (window._readHits[blessingId]) return; 
+    window._readHits[blessingId] = true;
+
+    updateDoc(doc(db, "blessings", blessingId), {
+      reads: increment(1)
+    });
+  } catch(e) {
+    console.log("read error",e);
+  }
+}
+
 // ---------- Render helpers (prevent duplicates) ----------
 function prependIfNew(docSnap){
   const id = docSnap.id;
