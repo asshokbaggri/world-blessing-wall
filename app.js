@@ -845,20 +845,6 @@ ${myPersonalLink}`
   } catch {}
 });
 
-// ---- Inspire Someone Today ---- //
-const inspireBtn = document.getElementById("inspireBtn");
-if (inspireBtn) {
-    inspireBtn.addEventListener("click", async () => {
-        const link = "https://asshokbaggri.github.io/";
-        try {
-            await navigator.clipboard.writeText(link);
-            showLiveToast("Link copied! ✨ Inspire someone today ❤️");
-        } catch (e) {
-            console.log("Copy failed", e);
-        }
-    });
-}
-
 // ---------- Particles (full-screen, always behind) ----------
 (function initParticles(){
   const canvas = document.getElementById("goldParticles");
