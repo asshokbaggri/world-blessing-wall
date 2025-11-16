@@ -845,6 +845,38 @@ ${myPersonalLink}`
   } catch {}
 });
 
+// ------- Daily Challenge Mode ------- //
+(function loadDailyChallenge(){
+  
+  const challenges = [
+    "Aaj kisi unknown ke liye dua likho 💛",
+    "Apne future self ke liye blessing likho ✨",
+    "Kisi stranger ko happiness send karo 😊",
+    "Duniya ke liye ek choti si dua likho 🌍",
+    "Aaj gratitude blessing likho 🤍",
+  ];
+
+  const box = document.getElementById("challengeText");
+  if (!box) return;
+
+  // date key
+  const today = new Date().toISOString().slice(0,10);
+
+  // check saved challenge
+  let saved = localStorage.getItem("wbw_challenge_day");
+  let text  = localStorage.getItem("wbw_challenge_text");
+
+  if (saved !== today || !text) {
+    // new challenge
+    text = challenges[Math.floor(Math.random() * challenges.length)];
+    localStorage.setItem("wbw_challenge_day", today);
+    localStorage.setItem("wbw_challenge_text", text);
+  }
+
+  box.textContent = text;
+
+})();
+
 // ---------- Particles (full-screen, always behind) ----------
 (function initParticles(){
   const canvas = document.getElementById("goldParticles");
