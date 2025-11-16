@@ -550,6 +550,35 @@ function setupInfiniteObserver(){
   if (sentinel) infiniteObserver.observe(sentinel);
 }
 
+// ---------- READ OBSERVER ---------- //
+let readObserver = null;
+
+function setupReadObserver() {
+  if (readObserver) return;
+
+  readObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.dataset.id;
+        if (!id) return;
+
+        // ensure one-time
+        window._seenReads ??= new Set();
+        if (!window._seenReads.has(id)) {
+          window._seenReads.add(id);
+          incrementRead(id);
+        }
+      }
+    });
+  }, {
+    threshold: 0.4 // 40% visible = counted as read
+  });
+
+  document.querySelectorAll(".blessing-card").forEach(el => {
+    readObserver.observe(el);
+  });
+}
+
 // ---------- Realtime (newest only for public feed) ----------
 const liveNewest = query(
   collection(db,"blessings"),
