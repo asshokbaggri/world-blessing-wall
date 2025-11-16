@@ -7,27 +7,23 @@
    ============================================================ */
 
 // ---------- Firebase ----------
-<script type="module">
-  import { initializeApp } 
-  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-  import {
-    getFirestore,
-    collection,
-    addDoc,
-    updateDoc,
-    doc,
-    serverTimestamp,
-    onSnapshot,
-    query,
-    orderBy,
-    limit,
-    startAfter,
-    getDocs,
-    where,
-    increment
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-</script>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  updateDoc,
+  doc,
+  serverTimestamp,
+  onSnapshot,
+  query,
+  orderBy,
+  limit,
+  startAfter,
+  getDocs,
+  where,
+  increment
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC8CzspwB_GtrbUm-V2mIvumpPqbbq-f6k",
