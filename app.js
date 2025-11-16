@@ -402,6 +402,7 @@ function makeCard(docData = {}, docId){
     <b><span class="flag">${escapeHTML(flag)}</span> ${escapeHTML(country || cc || "—")}</b>
     <div class="blessing-text">${(escapeHTML(data.text || "")).replace(/\n/g,"<br>")}</div>
     ${ username ? `<div class="blessing-username">— ${escapeHTML(username)}</div>` : "" }
+    <div class="reads">👀 ${data.reads || 0} reads</div>
     <small class="blessing-time">${escapeHTML(timeStr)}</small>
   `;
   return wrap;
