@@ -485,8 +485,8 @@ async function loadInitial(){
     if (statusBox) statusBox.textContent = "Unable to load blessings right now.";
   }
 }
-setupReadObserver();
 loadInitial();
+setupReadObserver();
 
 // ---------- loadMore ----------
 async function loadMore(){
