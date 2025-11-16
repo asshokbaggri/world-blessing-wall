@@ -414,18 +414,14 @@ function makeCard(docData = {}, docId){
 // ----------- READ COUNTER (Safe Increment per USERNAME) ----------- //
 async function incrementRead(blessingId) {
   try {
-    const username = localStorage.getItem("wbw_username_v1") || "guest";
+    const deviceId = CLIENT_ID || "guest";   // 🔥 per-device stable ID
 
-    // unique key per-user + per-blessing
-    const key = `seen_${username}_${blessingId}`;
+    const key = `seen_${deviceId}_${blessingId}`;
 
-    // already counted?
     if (localStorage.getItem(key)) return;
 
-    // mark as counted
     localStorage.setItem(key, "1");
 
-    // increment in Firebase
     await updateDoc(doc(db, "blessings", blessingId), {
       reads: increment(1)
     });
