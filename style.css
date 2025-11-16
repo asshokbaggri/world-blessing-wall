@@ -224,6 +224,12 @@ textarea:focus, input:focus{
   margin-bottom:6px;
 }
 
+.reads {
+  font-size: 13px;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
 /* -------- FIX #1 FLAG ALIGN -------- */
 .flag{
   font-size:18px;
