@@ -581,12 +581,7 @@ function setupReadObserver() {
         const id = entry.target.dataset.id;
         if (!id) return;
 
-        // ensure one-time
-        window._seenReads ??= new Set();
-        if (!window._seenReads.has(id)) {
-          window._seenReads.add(id);
-          incrementRead(id);
-        }
+        incrementRead(id);
       }
     });
   }, {
