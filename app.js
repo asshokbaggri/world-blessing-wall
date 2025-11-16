@@ -429,6 +429,9 @@ function prependIfNew(docSnap){
   const el = makeCard(docSnap.data(), id);
   blessingsList.prepend(el);
   renderedIds.add(id);
+
+  if (readObserver) readObserver.observe(el);
+
   return true;
 }
 function appendIfNew(docSnap){
@@ -437,6 +440,9 @@ function appendIfNew(docSnap){
   const el = makeCard(docSnap.data(), id);
   blessingsList.appendChild(el);
   renderedIds.add(id);
+
+  if (readObserver) readObserver.observe(el);
+
   return true;
 }
 
