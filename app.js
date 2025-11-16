@@ -472,6 +472,8 @@ async function loadInitial(){
 }
 loadInitial();
 
+setupReadObserver();
+
 // ---------- loadMore ----------
 async function loadMore(){
   if (loadingMore) return;
