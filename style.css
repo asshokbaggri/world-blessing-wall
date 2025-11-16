@@ -688,3 +688,22 @@ footer,
   50%  { box-shadow: 0 0 22px rgba(255,225,150,0.45); }
   100% { box-shadow: 0 0 14px rgba(255,225,150,0.28); }
 }
+
+.challenge-box {
+  margin: 20px 0;
+  padding: 16px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.25);
+  backdrop-filter: blur(10px);
+  color: #ffd267;
+  font-size: 18px;
+  text-align: center;
+  animation: challengeGlow 4s infinite ease-in-out;
+}
+
+@keyframes challengeGlow {
+  0% { box-shadow: 0 0 14px rgba(255,225,150,0.25); }
+  50% { box-shadow: 0 0 22px rgba(255,225,150,0.45); }
+  100% { box-shadow: 0 0 14px rgba(255,225,150,0.25); }
+}
