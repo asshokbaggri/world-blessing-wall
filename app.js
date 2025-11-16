@@ -739,16 +739,17 @@ async function submitBlessing(){
     localStorage.setItem(streakLastKey, todayStr);
     localStorage.setItem(streakBestKey, best);
 
-    // update UI if visible
-    const streakEl = document.getElementById("streakCurrent");
+    // ⬅️ Ye tab chalega jab streak update ho
+    const cur = document.getElementById("streakCurrent");
     const bestEl = document.getElementById("streakBest");
-    if (streakEl) streakEl.textContent = streak;
+
+    if (cur) cur.textContent = streak;
     if (bestEl) bestEl.textContent = best;
-    
-     // 🔥 pop animation
-    if (streakEl) {
-        streakEl.classList.add("streak-pop");
-        setTimeout(() => streakEl.classList.remove("streak-pop"), 600);
+
+    // POP ANIMATION
+    if (cur) {
+        cur.classList.add("streak-pop");
+        setTimeout(() => cur.classList.remove("streak-pop"), 600);
     }
 
     if (statusBox) {
