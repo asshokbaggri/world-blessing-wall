@@ -485,6 +485,7 @@ async function loadInitial(){
     if (statusBox) statusBox.textContent = "Unable to load blessings right now.";
   }
 }
+setupReadObserver();
 loadInitial();
 
 // ---------- loadMore ----------
@@ -588,8 +589,6 @@ function setupReadObserver() {
     readObserver.observe(el);
   });
 }
-
-setupReadObserver();
 
 // ---------- Realtime (newest only for public feed) ----------
 const liveNewest = query(
