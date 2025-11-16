@@ -412,15 +412,23 @@ function makeCard(docData = {}, docId){
 // ----------- READ COUNTER (Safe Increment on Visible) ----------- //
 async function incrementRead(blessingId) {
   try {
-    // one-time guard per client session
-    window._readHits ??= new Set();
-    if (window._readHits.has(blessingId)) return;
-    window._readHits.add(blessingId);
+    const username = localStorage.getItem("wbw_username") || "guest";
 
+    // unique key per (user + blessing)
+    const key = `seen_${username}_${blessingId}`;
+
+    // already counted?
+    if (localStorage.getItem(key)) return;
+
+    // mark as counted
+    localStorage.setItem(key, "1");
+
+    // increment in Firebase
     await updateDoc(doc(db, "blessings", blessingId), {
       reads: increment(1)
     });
-  } catch(e) {
+
+  } catch (e) {
     console.log("read error", e);
   }
 }
