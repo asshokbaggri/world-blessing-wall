@@ -486,7 +486,6 @@ async function loadInitial(){
   }
 }
 loadInitial();
-setupReadObserver();
 
 // ---------- loadMore ----------
 async function loadMore(){
@@ -589,6 +588,8 @@ function setupReadObserver() {
     readObserver.observe(el);
   });
 }
+
+setupReadObserver();
 
 // ---------- Realtime (newest only for public feed) ----------
 const liveNewest = query(
