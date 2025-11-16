@@ -7,7 +7,7 @@
    ============================================================ */
 
 // ---------- Firebase ----------
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp } from "https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-app.js";
 import {
   getFirestore,
   collection,
@@ -23,7 +23,7 @@ import {
   getDocs,
   where,
   increment
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC8CzspwB_GtrbUm-V2mIvumpPqbbq-f6k",
