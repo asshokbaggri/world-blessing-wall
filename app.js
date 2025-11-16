@@ -414,7 +414,7 @@ function makeCard(docData = {}, docId){
 // ----------- READ COUNTER (Safe Increment per USERNAME) ----------- //
 async function incrementRead(blessingId) {
   try {
-    const deviceId = CLIENT_ID || "guest";   // 🔥 per-device stable ID
+    const deviceId = `${CLIENT_ID}_${navigator.userAgent}_${new Date().getTimezoneOffset()}`;
 
     const key = `seen_${deviceId}_${blessingId}`;
 
