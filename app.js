@@ -412,7 +412,10 @@ function makeCard(docData = {}, docId){
 // ----------- READ COUNTER (Safe Increment on Visible) ----------- //
 async function incrementRead(blessingId) {
   try {
-    const username = localStorage.getItem("wbw_username") || "guest";
+    const username = localStorage.getItem("wbw_username");
+
+    // if no username, skip (safe handling)
+    if (!username) return;
 
     // unique key per (user + blessing)
     const key = `seen_${username}_${blessingId}`;
