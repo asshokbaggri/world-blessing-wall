@@ -415,16 +415,26 @@ function makeCard(docData = {}, docId){
 async function incrementRead(blessingId) {
   try {
     const deviceId = CLIENT_ID;
-
     const key = `seen_${deviceId}_${blessingId}`;
 
+    // same device → do not increment again
     if (localStorage.getItem(key)) return;
-
     localStorage.setItem(key, "1");
 
+    // Firestore increment
     await updateDoc(doc(db, "blessings", blessingId), {
       reads: increment(1)
     });
+
+    // ⭐ NEW → UI me number +1 dikhana
+    const card = document.querySelector(`.blessing-card[data-id="${blessingId}"]`);
+    if (card) {
+      const readsEl = card.querySelector(".reads");
+      if (readsEl) {
+        const current = parseInt(readsEl.textContent.replace(/[^\d]/g, ""), 10) || 0;
+        readsEl.textContent = `👀 ${current + 1} reads`;
+      }
+    }
 
   } catch (e) {
     console.log("read error", e);
