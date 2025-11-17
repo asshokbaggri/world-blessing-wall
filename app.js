@@ -418,14 +418,19 @@ function makeCard(docData = {}, docId){
 // ----------- READ COUNTER (Safe Increment per USERNAME) ----------- //
 async function incrementRead(blessingId) {
 
-    // FIX: block rapid duplicate increments
-    if (!window.__seenOnce) window.__seenOnce = new Set();
-    if (window.__seenOnce.has(blessingId)) return;
-    window.__seenOnce.add(blessingId);
+    // -------- FINAL FIX (no double increment on scroll) --------
+    if (!window.__readCooldown) window.__readCooldown = {};
 
-    if (incrementRead._lastId === blessingId) return;
-    incrementRead._lastId = blessingId;
-    setTimeout(() => incrementRead._lastId = null, 120);
+    if (window.__readCooldown[blessingId]) {
+        return; // ignore duplicates
+    }
+
+    window.__readCooldown[blessingId] = true;
+
+    // clear cooldown in 200ms
+    setTimeout(() => { 
+        window.__readCooldown[blessingId] = false;
+    }, 200);
 
     try {
         const deviceId = CLIENT_ID;
@@ -480,13 +485,19 @@ function subscribeToDoc(id) {
         const readsEl = card.querySelector(".reads-float");
         if (!readsEl) return;
 
-        // SAFARI — guaranteed UI update (force reflow)
-        Promise.resolve().then(() => {
-            readsEl.textContent = `👀 ${data.reads || 0}`;
-            readsEl.style.transform = "scale(1)";
-            void readsEl.offsetWidth;
-            readsEl.style.transform = "";
-        });               
+        // SAFARI — Guaranteed double reflow hack
+        readsEl.textContent = `👀 ${data.reads || 0}`;
+
+        // first repaint
+        readsEl.style.transform = "scale(1.001)";
+        readsEl.offsetHeight;
+
+        // second repaint (Safari needs this)
+        readsEl.style.transform = "scale(1)";
+        readsEl.offsetHeight;
+
+        // reset
+        readsEl.style.transform = "";               
     });
 
     docUnsubs.set(id, unsub);
