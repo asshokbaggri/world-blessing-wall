@@ -800,3 +800,37 @@ footer,
   font-size: 14px;
   opacity: 0.8;
 }
+
+/* 🔥 FIX: Trending section spacing */
+#trendingSection {
+  margin-top: 10px !important;
+  margin-bottom: 0px !important;
+}
+
+/* 🔥 FIX: Slider width jitna content — no wrapping */
+.trending-slider {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0 8px 0;
+  white-space: nowrap;
+  scroll-snap-type: x mandatory;
+}
+
+/* 🔥 FIX: Cards too wide — reduce width */
+.trending-item {
+  min-width: 190px !important;
+  max-width: 190px !important;
+}
+
+/* 🔥 FIX: Live blessings ko upar thoda pull karo */
+#live {
+  margin-top: -10px !important;
+}
+
+/* 🔥 FIX: fade-section extra margin ko remove */
+.fade-section {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
