@@ -233,6 +233,9 @@ function escapeHTML(s = ""){
     .replace(/'/g, "&#039;");
 }
 
+// ---- GLOBAL REALTIME UNSUB MAP ----
+const docUnsubs = new Map();
+
 // Non-blocking one-shot geo (returns {lat,lng} or null)
 function getGeoOnce(){
   return new Promise(resolve=>{
