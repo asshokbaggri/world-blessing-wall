@@ -755,3 +755,40 @@ footer,
   50% { box-shadow: 0 0 22px rgba(255,225,150,0.45); }
   100% { box-shadow: 0 0 14px rgba(255,225,150,0.25); }
 }
+
+/* ⭐ Trending Box */
+#trendingSection {
+  margin: 28px 0 10px;
+}
+
+.trending-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.trending-card {
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.15);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.trending-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.trending-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.trending-reads {
+  font-size: 14px;
+  opacity: 0.75;
+}
