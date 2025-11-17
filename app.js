@@ -481,10 +481,12 @@ function subscribeToDoc(id) {
         if (!readsEl) return;
 
         // SAFARI — guaranteed UI update (force reflow)
-        readsEl.textContent = `👀 ${data.reads || 0}`;
-        readsEl.style.display = "inline-block";   // temp tweak
-        void readsEl.offsetHeight;                // FORCE reflow
-        readsEl.style.display = "";               // reset
+        Promise.resolve().then(() => {
+            readsEl.textContent = `👀 ${data.reads || 0}`;
+            readsEl.style.transform = "scale(1)";
+            void readsEl.offsetWidth;
+            readsEl.style.transform = "";
+        });               
     });
 
     docUnsubs.set(id, unsub);
