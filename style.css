@@ -230,6 +230,24 @@ textarea:focus, input:focus{
   margin-top: 4px;
 }
 
+.blessing-card {
+  position: relative;
+}
+
+.reads-float {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: rgba(0,0,0,0.35);
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  backdrop-filter: blur(8px);
+  color: rgba(255,255,255,0.88);
+}
+
 /* -------- FIX #1 FLAG ALIGN -------- */
 .flag{
   font-size:18px;
