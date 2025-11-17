@@ -732,6 +732,8 @@ onSnapshot(liveNewest, (snap)=>{
   if (bEl) bEl.textContent = b;
 })();
 
+loadTrendingBlessings();   // ⭐ ADD THIS LINE ⭐
+
 // ---------- "My Blessings" (realtime) ----------
 let myUnsub = null;
 async function startMyBlss(){
