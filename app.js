@@ -418,16 +418,18 @@ function makeCard(docData = {}, docId){
 // ----------- READ COUNTER (Safe Increment per USERNAME) ----------- //
 async function incrementRead(blessingId) {
 
-  // FIX: Stop duplicate increments during fast scroll
-  window.__seenOnce = window.__seenOnce || new Set();
-  if (window.__seenOnce.has(blessingId)) {
-    return; // stop full function immediately
-  }
-  window.__seenOnce.add(blessingId);
-   
-  try {
-    const deviceId = CLIENT_ID;
-    const key = `seen_${deviceId}_${blessingId}`;
+    // FIX: block rapid duplicate increments
+    if (!window.__seenOnce) window.__seenOnce = new Set();
+    if (window.__seenOnce.has(blessingId)) return;
+    window.__seenOnce.add(blessingId);
+
+    if (incrementRead._lastId === blessingId) return;
+    incrementRead._lastId = blessingId;
+    setTimeout(() => incrementRead._lastId = null, 120);
+
+    try {
+        const deviceId = CLIENT_ID;
+        const key = `seen_${deviceId}_${blessingId}`;
 
     // same device → do not increment again
     if (localStorage.getItem(key)) return;
