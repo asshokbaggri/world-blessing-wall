@@ -411,6 +411,7 @@ function makeCard(docData = {}, docId){
     <div class="reads-float">👀 ${data.reads || 0}</div>
     <small class="blessing-time">${escapeHTML(timeStr)}</small>
   `;
+  if (docId) wrap.setAttribute("data-id", docId);
   return wrap;
 }
 
