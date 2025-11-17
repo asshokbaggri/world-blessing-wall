@@ -649,6 +649,14 @@ function setupInfiniteObserver(){
 // --------- READ OBSERVER --------- //
 let readObserver = null;
 
+function isElementInViewport(el) {
+  const r = el.getBoundingClientRect();
+  return (
+    r.top < window.innerHeight &&
+    r.bottom > 0
+  );
+}
+
 function setupReadObserver() {
   if (readObserver) return;
 
