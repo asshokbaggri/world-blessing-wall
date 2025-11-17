@@ -594,9 +594,33 @@ function setupReadObserver() {
     threshold: 0.4 // 40% visible = counted as read
   });
 
+  // ⭐ NEW FIX: observe even future cards also
+  const observer = readObserver;
+
+  // Observe existing cards now
   document.querySelectorAll(".blessing-card").forEach(el => {
-    readObserver.observe(el);
+    observer.observe(el);
   });
+
+  // ⭐ Patch appendIfNew
+  const oldAppend = appendIfNew;
+  appendIfNew = function (docSnap) {
+    const out = oldAppend(docSnap);
+    const id = docSnap.id;
+    const card = document.querySelector(`.blessing-card[data-id="${id}"]`);
+    if (card) observer.observe(card);
+    return out;
+  };
+
+  // ⭐ Patch prependIfNew
+  const oldPrepend = prependIfNew;
+  prependIfNew = function (docSnap) {
+    const out = oldPrepend(docSnap);
+    const id = docSnap.id;
+    const card = document.querySelector(`.blessing-card[data-id="${id}"]`);
+    if (card) observer.observe(card);
+    return out;
+  };
 }
 
 setupReadObserver();
