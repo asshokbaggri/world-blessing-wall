@@ -476,8 +476,10 @@ function subscribeToDoc(id) {
         const readsEl = card.querySelector(".reads-float");
         if (!readsEl) return;
 
-        // UI update WITHOUT pop (only smooth change)
-        readsEl.textContent = `👀 ${data.reads || 0}`;
+        // UI update WITHOUT pop, safer on Safari
+        requestAnimationFrame(() => {
+            readsEl.textContent = `👀 ${data.reads || 0}`;
+        });
     });
 
     docUnsubs.set(id, unsub);
