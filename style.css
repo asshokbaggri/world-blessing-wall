@@ -792,3 +792,27 @@ footer,
   font-size: 14px;
   opacity: 0.75;
 }
+
+/* click highlight */
+.highlight-glow {
+  animation: glowFlash 1.2s ease-out;
+}
+
+@keyframes glowFlash {
+  0% { box-shadow: 0 0 0px rgba(255, 230, 150, 0.0); }
+  30% { box-shadow: 0 0 25px rgba(255, 230, 150, 0.6); }
+  100% { box-shadow: 0 0 0px rgba(255, 230, 150, 0.0); }
+}
+
+/* trending open button */
+.trending-open-btn {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  font-size: 13px;
+  cursor: pointer;
+}
+.trending-open-btn:hover {
+  background: rgba(255,255,255,0.3);
+}
