@@ -698,6 +698,13 @@ function setupReadObserver() {
 
 setupReadObserver();
 
+// ---------- TRENDING QUERY (Top reads) ----------
+const trendingQuery = query(
+  collection(db, "blessings"),
+  orderBy("reads", "desc"),
+  limit(10)
+);
+
 // ---------- Realtime (newest only for public feed) ----------
 const liveNewest = query(
   collection(db,"blessings"),
