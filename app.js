@@ -418,14 +418,17 @@ function makeCard(docData = {}, docId){
 // ----------- READ COUNTER (Safe Increment per USERNAME) ----------- //
 async function incrementRead(blessingId) {
 
-    // -------- FINAL FIX (no double increment on scroll) --------
-    if (!window.__readCooldown) window.__readCooldown = {};
+    // HARD cooldown (fix +2 scroll bug permanently)
+    if (!window.__readLock) window.__readLock = {};
 
-    if (window.__readCooldown[blessingId]) {
-        return; // ignore duplicates
+    const now = Date.now();
+
+    // If same card fires again within 700ms → block
+    if (window.__readLock[blessingId] && (now - window.__readLock[blessingId]) < 700) {
+        return;
     }
 
-    window.__readCooldown[blessingId] = true;
+    window.__readLock[blessingId] = now;
 
     // clear cooldown in 200ms
     setTimeout(() => { 
