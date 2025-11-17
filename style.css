@@ -853,3 +853,23 @@ footer,
   30% { box-shadow: 0 0 25px rgba(255, 230, 150, 0.6); }
   100% { box-shadow: 0 0 0 rgba(255, 230, 150, 0); }
 }
+
+/* Center wrapper same as Live feed width */
+.trending-wrapper {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 14px;
+}
+
+/* Make slider always fit inside wrapper */
+.trending-slider {
+  width: 100%;
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: none;
+}
+.trending-slider::-webkit-scrollbar {
+  display: none;
+}
