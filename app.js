@@ -476,8 +476,8 @@ function subscribeToDoc(id) {
         const readsEl = card.querySelector(".reads-float");
         if (!readsEl) return;
 
-        // UI update WITHOUT pop, safer on Safari
-        requestAnimationFrame(() => {
+        // SAFARI SAFE UI UPDATE (never skips)
+        Promise.resolve().then(() => {
             readsEl.textContent = `👀 ${data.reads || 0}`;
         });
     });
