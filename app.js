@@ -417,6 +417,12 @@ function makeCard(docData = {}, docId){
 
 // ----------- READ COUNTER (Safe Increment per USERNAME) ----------- //
 async function incrementRead(blessingId) {
+
+  // 👇 ADD THIS (Fix +2 scroll bug)
+  window.__seenOnce = window.__seenOnce || new Set();
+  if (window.__seenOnce.has(blessingId)) return;
+  window.__seenOnce.add(blessingId);
+   
   try {
     const deviceId = CLIENT_ID;
     const key = `seen_${deviceId}_${blessingId}`;
