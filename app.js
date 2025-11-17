@@ -1047,6 +1047,71 @@ ${myPersonalLink}`
 
 })();
 
+/* ============================================================
+   ⭐ TRENDING BLESSINGS — TOP 10 (auto updating)
+   ============================================================ */
+
+async function loadTrendingBlessings() {
+  try {
+    const qTrend = query(
+      collection(db, "blessings"),
+      orderBy("reads", "desc"),
+      limit(10)
+    );
+
+    const snap = await getDocs(qTrend);
+    const tBox = document.getElementById("trendingList");
+
+    if (!tBox) return;
+    tBox.innerHTML = "";
+
+    if (snap.empty) {
+      tBox.innerHTML = "<p>No trending blessings yet 🤍</p>";
+      return;
+    }
+
+    snap.docs.forEach(docSnap => {
+      const d = docSnap.data();
+      const id = docSnap.id;
+
+      const card = document.createElement("div");
+      card.className = "trending-card";
+
+      card.innerHTML = `
+        <div class="trending-left">
+          <div class="trending-title">${d.text?.slice(0, 40) || ""}...</div>
+          <div class="trending-reads">👀 ${d.reads || 0} reads</div>
+        </div>
+
+        <button class="trending-open-btn" data-id="${id}">
+          Open →
+        </button>
+      `;
+
+      // Click → scroll to that blessing card
+      card.querySelector(".trending-open-btn").onclick = () => {
+        const target = document.querySelector(`.blessing-card[data-id="${id}"]`);
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth", block: "center" });
+          target.classList.add("highlight-glow");
+          setTimeout(() => target.classList.remove("highlight-glow"), 1200);
+        }
+      };
+
+      tBox.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error("Trending load error:", err);
+  }
+}
+
+// run once page loads
+setTimeout(loadTrendingBlessings, 800);
+
+// refresh trending automatically every 15 seconds
+setInterval(loadTrendingBlessings, 15000);
+
 // ---------- Particles (full-screen, always behind) ----------
 (function initParticles(){
   const canvas = document.getElementById("goldParticles");
