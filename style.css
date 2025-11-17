@@ -756,81 +756,100 @@ footer,
   100% { box-shadow: 0 0 14px rgba(255,225,150,0.25); }
 }
 
-/* ⭐ Trending Section */
+/* ============================================================
+   ⭐ FINAL TRENDING BLESSINGS CSS (2025 Premium UI)
+   - Fully centered
+   - Mobile + Desktop perfect
+   - No overflow / No breaking UI
+   - Matches Live Blessings layout
+============================================================ */
+
+/* Section wrapper (same width as Live Feed) */
 #trendingSection {
-  margin: 22px 0 10px;
+  max-width: 980px;
+  margin: 32px auto 10px;
+  padding: 0 14px;
 }
 
-.trending-slider {
+/* Heading */
+.trending-heading {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 14px;
   display: flex;
-  gap: 14px;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ⭐ Horizontal slider container */
+#trendingSlider {
+  display: flex;
+  gap: 16px;
   overflow-x: auto;
-  padding-bottom: 6px;
+  overflow-y: hidden;
+  padding-bottom: 8px;
   scroll-snap-type: x mandatory;
+
+  /* Hide scrollbar */
   scrollbar-width: none;
 }
-.trending-slider::-webkit-scrollbar {
+#trendingSlider::-webkit-scrollbar {
   display: none;
 }
 
+/* ⭐ Individual trending card */
 .trending-item {
-  min-width: 230px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.10);
-  border: 1px solid rgba(255,255,255,0.16);
-  backdrop-filter: blur(14px);
   scroll-snap-align: start;
-  cursor: pointer;
-  transition: 0.25s ease;
+  min-width: 210px;
+  max-width: 210px;
+
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.trending-item:hover {
-  transform: translateY(-3px);
-  background: rgba(255,255,255,0.18);
+/* Hover glow (desktop only) */
+@media (hover: hover) {
+  .trending-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 18px rgba(255, 225, 170, 0.35);
+  }
 }
 
+/* Title */
+.tr-tr-title,
 .tr-title {
   font-size: 15px;
   font-weight: 600;
-  margin-bottom: 4px;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+/* Reads text */
 .tr-reads {
   font-size: 14px;
-  opacity: 0.8;
-}
-
-/* 🔥 FIX: Trending section spacing */
-#trendingSection {
-  margin-top: 10px !important;
-  margin-bottom: 0px !important;
-}
-
-/* 🔥 FIX: Slider width jitna content — no wrapping */
-.trending-slider {
+  opacity: 0.75;
   display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 4px 0 8px 0;
-  white-space: nowrap;
-  scroll-snap-type: x mandatory;
+  align-items: center;
+  gap: 4px;
 }
 
-/* 🔥 FIX: Cards too wide — reduce width */
-.trending-item {
-  min-width: 190px !important;
-  max-width: 190px !important;
+/* Highlight glow after clicking */
+.highlight-glow {
+  animation: glowFlash 1.2s ease-out;
 }
-
-/* 🔥 FIX: Live blessings ko upar thoda pull karo */
-#live {
-  margin-top: -10px !important;
-}
-
-/* 🔥 FIX: fade-section extra margin ko remove */
-.fade-section {
-  margin-top: 0 !important;
-  padding-top: 0 !important;
+@keyframes glowFlash {
+  0% { box-shadow: 0 0 0 rgba(255, 230, 150, 0); }
+  30% { box-shadow: 0 0 25px rgba(255, 230, 150, 0.6); }
+  100% { box-shadow: 0 0 0 rgba(255, 230, 150, 0); }
 }
