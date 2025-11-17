@@ -430,11 +430,6 @@ async function incrementRead(blessingId) {
 
     window.__readLock[blessingId] = now;
 
-    // clear cooldown in 200ms
-    setTimeout(() => { 
-        window.__readCooldown[blessingId] = false;
-    }, 200);
-
     try {
         const deviceId = CLIENT_ID;
         const key = `seen_${deviceId}_${blessingId}`;
