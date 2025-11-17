@@ -478,10 +478,11 @@ function subscribeToDoc(id) {
         const readsEl = card.querySelector(".reads-float");
         if (!readsEl) return;
 
-        // SAFARI SAFE UI UPDATE (never skips)
-        Promise.resolve().then(() => {
-            readsEl.textContent = `👀 ${data.reads || 0}`;
-        });
+        // SAFARI — guaranteed UI update (force reflow)
+        readsEl.textContent = `👀 ${data.reads || 0}`;
+        readsEl.style.display = "inline-block";   // temp tweak
+        void readsEl.offsetHeight;                // FORCE reflow
+        readsEl.style.display = "";               // reset
     });
 
     docUnsubs.set(id, unsub);
