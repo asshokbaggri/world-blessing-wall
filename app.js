@@ -607,27 +607,6 @@ function setupReadObserver() {
   });
 }
 
-  // ⭐ Patch appendIfNew
-  const oldAppend = appendIfNew;
-  appendIfNew = function (docSnap) {
-    const out = oldAppend(docSnap);
-    const id = docSnap.id;
-    const card = document.querySelector(`.blessing-card[data-id="${id}"]`);
-    if (card) observer.observe(card);
-    return out;
-  };
-
-  // ⭐ Patch prependIfNew
-  const oldPrepend = prependIfNew;
-  prependIfNew = function (docSnap) {
-    const out = oldPrepend(docSnap);
-    const id = docSnap.id;
-    const card = document.querySelector(`.blessing-card[data-id="${id}"]`);
-    if (card) observer.observe(card);
-    return out;
-  };
-}
-
 setupReadObserver();
 
 // ---------- Realtime (newest only for public feed) ----------
