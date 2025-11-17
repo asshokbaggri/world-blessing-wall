@@ -418,9 +418,11 @@ function makeCard(docData = {}, docId){
 // ----------- READ COUNTER (Safe Increment per USERNAME) ----------- //
 async function incrementRead(blessingId) {
 
-  // 👇 ADD THIS (Fix +2 scroll bug)
+  // FIX: Stop duplicate increments during fast scroll
   window.__seenOnce = window.__seenOnce || new Set();
-  if (window.__seenOnce.has(blessingId)) return;
+  if (window.__seenOnce.has(blessingId)) {
+    return; // stop full function immediately
+  }
   window.__seenOnce.add(blessingId);
    
   try {
