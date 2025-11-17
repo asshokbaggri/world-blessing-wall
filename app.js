@@ -654,13 +654,31 @@ function setupReadObserver() {
 
   readObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const id = entry.target.dataset.id;
-        if (id) incrementRead(id);
-      }
+
+      if (!entry.isIntersecting) return;
+
+      const id = entry.target.dataset.id;
+      if (!id) return;
+
+      // 🔥 FINAL SAFETY: block repeated triggers on same view
+      if (entry.target.__readLock) return;
+
+      entry.target.__readLock = true;
+      incrementRead(id);
+
+      // reset lock after card fully leaves viewport
+      const reset = () => {
+        if (!isElementInViewport(entry.target)) {
+          entry.target.__readLock = false;
+          window.removeEventListener('scroll', reset);
+        }
+      };
+
+      window.addEventListener('scroll', reset);
+
     });
   }, {
-    threshold: 0.15   // mobile friendly
+    threshold: 0.25
   });
 
   // Observe all existing blessing cards
