@@ -443,6 +443,26 @@ async function incrementRead(blessingId) {
       reads: increment(1)
     });
 
+    // ⭐ LOCAL UI POP + GLOW (safe, no double increment)
+    const card = document.querySelector(`.blessing-card[data-id="${blessingId}"]`);
+    if (card) {
+        const readsEl = card.querySelector(".reads-float");
+        if (readsEl) {
+
+            const current = parseInt(readsEl.textContent.replace(/[^\d]/g, ""), 10) || 0;
+            readsEl.textContent = `👀 ${current + 1}`;
+
+            // POP animation
+            readsEl.classList.remove("reads-pop");
+            void readsEl.offsetWidth;
+            readsEl.classList.add("reads-pop");
+
+            // GLOW animation
+            readsEl.classList.add("reads-glow");
+            setTimeout(() => readsEl.classList.remove("reads-glow"), 900);
+        }
+    }
+
   } catch (e) {
     console.log("read error", e);
   }
