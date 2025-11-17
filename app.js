@@ -518,7 +518,10 @@ async function loadInitial(){
     blessingsList.innerHTML = "";
     renderedIds.clear();
 
-    snap.docs.forEach(d => appendIfNew(d));
+    snap.docs.forEach(d => {
+        appendIfNew(d);
+        subscribeToDoc(d.id);   // ⭐ realtime fix
+    });
     lastDoc = snap.docs[snap.docs.length - 1] || null;
     initialLoaded = true;
 
