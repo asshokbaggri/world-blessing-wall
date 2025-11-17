@@ -1074,6 +1074,11 @@ async function loadTrendingBlessings() {
       const d = docSnap.data();
       const id = docSnap.id;
 
+      // ⭐ Add these 3 lines (IMPORTANT)
+      const text = d.text || "";
+      const reads = d.reads || 0;
+      const title = text.length > 30 ? text.slice(0, 30) + "..." : text;
+
       const card = document.createElement("div");
       card.className = "trending-card";
 
