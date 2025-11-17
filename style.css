@@ -234,18 +234,42 @@ textarea:focus, input:focus{
   position: relative;
 }
 
+/* ------------- READ BADGE FLOAT (viral look) ---------------- */
 .reads-float {
   position: absolute;
-  top: 12px;
-  right: 14px;
-  background: rgba(0,0,0,0.35);
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  backdrop-filter: blur(8px);
-  color: rgba(255,255,255,0.88);
+  top: 10px;
+  right: 10px;
+
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(6px);
+  padding: 4px 10px;
+  border-radius: 14px;
+
+  font-size: 14px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  box-shadow: 0 0 0 rgba(255, 223, 125, 0); /* base no glow */
+  transition: box-shadow 0.25s ease;
+}
+
+/* POP animation */
+.reads-pop {
+  animation: readPop 0.35s ease-out;
+}
+
+@keyframes readPop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.25); }
+  70%  { transform: scale(0.90); }
+  100% { transform: scale(1); }
+}
+
+/* Glow pulse */
+.reads-glow {
+  box-shadow: 0 0 14px rgba(255, 223, 125, 0.9);
 }
 
 /* -------- FIX #1 FLAG ALIGN -------- */
