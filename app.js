@@ -1052,67 +1052,46 @@ ${myPersonalLink}`
    ============================================================ */
 
 async function loadTrendingBlessings() {
-  try {
-    const qTrend = query(
-      collection(db, "blessings"),
-      orderBy("reads", "desc"),
-      limit(10)
-    );
+  const qTrend = query(
+    collection(db, "blessings"),
+    orderBy("reads", "desc"),
+    limit(5)
+  );
 
-    const snap = await getDocs(qTrend);
-    const tBox = document.getElementById("trendingList");
+  const snap = await getDocs(qTrend);
+  const slider = document.getElementById("trendingSlider");
+  if (!slider) return;
 
-    if (!tBox) return;
-    tBox.innerHTML = "";
+  slider.innerHTML = "";
 
-    if (snap.empty) {
-      tBox.innerHTML = "<p>No trending blessings yet 🤍</p>";
-      return;
-    }
+  snap.docs.forEach(docSnap => {
+    const d = docSnap.data();
+    const id = docSnap.id;
 
-    snap.docs.forEach(docSnap => {
-      const d = docSnap.data();
-      const id = docSnap.id;
+    const text = d.text || "";
+    const reads = d.reads || 0;
+    const title = text.length > 28 ? text.slice(0, 28) + "…" : text;
 
-      // ⭐ Add these 3 lines (IMPORTANT)
-      const text = d.text || "";
-      const reads = d.reads || 0;
-      const title = text.length > 30 ? text.slice(0, 30) + "..." : text;
+    const div = document.createElement("div");
+    div.className = "trending-item";
 
-      const card = document.createElement("div");
-      card.className = "trending-card";
+    div.innerHTML = `
+      <div class="tr-title">${title}</div>
+      <div class="tr-reads">👀 ${reads} reads</div>
+    `;
 
-      card.innerHTML = `
-        <div class="trending-left">
-          <div class="trending-title">${title}</div>
-          <div class="trending-reads">👀 ${reads} reads</div>
-        </div>
-        <button class="trending-open-btn">Open →</button>
-      `;
+    div.onclick = () => {
+      const target = document.querySelector(`.blessing-card[data-id="${id}"]`);
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        target.classList.add("highlight-glow");
+        setTimeout(() => target.classList.remove("highlight-glow"), 1200);
+      }
+    };
 
-      // Click → scroll to that blessing card
-      card.querySelector(".trending-open-btn").onclick = () => {
-        const target = document.querySelector(`.blessing-card[data-id="${id}"]`);
-        if (target) {
-          target.scrollIntoView({ behavior: "smooth", block: "center" });
-          target.classList.add("highlight-glow");
-          setTimeout(() => target.classList.remove("highlight-glow"), 1200);
-        }
-      };
-
-      tBox.appendChild(card);
-    });
-
-  } catch (err) {
-    console.error("Trending load error:", err);
-  }
+    slider.appendChild(div);
+  });
 }
-
-// run once page loads
-setTimeout(loadTrendingBlessings, 800);
-
-// refresh trending automatically every 15 seconds
-setInterval(loadTrendingBlessings, 15000);
 
 // ---------- Particles (full-screen, always behind) ----------
 (function initParticles(){
