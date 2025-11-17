@@ -758,71 +758,83 @@ footer,
 
 /* ⭐ Trending Section */
 #trendingSection {
-  margin: 32px 0 10px;
+  margin: 36px auto 20px;
+  max-width: 750px; /* Center + Premium width */
+  padding: 0 16px;
 }
 
+/* Title Center */
+#trendingSection h2 {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+/* List wrapper */
 .trending-container {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
-/* ⭐ Trending Card */
+/* Cards */
 .trending-card {
-  padding: 16px 18px;
+  width: 100%;
+  padding: 14px 20px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.10);
+  background: rgba(255,255,255,0.06);
   backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  
+  border: 1px solid rgba(255,255,255,0.10);
   display: flex;
   justify-content: space-between;
   align-items: center;
 
-  /* Yeh important hai look ke liye */
-  width: 92%;
-  margin: auto;
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+
+.trending-card:hover {
+  transform: translateY(-2px);
+  background: rgba(255,255,255,0.12);
 }
 
 /* Left side */
 .trending-left {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 }
 
 .trending-title {
   font-size: 16px;
   font-weight: 600;
-  color: white;
 }
 
 .trending-reads {
   font-size: 14px;
   opacity: 0.8;
+}
+
+/* Open Button */
+.trending-open-btn {
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.28);
+  font-size: 13px;
+  cursor: pointer;
   color: white;
 }
 
-/* ⭐ Click flash highlight */
+.trending-open-btn:hover {
+  background: rgba(255,255,255,0.28);
+}
+
+/* Glow highlight on scroll */
 .highlight-glow {
   animation: glowFlash 1.2s ease-out;
 }
-@keyframes glowFlash {
-  0% { box-shadow: 0 0 0px rgba(255, 230, 150, 0.0); }
-  30% { box-shadow: 0 0 25px rgba(255, 230, 150, 0.7); }
-  100% { box-shadow: 0 0 0px rgba(255, 230, 150, 0.0); }
-}
 
-/* ⭐ Open Button */
-.trending-open-btn {
-  padding: 7px 12px;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.22);
-  border: 1px solid rgba(255,255,255,0.35);
-  font-size: 13px;
-  color: white;
-  cursor: pointer;
-}
-.trending-open-btn:hover {
-  background: rgba(255,255,255,0.35);
+@keyframes glowFlash {
+  0% { box-shadow: 0 0 0 rgba(255,230,150,0); }
+  40% { box-shadow: 0 0 25px rgba(255,230,150,0.7); }
+  100% { box-shadow: 0 0 0 rgba(255,230,150,0); }
 }
