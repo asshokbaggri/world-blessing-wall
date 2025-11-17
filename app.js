@@ -1079,13 +1079,10 @@ async function loadTrendingBlessings() {
 
       card.innerHTML = `
         <div class="trending-left">
-          <div class="trending-title">${d.text?.slice(0, 40) || ""}...</div>
-          <div class="trending-reads">👀 ${d.reads || 0} reads</div>
+          <div class="trending-title">${title}</div>
+          <div class="trending-reads">👀 ${reads} reads</div>
         </div>
-
-        <button class="trending-open-btn" data-id="${id}">
-          Open →
-        </button>
+        <button class="trending-open-btn">Open →</button>
       `;
 
       // Click → scroll to that blessing card
