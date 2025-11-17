@@ -453,28 +453,59 @@ async function incrementRead(blessingId) {
   }
 }
 
+function subscribeToDoc(id) {
+    // Already subscribed? skip
+    if (docUnsubs.has(id)) return;
+
+    const ref = doc(db, "blessings", id);
+
+    const unsub = onSnapshot(ref, snap => {
+        if (!snap.exists()) return;
+
+        const data = snap.data();
+        const card = document.querySelector(`.blessing-card[data-id="${id}"]`);
+        if (!card) return;
+
+        const readsEl = card.querySelector(".reads-float");
+        if (!readsEl) return;
+
+        // UI update WITHOUT pop (only smooth change)
+        readsEl.textContent = `👀 ${data.reads || 0}`;
+    });
+
+    docUnsubs.set(id, unsub);
+}
+
 // ---------- Render helpers (prevent duplicates) ----------
 function prependIfNew(docSnap){
-  const id = docSnap.id;
-  if (renderedIds.has(id)) return false;
-  const el = makeCard(docSnap.data(), id);
-  blessingsList.prepend(el);
-  renderedIds.add(id);
+    const id = docSnap.id;
+    if (renderedIds.has(id)) return false;
 
-  if (readObserver) readObserver.observe(el);
+    const el = makeCard(docSnap.data(), id);
+    blessingsList.prepend(el);
+    renderedIds.add(id);
 
-  return true;
+    if (readObserver) readObserver.observe(el);
+
+    // ⭐ NEW — subscribe for realtime read updates
+    subscribeToDoc(id);
+
+    return true;
 }
 function appendIfNew(docSnap){
-  const id = docSnap.id;
-  if (renderedIds.has(id)) return false;
-  const el = makeCard(docSnap.data(), id);
-  blessingsList.appendChild(el);
-  renderedIds.add(id);
+    const id = docSnap.id;
+    if (renderedIds.has(id)) return false;
 
-  if (readObserver) readObserver.observe(el);
+    const el = makeCard(docSnap.data(), id);
+    blessingsList.appendChild(el);
+    renderedIds.add(id);
 
-  return true;
+    if (readObserver) readObserver.observe(el);
+
+    // ⭐ NEW — subscribe for realtime read updates
+    subscribeToDoc(id);
+
+    return true;
 }
 
 // ---------- Pagination (loadInitial + loadMore) ----------
