@@ -584,7 +584,7 @@ function setupInfiniteObserver(){
   if (sentinel) infiniteObserver.observe(sentinel);
 }
 
-// ---------- READ OBSERVER ---------- //
+// --------- READ OBSERVER --------- //
 let readObserver = null;
 
 function setupReadObserver() {
@@ -594,22 +594,18 @@ function setupReadObserver() {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const id = entry.target.dataset.id;
-        if (!id) return;
-
-        incrementRead(id);
+        if (id) incrementRead(id);
       }
     });
   }, {
-    threshold: 0.4 // 40% visible = counted as read
+    threshold: 0.15   // mobile friendly
   });
 
-  // ⭐ NEW FIX: observe even future cards also
-  const observer = readObserver;
-
-  // Observe existing cards now
+  // Observe all existing blessing cards
   document.querySelectorAll(".blessing-card").forEach(el => {
-    observer.observe(el);
+    readObserver.observe(el);
   });
+}
 
   // ⭐ Patch appendIfNew
   const oldAppend = appendIfNew;
