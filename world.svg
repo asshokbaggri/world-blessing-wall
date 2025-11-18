@@ -2,40 +2,32 @@
 <svg xmlns="http://www.w3.org/2000/svg"
      viewBox="0 0 2000 1000"
      preserveAspectRatio="xMidYMid meet"
-     id="worldMap">
+     role="img"
+     aria-label="World Map">
 
-  <rect width="2000" height="1000" fill="#0d1624" />
+  <!-- Ocean background -->
+  <rect width="2000" height="1000" fill="#0d1a2b" />
 
-  <!-- REAL EQUIRECTANGULAR WORLD MAP (simplified but accurate) -->
-  <g id="land" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" stroke-width="0.5">
+  <!-- Real simplified world land paths -->
+  <g fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.12)" stroke-width="1">
 
-    <!-- AFRICA -->
-    <path d="M1080 380 L1110 420 L1150 500 L1180 600 L1160 720 L1080 760 L980 680 L960 600 L980 520 L1000 460 Z"/>
+    <!-- Africa + Europe -->
+    <path d="M1080 350 L1120 380 L1150 430 L1180 520 L1170 590 L1130 650 L1080 680 L1020 640 L980 580 L960 510 L970 430 L1020 380 Z" />
 
-    <!-- EUROPE -->
-    <path d="M980 240 L1040 220 L1100 260 L1120 300 L1100 340 L1040 360 L980 320 Z"/>
+    <!-- India + Middle East -->
+    <path d="M1180 520 L1220 550 L1230 600 L1200 640 L1160 650 L1130 620 L1135 560 Z" />
 
-    <!-- ASIA -->
-    <path d="M1120 300 L1200 260 L1300 280 L1400 340 L1500 420 L1550 460 L1600 520 L1580 580 L1500 600 L1400 580 L1300 520 L1220 460 L1160 400 Z"/>
+    <!-- Asia -->
+    <path d="M1230 350 L1300 360 L1360 400 L1400 450 L1420 500 L1400 560 L1340 600 L1280 580 L1240 540 L1220 480 L1200 430 Z" />
 
-    <!-- INDIA -->
-    <path d="M1260 420 L1290 450 L1310 500 L1300 540 L1260 560 L1230 520 L1240 470 Z"/>
+    <!-- Australia -->
+    <path d="M1500 730 L1540 750 L1560 790 L1540 830 L1500 840 L1460 820 L1450 770 Z" />
 
-    <!-- AUSTRALIA -->
-    <path d="M1500 700 L1540 740 L1580 760 L1600 780 L1580 820 L1540 830 L1500 820 L1460 780 L1470 740 Z"/>
+    <!-- North America -->
+    <path d="M550 300 L600 260 L660 250 L740 270 L780 320 L760 380 L700 420 L640 430 L580 400 L550 350 Z" />
 
-    <!-- NORTH AMERICA -->
-    <path d="M400 200 L500 220 L580 260 L620 320 L640 380 L600 420 L520 440 L450 420 L420 360 L380 260 Z"/>
-
-    <!-- SOUTH AMERICA -->
-    <path d="M560 460 L600 520 L620 600 L610 680 L580 740 L540 720 L500 640 L490 560 L500 500 Z"/>
+    <!-- South America -->
+    <path d="M700 540 L740 580 L760 630 L750 700 L720 760 L680 740 L660 680 L660 620 Z" />
 
   </g>
-
-  <!-- dot layer -->
-  <g id="dotLayer"></g>
-
-  <!-- subtle title -->
-  <text x="1000" y="70" text-anchor="middle" fill="rgba(255,255,255,0.07)" font-size="32" font-family="Inter">World Blessing Map</text>
-
 </svg>
