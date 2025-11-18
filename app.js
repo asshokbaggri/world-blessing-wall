@@ -1111,180 +1111,149 @@ window.addEventListener("load", revealOnScroll);
 // ---------- Start "My Blessings" UI quick hint (runs after client ready) ----------
 console.info("World Blessing Wall — app.js v1.2 loaded (My-Blessings + username)");
 
-// ---------- Phase 6 Map JS ----------
-// call initWorldMap() after DOMContentLoaded or on page ready
+// ---------- Phase 6 Map JS (REAL FIRESTORE DATA) ----------
+import {
+  getDocs,
+  query,
+  collection,
+  where,
+  orderBy,
+  limit
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// COUNTRY COORDS
+const COUNTRY_COORDS = {
+  IN: { lat: 22.0, lon: 78.0, name: "India" },
+  US: { lat: 37.1, lon: -95.7, name: "United States" },
+  BR: { lat: -14.2, lon: -51.9, name: "Brazil" },
+  AE: { lat: 24.0, lon: 54.0, name: "United Arab Emirates" },
+  GB: { lat: 54.8, lon: -4.6, name: "United Kingdom" },
+  CA: { lat: 56.1, lon: -106.3, name: "Canada" },
+  AU: { lat: -25.0, lon: 133.0, name: "Australia" },
+  SG: { lat: 1.35, lon: 103.8, name: "Singapore" },
+  NP: { lat: 28.3, lon: 84.0, name: "Nepal" },
+  PK: { lat: 30.4, lon: 69.3, name: "Pakistan" },
+  BD: { lat: 23.6, lon: 90.4, name: "Bangladesh" }
+};
+
 function initWorldMap() {
-  const svgContainer = document.getElementById('svgContainer');
-  const dotLayer = document.getElementById('dotLayer');
-  const globalCountNum = document.getElementById('globalCountNum');
-  const drawer = document.getElementById('countryDrawer');
-  const drawerTitle = document.getElementById('drawerTitle');
-  const drawerList = document.getElementById('drawerList');
-  const shareBtn = document.getElementById('shareMapBtn');
+  const svgContainer = document.getElementById("svgContainer");
+  const dotLayer = document.getElementById("dotLayer");
+  const globalCountNum = document.getElementById("globalCountNum");
+  const drawer = document.getElementById("countryDrawer");
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerList = document.getElementById("drawerList");
 
-  // sample data (replace with your API results)
-  const countries = {
-    IN: { name: 'India', lat: 22.0, lon: 78.0, count: 342, blessings: [
-      { text:'Jai shree ram — — Asshok', time:'yesterday' },
-      { text:'Ram ji Ram sa — Mehul', time:'2 days ago' }
-    ]},
-    BR: { name: 'Brazil', lat: -14.2, lon: -51.9, count: 68, blessings: [ {text:'Brazil blessing', time:'today'} ]},
-    US: { name: 'United States', lat: 37.1, lon: -95.7, count: 184, blessings: [ {text:'US blessing', time:'today'} ]},
-    // add more...
-  };
-
-  // GLOBAL COUNT from data
-  let globalCount = Object.values(countries).reduce((s,c)=>s+(c.count||0),0);
-  globalCountNum.textContent = globalCount;
-
-  // load world svg file and insert
-  fetch('./world.svg') // ensure file exists
-    .then(r => r.text())
-    .then(svgText => {
+  // 1) LOAD SVG
+  fetch("/world.svg")
+    .then((r) => r.text())
+    .then((svgText) => {
       svgContainer.innerHTML = svgText;
-      // make svg responsive
-      const svg = svgContainer.querySelector('svg');
-      if(svg){
-        svg.setAttribute('preserveAspectRatio','xMidYMid meet');
-        svg.style.width = '100%';
-        svg.style.height = '100%';
-      }
-      // After svg loaded, place dots
-      placeAllDots();
-    })
-    .catch(err => {
-      // fallback: show placeholder rectangle
-      svgContainer.innerHTML = '<div style="color:var(--text-dim)">Map failed to load — put world.svg in site root.</div>';
-      console.error('SVG load failed', err);
+      const svg = svgContainer.querySelector("svg");
+      svg.style.width = "100%";
+      svg.style.height = "100%";
+      loadMapData();
     });
 
-  // equirectangular projection: convert lat/lon to x,y inside svg container dimensions
-  function lonLatToXY(lon, lat, w, h){
-    // lon in [-180,180], lat in [-90,90]
-    // equirectangular: x = (lon+180)/360 * w ; y = (90-lat)/180 * h
+  // 2) FIRESTORE → COUNTRY GROUPING
+  async function loadMapData() {
+    const blessingsSnap = await getDocs(
+      query(collection(db, "blessings"), orderBy("timestamp", "desc"))
+    );
+
+    const mapData = {}; // { IN: {count, blessings} }
+
+    blessingsSnap.forEach((doc) => {
+      const d = doc.data();
+      const cc = (d.countryCode || "").toUpperCase();
+      if (!cc) return;
+      if (!COUNTRY_COORDS[cc]) return; // skip unknown
+
+      if (!mapData[cc]) mapData[cc] = { count: 0, blessings: [] };
+
+      mapData[cc].count++;
+      mapData[cc].blessings.push({
+        text: d.text,
+        time: timeAgo(d.timestamp),
+        username: d.username || "",
+        country: d.country
+      });
+    });
+
+    // GLOBAL COUNT
+    let global = 0;
+    Object.values(mapData).forEach((c) => (global += c.count));
+    globalCountNum.textContent = global;
+
+    // PLACE DOTS
+    renderDots(mapData);
+  }
+
+  // 3) PLACE DOTS
+  function lonLatToXY(lon, lat, w, h) {
     const x = ((lon + 180) / 360) * w;
     const y = ((90 - lat) / 180) * h;
     return { x, y };
   }
 
-  // place dots by iterating countries
-  function placeAllDots(){
+  function renderDots(data) {
+    dotLayer.innerHTML = "";
+
     const rect = svgContainer.getBoundingClientRect();
-    const w = rect.width;
-    const h = rect.height;
-    dotLayer.innerHTML = '';
-    for(const code in countries){
-      const c = countries[code];
-      if(!c.lat || !c.lon) continue;
-      const pos = lonLatToXY(c.lon, c.lat, w, h);
-      const el = document.createElement('div');
-      el.className = 'country-dot';
-      // size class
-      if(c.count > 200) el.classList.add('size-l');
-      else if(c.count > 60) el.classList.add('size-m');
-      else el.classList.add('size-s');
-      el.style.left = pos.x + 'px';
-      el.style.top = pos.y + 'px';
-      el.setAttribute('data-code', code);
-      el.setAttribute('title', `${c.name} — ${c.count} blessings`);
-      el.style.pointerEvents = 'auto';
-      dotLayer.appendChild(el);
+    const W = rect.width;
+    const H = rect.height;
 
-      el.addEventListener('click', (e) => {
-        openDrawerFor(code);
-        e.stopPropagation();
-      });
+    for (const code in data) {
+      const c = data[code];
+      const coords = COUNTRY_COORDS[code];
+      if (!coords) continue;
 
-      // slight randomized pulse phase
-      if(Math.random()>0.35) el.classList.add('pulse');
+      const pos = lonLatToXY(coords.lon, coords.lat, W, H);
+
+      const d = document.createElement("div");
+      d.className = "country-dot";
+
+      // SIZE BASED ON COUNT
+      if (c.count > 200) d.classList.add("size-l");
+      else if (c.count > 50) d.classList.add("size-m");
+      else d.classList.add("size-s");
+
+      d.style.left = pos.x + "px";
+      d.style.top = pos.y + "px";
+      d.setAttribute("data-code", code);
+      d.title = `${coords.name} — ${c.count} blessings`;
+
+      d.addEventListener("click", () => openDrawer(code, data[code]));
+      dotLayer.appendChild(d);
     }
   }
 
-  // handle window resize -> reposition dots
-  window.addEventListener('resize', debounce(()=> placeAllDots(), 180));
+  // 4) DRAWER
+  function openDrawer(code, obj) {
+    const coords = COUNTRY_COORDS[code];
+    drawerTitle.textContent = `${coords.name} — ${obj.count} blessings`;
 
-  // open drawer
-  function openDrawerFor(code){
-    const c = countries[code];
-    if(!c) return;
-    drawerTitle.textContent = `${c.name} — ${c.count} blessings`;
-    drawerList.innerHTML = '';
-    (c.blessings || []).forEach(b => {
-      const card = document.createElement('div');
-      card.className = 'blessing-card';
-      card.innerHTML = `<b>${b.text}</b><div class="reads">${b.time}</div>`;
+    drawerList.innerHTML = "";
+
+    obj.blessings.slice(0, 50).forEach((b) => {
+      const card = document.createElement("div");
+      card.className = "blessing-card";
+      card.innerHTML = `
+        <b>${b.text}</b>
+        ${b.username ? `<div class="blessing-username">— ${b.username}</div>` : ""}
+        <small>${b.time}</small>
+      `;
       drawerList.appendChild(card);
     });
-    drawer.classList.add('open');
+
+    drawer.classList.add("open");
   }
 
-  // close drawer
-  document.getElementById('drawerClose').addEventListener('click', () => drawer.classList.remove('open'));
-
-  // update function to call when a new blessing is added in a country
-  function updateCountryCount(code, delta=1, newBlessing=null){
-    const c = countries[code];
-    if(!c) return;
-    c.count += delta;
-    if(newBlessing) c.blessings = c.blessings || [], c.blessings.unshift(newBlessing);
-
-    // update global
-    globalCount += delta;
-    animateCount(globalCountNum, globalCount);
-
-    // find dot element and pop
-    const dot = dotLayer.querySelector(`[data-code="${code}"]`);
-    if(dot){
-      dot.classList.add('pop');
-      setTimeout(()=> dot.classList.remove('pop'), 550);
-      // adjust size class if thresholds crossed
-      dot.classList.remove('size-s','size-m','size-l');
-      if(c.count > 200) dot.classList.add('size-l');
-      else if(c.count > 60) dot.classList.add('size-m');
-      else dot.classList.add('size-s');
-      dot.setAttribute('title', `${c.name} — ${c.count} blessings`);
-    }
-  }
-
-  // simple count animation (fast)
-  function animateCount(el, value){
-    // quick number change anim
-    el.textContent = value;
-    el.classList.add('counter-anim');
-    setTimeout(()=> el.classList.remove('counter-anim'), 420);
-  }
-
-  // share map — minimal clean shot using html2canvas
-  shareBtn.addEventListener('click', async () => {
-    const wrap = document.querySelector('.map-wrap');
-    wrap.classList.add('share-mode'); // hide UI
-    // small delay so styles settle
-    await sleep(220);
-    html2canvas(wrap, { backgroundColor: null, useCORS: true, scale: 2 }).then(canvas => {
-      // produce image
-      const data = canvas.toDataURL('image/png');
-      // download
-      const a = document.createElement('a');
-      a.href = data;
-      a.download = 'blessings-map.png';
-      a.click();
-      wrap.classList.remove('share-mode');
-    }).catch(err=>{
-      console.error('html2canvas error',err);
-      wrap.classList.remove('share-mode');
-    });
-  });
-
-  // small helpers
-  function sleep(ms){ return new Promise(res=>setTimeout(res, ms)); }
-  function debounce(fn, t){ let id; return ()=> { clearTimeout(id); id = setTimeout(fn, t); }; }
-
-  // expose update function globally for live updates
-  window.updateCountryCount = updateCountryCount;
-  window.worldMapData = countries;
+  document.getElementById("drawerClose").onclick = () =>
+    drawer.classList.remove("open");
 }
 
-// init
-document.addEventListener('DOMContentLoaded', () => {
-  if(document.getElementById('mapWrap')) initWorldMap();
+// INIT
+document.addEventListener("DOMContentLoaded", () => {
+  if (document.getElementById("mapWrap")) initWorldMap();
 });
