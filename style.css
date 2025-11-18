@@ -738,16 +738,29 @@ footer,
 }
 
 .challenge-box {
-  margin: 20px 0;
+  width: 94%;                      /* SAME as streak-box */
+  max-width: 1100px;               /* prevent overflow */
+
+  margin: 20px auto 0 auto;        /* center perfect */
   padding: 16px;
+
   background: rgba(255,255,255,0.1);
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,0.25);
   backdrop-filter: blur(10px);
+
   color: #ffd267;
   font-size: 18px;
   text-align: center;
   animation: challengeGlow 4s infinite ease-in-out;
+}
+
+@media (max-width: 600px){
+  .challenge-box {
+    width: 94%;
+    padding: 14px;
+    font-size: 16px;
+  }
 }
 
 @keyframes challengeGlow {
