@@ -156,33 +156,23 @@
     </div>
   </section>
 
-  <!-- ===== PHASE 6 — WORLD MAP ===== -->
+  <!-- ===== WORLD MAP — D3 VERSION ===== -->
   <section id="worldMapSection" class="feed fade-section" aria-label="World map">
     <h2 class="section-title">🌍 Blessings Around The World</h2>
-    <p class="muted" style="text-align:center; margin-top:-6px;">Tap a country to see blessings</p>
+    <p class="muted" style="text-align:center;margin-top:-6px;">Tap a country to see blessings</p>
 
-    <div id="mapWrap" class="map-wrap">
-      <!-- svg will load dynamically into #svgContainer -->
-      <div id="svgContainer" class="svg-container"></div>
+    <div class="map-wrap" style="position:relative; width:min(1100px,92vw); margin:18px auto;">
+        <iframe 
+          id="d3mapFrame"
+          src="map-d3.html"
+          style="width:100%; height:480px; border:0; border-radius:14px; overflow:hidden;"
+        ></iframe>
 
-      <!-- overlay for dots (absolute inside container) -->
-      <div id="dotLayer" class="dot-layer"></div>
-
-      <!-- corner global count -->
-      <div id="globalCount" class="global-count">Global Blessings: <span id="globalCountNum">0</span></div>
-
-      <!-- share / screenshot button -->
-      <div class="map-actions">
-        <button id="shareMapBtn" class="btn">Share Map</button>
-      </div>
+        <!-- Global Blessings -->
+        <div id="globalCount" class="global-count">
+           Global Blessings: <span id="globalCountNum">0</span>
+        </div>
     </div>
-
-    <!-- country drawer -->
-    <aside id="countryDrawer" class="country-drawer" aria-hidden="true">
-      <button id="drawerClose" class="drawer-close" aria-label="Close">✕</button>
-      <h3 id="drawerTitle">Country — 0</h3>
-      <div id="drawerList" class="drawer-list"></div>
-    </aside>
   </section>
 
   <!-- html2canvas CDN for screenshot (can be moved to bottom of body) -->
