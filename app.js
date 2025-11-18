@@ -1191,9 +1191,9 @@ function initWorldMap() {
   function renderDots(data) {
     dotLayer.innerHTML = "";
 
-    const rect = svgContainer.getBoundingClientRect();
-    const W = rect.width;
-    const H = rect.height;
+    const svg = svgContainer.querySelector("svg");
+    const W = svg.viewBox.baseVal.width;
+    const H = svg.viewBox.baseVal.height;
 
     for (const code in data) {
       const c = data[code];
