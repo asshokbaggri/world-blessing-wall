@@ -1138,7 +1138,7 @@ function initWorldMap() {
   globalCountNum.textContent = globalCount;
 
   // load world svg file and insert
-  fetch('/world.svg') // ensure file exists
+  fetch('./world.svg') // ensure file exists
     .then(r => r.text())
     .then(svgText => {
       svgContainer.innerHTML = svgText;
