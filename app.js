@@ -1160,7 +1160,7 @@ function initWorldMapD3() {
 
     /* LOAD GEOJSON + FIRESTORE DATA */
     Promise.all([
-        d3.json(WORLD_JSON_URL),
+        d3.json(WORLD_JSON_URL).then(g => { window.__geoData = g; return g; }),
         loadFirestoreBlessings()
     ]).then(([geo, blessings]) => {
 
