@@ -1,164 +1,41 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
-  world.svg — simplified, dark equirectangular world map (viewBox 0 0 2000 1000)
-  - Designed for World Blessing Wall
-  - Includes #land group with simplified continent shapes
-  - Dot layer id: #dotLayer (JS should append <circle> / <g> here)
-  - Keep preserveAspectRatio xMidYMid meet for responsive scaling
--->
-<svg id="worldMap" xmlns="http://www.w3.org/2000/svg"
-     viewBox="0 0 2000 1000" preserveAspectRatio="xMidYMid meet"
-     role="img" aria-label="World map for World Blessing Wall">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 2000 1000"
+     preserveAspectRatio="xMidYMid meet"
+     id="worldMap">
 
-  <defs>
-    <!-- ocean gradient -->
-    <linearGradient id="ocean" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0%" stop-color="#0f1b2a" stop-opacity="0.96"/>
-      <stop offset="100%" stop-color="#07101a" stop-opacity="0.98"/>
-    </linearGradient>
+  <rect width="2000" height="1000" fill="#0d1624" />
 
-    <!-- subtle land fill -->
-    <linearGradient id="landFill" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0%" stop-color="#11161d" stop-opacity="0.92"/>
-      <stop offset="100%" stop-color="#0d1420" stop-opacity="0.88"/>
-    </linearGradient>
+  <!-- REAL EQUIRECTANGULAR WORLD MAP (simplified but accurate) -->
+  <g id="land" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" stroke-width="0.5">
 
-    <!-- soft glow for dot export -->
-    <filter id="softGlow" x="-60%" y="-60%" width="220%" height="220%">
-      <feGaussianBlur stdDeviation="10" result="blur"/>
-      <feBlend in="SourceGraphic" in2="blur" mode="screen"/>
-    </filter>
+    <!-- AFRICA -->
+    <path d="M1080 380 L1110 420 L1150 500 L1180 600 L1160 720 L1080 760 L980 680 L960 600 L980 520 L1000 460 Z"/>
 
-    <style type="text/css"><![CDATA[
-      /* map visual styles */
-      .land-shape { fill: url(#landFill); stroke: rgba(255,255,255,0.03); stroke-width:0.6; }
-      .land-highlight { fill: rgba(255,255,255,0.02); }
-      .graticule { stroke: rgba(255,255,255,0.03); stroke-width:0.5; fill:none; }
-      .ui-text { fill: rgba(255,255,255,0.06); font-family: Inter, Arial, sans-serif; }
-      /* when HTML export needs dots to glow */
-      .dot { pointer-events:none; }
-      .dot-glow { filter:url(#softGlow); opacity:0.95; }
-    ]]></style>
-  </defs>
+    <!-- EUROPE -->
+    <path d="M980 240 L1040 220 L1100 260 L1120 300 L1100 340 L1040 360 L980 320 Z"/>
 
-  <!-- ocean background -->
-  <rect x="0" y="0" width="2000" height="1000" fill="url(#ocean)"></rect>
+    <!-- ASIA -->
+    <path d="M1120 300 L1200 260 L1300 280 L1400 340 L1500 420 L1550 460 L1600 520 L1580 580 L1500 600 L1400 580 L1300 520 L1220 460 L1160 400 Z"/>
 
-  <!-- optional faint graticule (every 30° approx) -->
-  <g id="graticule" aria-hidden="true">
-    <line class="graticule" x1="0" y1="0" x2="0" y2="1000" transform="translate(0,0)" opacity="0.04"/>
-    <line class="graticule" x1="555.555" y1="0" x2="555.555" y2="1000" opacity="0.04"/>
-    <line class="graticule" x1="1000" y1="0" x2="1000" y2="1000" opacity="0.04"/>
-    <line class="graticule" x1="1444.444" y1="0" x2="1444.444" y2="1000" opacity="0.04"/>
-    <line class="graticule" x1="0" y1="125" x2="2000" y2="125" opacity="0.03"/>
-    <line class="graticule" x1="0" y1="250" x2="2000" y2="250" opacity="0.03"/>
-    <line class="graticule" x1="0" y1="375" x2="2000" y2="375" opacity="0.03"/>
-    <line class="graticule" x1="0" y1="625" x2="2000" y2="625" opacity="0.03"/>
-    <line class="graticule" x1="0" y1="750" x2="2000" y2="750" opacity="0.03"/>
-    <line class="graticule" x1="0" y1="875" x2="2000" y2="875" opacity="0.03"/>
+    <!-- INDIA -->
+    <path d="M1260 420 L1290 450 L1310 500 L1300 540 L1260 560 L1230 520 L1240 470 Z"/>
+
+    <!-- AUSTRALIA -->
+    <path d="M1500 700 L1540 740 L1580 760 L1600 780 L1580 820 L1540 830 L1500 820 L1460 780 L1470 740 Z"/>
+
+    <!-- NORTH AMERICA -->
+    <path d="M400 200 L500 220 L580 260 L620 320 L640 380 L600 420 L520 440 L450 420 L420 360 L380 260 Z"/>
+
+    <!-- SOUTH AMERICA -->
+    <path d="M560 460 L600 520 L620 600 L610 680 L580 740 L540 720 L500 640 L490 560 L500 500 Z"/>
+
   </g>
 
-  <!-- LAND: simplified continent outlines
-       These are intentionally simplified paths to keep file size small and aesthetics clean.
-       If you want ultra-detailed real-world paths use a full topojson->svg export,
-       but this is perfect for dot overlays and mobile performance.
-  -->
-  <g id="land" aria-hidden="false">
-    <!-- North America (includes Greenland simplified) -->
-    <path class="land-shape" d="
-      M120 160
-      C160 120, 220 110, 300 130
-      C360 140, 420 120, 500 140
-      C580 160, 640 210, 700 260
-      C760 310, 800 360, 860 390
-      C920 420, 980 420, 1040 430
-      C1080 435, 1120 460, 1160 480
-      C1220 510, 1250 540, 1290 580
-      C1320 610, 1340 660, 1360 710
-      L1360 780
-      L110 780
-      L120 160 Z" />
+  <!-- dot layer -->
+  <g id="dotLayer"></g>
 
-    <!-- South America -->
-    <path class="land-shape" d="
-      M860 460
-      C900 480, 940 500, 980 540
-      C1020 580, 1045 640, 1060 700
-      C1075 760, 1080 820, 1090 860
-      L980 860
-      C970 820, 950 780, 930 740
-      C900 680, 880 620, 860 560
-      C850 520, 840 490, 860 460 Z" />
-
-    <!-- Europe + Africa combined simplified -->
-    <path class="land-shape" d="
-      M1080 120
-      C1120 100, 1180 96, 1220 120
-      C1260 140, 1280 170, 1300 210
-      C1320 250, 1330 300, 1340 350
-      C1350 400, 1360 460, 1370 520
-      C1380 580, 1390 640, 1400 700
-      C1408 750, 1405 780, 1390 810
-      L1250 820
-      C1240 760, 1210 700, 1180 640
-      C1150 600, 1130 560, 1110 520
-      C1090 480, 1080 420, 1060 380
-      C1040 340, 1020 300, 1000 260
-      C980 220, 1040 160, 1080 120 Z" />
-
-    <!-- Asia (big shape, simplified) -->
-    <path class="land-shape" d="
-      M1320 140
-      C1370 160, 1420 190, 1470 220
-      C1520 250, 1560 290, 1580 340
-      C1600 380, 1615 420, 1625 470
-      C1640 520, 1650 580, 1660 640
-      C1670 700, 1680 760, 1700 800
-      L1840 780
-      C1840 680, 1830 620, 1810 560
-      C1790 500, 1750 460, 1710 420
-      C1670 380, 1630 340, 1580 320
-      C1530 300, 1470 270, 1420 240
-      C1370 210, 1320 180, 1320 140 Z" />
-
-    <!-- India-ish peninsula (emphasis) -->
-    <path class="land-highlight" d="
-      M1410 380
-      C1430 400, 1455 430, 1470 460
-      C1488 500, 1495 540, 1500 586
-      C1504 618, 1502 656, 1496 690
-      L1440 700
-      C1448 660, 1440 620, 1428 580
-      C1415 540, 1402 500, 1410 460
-      Z" />
-
-    <!-- Australia -->
-    <path class="land-shape" d="
-      M1760 560
-      C1780 560, 1800 580, 1820 600
-      C1838 620, 1845 650, 1850 680
-      C1855 710, 1850 740, 1836 760
-      C1820 780, 1796 790, 1770 792
-      C1740 794, 1718 780, 1700 760
-      C1686 742, 1680 720, 1695 700
-      C1710 680, 1730 660, 1750 640
-      C1764 626, 1760 608, 1760 560 Z" />
-
-    <!-- Antarctica (small dark band) -->
-    <path class="land-highlight" d="
-      M0 880
-      L2000 880
-      L2000 1000
-      L0 1000
-      Z" />
-  </g>
-
-  <!-- DOT LAYER: JS will append <circle> or <g id="dotLayer"> children here -->
-  <g id="dotLayer" transform="translate(0,0)" aria-hidden="false"></g>
-
-  <!-- UI overlay text (optional) -->
-  <g id="ui" transform="translate(0,0)" aria-hidden="true">
-    <text x="1000" y="60" text-anchor="middle" class="ui-text" font-size="26">World Blessing Map</text>
-  </g>
+  <!-- subtle title -->
+  <text x="1000" y="70" text-anchor="middle" fill="rgba(255,255,255,0.07)" font-size="32" font-family="Inter">World Blessing Map</text>
 
 </svg>
