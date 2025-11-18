@@ -918,20 +918,6 @@ footer,
     overflow: hidden;
 }
 
-.svg-container svg {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-#dotLayer {
-  z-index: 3;
-}
-
-.svg-container {
-  z-index: 1;
-}
-
 .svg-container {
   position: relative;
   z-index: 1 !important;
