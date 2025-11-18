@@ -941,3 +941,9 @@ footer,
   stroke: rgba(255,255,255,0.18);
   stroke-width: 0.5;
 }
+
+#svgContainer {
+  position: relative;
+  width: 100%;
+  height: 420px;
+}
