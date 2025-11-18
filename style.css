@@ -756,81 +756,60 @@ footer,
   100% { box-shadow: 0 0 14px rgba(255,225,150,0.25); }
 }
 
-/* ---------- TRENDING SECTION (FINAL RESPONSIVE) ---------- */
+/* ---------------------------------------------------
+   TRENDING SLIDER — FINAL WORKING VERSION
+---------------------------------------------------*/
 
 #trendingSection {
-    width: 100%;
-    max-width: 1180px;
-    margin: 40px auto;
-    padding: 0 16px;
+  margin: 40px 0 10px;
 }
 
 .trending-heading {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 22px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  font-size: 26px;
+  margin-bottom: 18px;
 }
 
-/* Container becomes wrapping grid */
-#trendingSlider {
-    display: flex;
-    flex-wrap: wrap;       /* ⭐ FIX: NOW WRAPS PERFECTLY */
-    gap: 14px;
+.trending-slider {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scroll-behavior: smooth;
+
+  /* iPhone smooth scroll */
+  -webkit-overflow-scrolling: touch;
+
+  /* scrollbar hide */
+  scrollbar-width: none;
+}
+.trending-slider::-webkit-scrollbar {
+  display: none;
 }
 
-/* Card look */
 .trending-item {
-    flex: 0 1 calc(25% - 14px);   /* ⭐ Desktop = 4 per row */
-    background: rgba(255,255,255,0.07);
-    border-radius: 14px;
-    padding: 14px 18px;
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,0.12);
-    cursor: pointer;
-    transition: transform .2s ease, background .2s ease;
+  min-width: 240px;         /* ⭐ FIX: always same width */
+  max-width: 240px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.15);
+  backdrop-filter: blur(18px);
+  cursor: pointer;
+  flex-shrink: 0;           /* ⭐ FIX: stop items from shrinking */
+  transition: transform .25s ease;
 }
 
 .trending-item:hover {
-    transform: translateY(-3px);
-    background: rgba(255,255,255,0.13);
+  transform: translateY(-3px);
 }
 
-/* Text */
 .tr-title {
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 6px;
 }
 
 .tr-reads {
-    opacity: 0.85;
-    font-size: 0.85rem;
-}
-
-
-
-/* ---------- RESPONSIVE ---------- */
-
-/* Tablet – 3 per row */
-@media (max-width: 900px) {
-    .trending-item {
-        flex: 0 1 calc(33.33% - 14px);
-    }
-}
-
-/* Large mobile – 2 per row */
-@media (max-width: 600px) {
-    .trending-item {
-        flex: 0 1 calc(50% - 14px);
-    }
-}
-
-/* Small phones – full width */
-@media (max-width: 430px) {
-    .trending-item {
-        flex: 0 1 100%;
-    }
+  font-size: 14px;
+  opacity: 0.75;
 }
