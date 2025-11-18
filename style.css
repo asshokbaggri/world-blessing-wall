@@ -910,20 +910,18 @@ footer,
   .country-drawer { left:10px; right:10px; bottom:18px; width: calc(100% - 20px); max-height:55vh; }
 }
 
-#svgContainer svg {
+/* world map */
+.svg-container {
+  position: relative;
   width: 100%;
-  height: auto !important;
-  object-fit: contain;
-  display: block;
   max-width: 100%;
+  overflow: hidden;
 }
 
-#mapWrap {
-    position: relative;
-    width: 100%;
-    max-width: 850px;
-    margin: auto;
-    overflow: hidden;
+.world-svg {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 #dotLayer {
@@ -935,7 +933,10 @@ footer,
   pointer-events: none;
 }
 
-#svgContainer {
+#mapWrap {
+    position: relative;
     width: 100%;
-    height: auto;
+    max-width: 850px;
+    margin: auto;
+    overflow: hidden;
 }
