@@ -910,29 +910,6 @@ footer,
   .country-drawer { left:10px; right:10px; bottom:18px; width: calc(100% - 20px); max-height:55vh; }
 }
 
-/* world map */
-.svg-container {
-  position: relative;
-  width: 100%;
-  max-width: 100%;
-  overflow: hidden;
-}
-
-.world-svg {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-#dotLayer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
 #mapWrap {
     position: relative;
     width: 100%;
