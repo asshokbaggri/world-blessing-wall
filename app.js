@@ -732,8 +732,6 @@ onSnapshot(liveNewest, (snap)=>{
   if (bEl) bEl.textContent = b;
 })();
 
-loadTrendingBlessings();   // ⭐ ADD THIS LINE ⭐
-
 // ---------- "My Blessings" (realtime) ----------
 let myUnsub = null;
 async function startMyBlss(){
@@ -1041,59 +1039,6 @@ ${myPersonalLink}`
   box.textContent = text;
 
 })();
-
-/* ============================================================
-   ⭐ TRENDING BLESSINGS — TOP 10 (auto updating)
-   ============================================================ */
-
-async function loadTrendingBlessings() {
-  const qTrend = query(
-    collection(db, "blessings"),
-    orderBy("reads", "desc"),
-    limit(5)
-  );
-
-  const snap = await getDocs(qTrend);
-  const slider = document.getElementById("trendingSlider");
-  if (!slider) return;
-
-  slider.innerHTML = "";
-
-  let html = "";
-  snap.docs.forEach(docSnap => {
-    const d = docSnap.data();
-    const id = docSnap.id;
-
-    const text = d.text || "";
-    const reads = d.reads || 0;
-    const title = text.length > 28 ? text.slice(0, 28) + "…" : text;
-
-    html += `
-      <div class="trending-item" data-id="${id}">
-        <div class="tr-title">${title}</div>
-        <div class="tr-reads">👀 ${reads} reads</div>
-      </div>
-    `;
-  });
-
-  // Twice for infinite loop illusion
-  slider.innerHTML = html + html;
-
-  // Click scroll to blessing
-  slider.querySelectorAll(".trending-item").forEach(card => {
-    card.onclick = () => {
-      const id = card.dataset.id;
-      const target = document.querySelector(
-        `.blessing-card[data-id="${id}"]`
-      );
-      if (target) {
-        target.scrollIntoView({ behavior: "smooth", block: "center" });
-        target.classList.add("highlight-glow");
-        setTimeout(() => target.classList.remove("highlight-glow"), 1200);
-      }
-    };
-  });
-}
 
 // ---------- Particles (full-screen, always behind) ----------
 (function initParticles(){
