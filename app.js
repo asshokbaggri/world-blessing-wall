@@ -1145,7 +1145,7 @@ function initWorldMap() {
   const drawerList = document.getElementById("drawerList");
 
   // 1) LOAD SVG
-  fetch('./world.svg')
+  fetch('world.svg')
     .then((r) => r.text())
     .then((svgText) => {
       svgContainer.innerHTML = svgText;
