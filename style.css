@@ -756,52 +756,47 @@ footer,
   100% { box-shadow: 0 0 14px rgba(255,225,150,0.25); }
 }
 
-/* ============ FINAL FULL-WIDTH FIX (Desktop + Mobile) ============ */
-
-/* Remove any accidental horizontal overflow */
+/* ----- GLOBAL FULL-WIDTH LOCK ----- */
 html, body {
+    overflow-x: hidden !important;
     width: 100% !important;
     max-width: 100% !important;
-    overflow-x: hidden !important;
 }
 
-/* The main container (jisme streak, challenge, my blessings sab aata hai) */
-main, 
-#live, 
-#streakBox,
+/* ----- TOP SECTIONS (Streak + Challenge) FIX ----- */
+
 #streakSection,
-.challenge-section,
-#challengeBox,
-#challengeSection,
-#myBlessingsSection,
-section {
-    width: 100%;
-    max-width: 100%;
-    margin-left: auto !important;
-    margin-right: auto !important;
+#streakBox,
+.streak-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 16px !important;
     box-sizing: border-box !important;
-    padding-left: 16px;
-    padding-right: 16px;
 }
 
-/* Prevent inner content from stretching out */
-.streak-container,
-.streak-section,
-.challenge-container,
-.my-blessings-container {
-    width: 100%;
-    max-width: 1100px;
-    margin: 0 auto;
+/* The actual streak box */
+.streak-box-inner {
+    width: 100% !important;
+    max-width: 1100px !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
 }
 
-/* Fix internal card overflow */
-.blessing-card {
-    max-width: 100%;
-    overflow-x: hidden;
+/* Today's Challenge strip */
+#challengeSection,
+.challenge-section,
+.challenge-strip {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 16px !important;
+    box-sizing: border-box !important;
 }
 
-/* Prevent any rogue element from pushing layout sideways */
-* {
-    max-width: 100%;
-    box-sizing: border-box;
+/* Any rogue element forcing extra width */
+section,
+div {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
 }
