@@ -762,3 +762,12 @@ footer,
   padding: 0 16px;
   width: 100%;
 }
+
+/* Challenge box centering fix */
+.challenge-box {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding-left: 16px;
+  padding-right: 16px;
+  box-sizing: border-box;
+}
