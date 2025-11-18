@@ -670,53 +670,90 @@ footer,
   opacity: 1;
 }
 
-/* SUPER OPTIMIZED STREAK (FAST + SMOOTH) */
+/* ---------- PREMIUM STREAK BADGE ---------- */
+
 .streak-box {
-    width: 94%;
-    margin: 25px auto;
-    padding: 20px 25px;
-    text-align: center;
-
-    background: rgba(255,255,255,0.08);
-    border-radius: 16px;
-    border: 1px solid rgba(255,255,255,0.18);
-    backdrop-filter: blur(6px); /* ↓ lighter blur → faster */
-
-    box-shadow: 0 0 10px rgba(255,225,150,0.18); /* ↓ lighter shadow */
-
-    animation: streakGlow 6s infinite ease-in-out;
+  width: 94%;
+  margin: 25px auto;
+  padding: 20px 25px;
+  text-align: center;
+  background: rgba(255,255,255,0.12);
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.25);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 0 20px rgba(255,225,150,0.28);
+  animation: streakGlow 4s infinite ease-in-out;
 }
 
+.streak-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffd267;
+  margin-bottom: 12px;
+}
+
+.streak-numbers {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.streak-item .label {
+  font-size: 14px;
+  color: #fff;
+  opacity: 0.85;
+}
+
+.streak-item .value {
+  display: block;
+  font-size: 26px;
+  color: #ffd267;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+/* Divider */
+.divider {
+  width: 1px;
+  background: rgba(255,255,255,0.25);
+  height: 36px;
+}
+
+/* Pop when streak increases */
+.streak-pop {
+  animation: streakPop 0.55s ease-out;
+}
+
+@keyframes streakPop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.22); }
+  100% { transform: scale(1); }
+}
+
+/* Aura glow */
 @keyframes streakGlow {
-    0% { box-shadow: 0 0 10px rgba(255,225,150,0.18); }
-    50% { box-shadow: 0 0 16px rgba(255,225,150,0.32); }
-    100% { box-shadow: 0 0 10px rgba(255,225,150,0.18); }
+  0%   { box-shadow: 0 0 14px rgba(255,225,150,0.28); }
+  50%  { box-shadow: 0 0 22px rgba(255,225,150,0.45); }
+  100% { box-shadow: 0 0 14px rgba(255,225,150,0.28); }
 }
 
-/* SUPER OPTIMIZED CHALLENGE BOX */
-#challengeBox {
-    width: min(900px, 92%);
-    margin: 15px auto 35px;
-    padding: 14px 18px;
-
-    background: rgba(255,255,255,0.07);
-    border-radius: 14px;
-    border: 1px solid rgba(255,255,255,0.12);
-
-    backdrop-filter: blur(5px); /* ↓ big improvement */
-    box-shadow: 0 0 10px rgba(0,0,0,0.25); /* ↓ soft shadow */
-
-    color: #ffd267;
-    font-size: 1rem;
-    text-align: center;
-
-    animation: challengeGlow 6s infinite ease-in-out;
+.challenge-box {
+  margin: 20px 0;
+  padding: 16px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.25);
+  backdrop-filter: blur(10px);
+  color: #ffd267;
+  font-size: 18px;
+  text-align: center;
+  animation: challengeGlow 4s infinite ease-in-out;
 }
 
 @keyframes challengeGlow {
-    0% { box-shadow: 0 0 10px rgba(255,225,150,0.18); }
-    50% { box-shadow: 0 0 16px rgba(255,225,150,0.32); }
-    100% { box-shadow: 0 0 10px rgba(255,225,150,0.18); }
+  0% { box-shadow: 0 0 14px rgba(255,225,150,0.25); }
+  50% { box-shadow: 0 0 22px rgba(255,225,150,0.45); }
+  100% { box-shadow: 0 0 14px rgba(255,225,150,0.25); }
 }
 
 .container {
