@@ -1247,14 +1247,36 @@ async function loadFirestoreBlessings() {
 }
 
 /* --------- GROUP BLESSINGS INTO {IN: [], US: []} -------- */
-function groupByCountry(list) {
+function groupByCountry(list, geo = window.__geoData) {
     const result = {};
-    list.forEach((b) => {
-        const cc = (b.countryCode || "").toUpperCase();
+
+    function resolveCode(b) {
+        let cc = (b.countryCode || "").toUpperCase();
+        if (cc && cc.length === 2) return cc;
+
+        const name = (b.country || "").trim().toLowerCase();
+        if (!name || !geo) return "";
+
+        const match = geo.features.find(f =>
+            f.properties.ADMIN?.toLowerCase() === name ||
+            f.properties.NAME?.toLowerCase() === name ||
+            f.properties.SOVEREIGNT?.toLowerCase() === name
+        );
+        if (match) {
+            return (match.id || match.properties.ISO_A2 || "").toUpperCase();
+        }
+
+        return "";
+    }
+
+    list.forEach(b => {
+        const cc = resolveCode(b);
         if (!cc) return;
+
         if (!result[cc]) result[cc] = [];
         result[cc].push(b);
     });
+
     return result;
 }
 
