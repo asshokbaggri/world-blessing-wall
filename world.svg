@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- world.svg
+     Lightweight equirectangular map frame with graticule and dot layer.
+     - viewBox: 0 0 2000 1000   (useful round numbers, aspect 2:1)
+     - dark theme colors, subtle grid
+     - ID hooks: #worldMap (root svg), #land (place country paths here if you have them),
+                 #dotLayer (JS should append <circle> or <g> markers here)
+-->
+<svg id="worldMap" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     viewBox="0 0 2000 1000" preserveAspectRatio="xMidYMid meet" role="img"
+     aria-label="World map for World Blessing Wall">
+
+  <!-- Background -->
+  <defs>
+    <linearGradient id="ocean" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0f1b2a" stop-opacity="0.92"/>
+      <stop offset="100%" stop-color="#0b1220" stop-opacity="0.95"/>
+    </linearGradient>
+
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feBlend in="SourceGraphic" in2="blur" mode="screen"/>
+    </filter>
+
+    <!-- subtle grain for texture -->
+    <filter id="grain">
+      <feTurbulence baseFrequency="0.8" numOctaves="2" stitchTiles="stitch" result="t" />
+      <feColorMatrix type="saturate" values="0" />
+      <feBlend mode="overlay"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.02"/>
+      </feComponentTransfer>
+    </filter>
+
+    <!-- dot style used by exported screenshots if needed -->
+    <style type="text/css"><![CDATA[
+      .land { fill: rgba(10,12,16,0.18); stroke: rgba(255,255,255,0.03); stroke-width:0.5; }
+      .graticule { stroke: rgba(255,255,255,0.03); stroke-width:0.6; fill:none; }
+      .dot { pointer-events: none; }
+      .dot-glow { filter: url(#softGlow); opacity:0.95; }
+    ]]></style>
+  </defs>
+
+  <!-- ocean -->
+  <rect x="0" y="0" width="2000" height="1000" fill="url(#ocean)"></rect>
+
+  <!-- optional texture -->
+  <rect x="0" y="0" width="2000" height="1000" fill="transparent" filter="url(#grain)"></rect>
+
+  <!-- graticule (every 30° lat/lon) - equirectangular mapping -->
+  <g id="graticule" aria-hidden="true">
+    <!-- longitude lines -->
+    <!-- longitude x = (lon + 180) / 360 * width -->
+    <!-- generate as static lines for common degrees -->
+    <line class="graticule" x1="0" y1="0" x2="0" y2="1000" transform="translate(0,0)" opacity="0.09"/>
+    <!-- we'll draw programmatically for 30° steps but include common ones -->
+    <line class="graticule" x1="555.555" y1="0" x2="555.555" y2="1000" opacity="0.06"/>
+    <line class="graticule" x1="1000" y1="0" x2="1000" y2="1000" opacity="0.06"/>
+    <line class="graticule" x1="1444.444" y1="0" x2="1444.444" y2="1000" opacity="0.06"/>
+
+    <!-- latitude lines -->
+    <!-- latitude y = (90 - lat) / 180 * height -->
+    <line class="graticule" x1="0" y1="125" x2="2000" y2="125" opacity="0.05"/>
+    <line class="graticule" x1="0" y1="250" x2="2000" y2="250" opacity="0.05"/>
+    <line class="graticule" x1="0" y1="375" x2="2000" y2="375" opacity="0.05"/>
+    <line class="graticule" x1="0" y1="625" x2="2000" y2="625" opacity="0.05"/>
+    <line class="graticule" x1="0" y1="750" x2="2000" y2="750" opacity="0.05"/>
+    <line class="graticule" x1="0" y1="875" x2="2000" y2="875" opacity="0.05"/>
+  </g>
+
+  <!-- LAND GROUP (empty by default) -->
+  <!-- If you have a full svg world path you can paste it here (ids kept) -->
+  <g id="land" class="land" transform="translate(0,0)">
+    <!-- Optional: paste your country path(s) here.
+         Example single path placeholder for continents (you can replace with real paths):
+    -->
+    <path d="M130 450 C 300 300, 700 300, 880 440 C 920 480, 980 520, 1100 500 C 1250 480, 1400 520, 1580 500 C 1770 480, 1920 560, 1900 680 L 1860 760 L 140 760 Z"
+          fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.02)" stroke-width="0.8"/>
+    <!-- The above is just a soft silhouette placeholder (non-geographic).
+         Replace #land content with actual country polygons for accurate visuals.
+    -->
+  </g>
+
+  <!-- DOT LAYER - JS will append <circle> or <g> elements here for country dots -->
+  <g id="dotLayer" transform="translate(0,0)" aria-hidden="false"></g>
+
+  <!-- UI overlay: a subtle title at top (optional) -->
+  <g id="ui" transform="translate(0,0)">
+    <text x="1000" y="55" text-anchor="middle"
+          fill="rgba(255,255,255,0.06)" font-family="Inter,Arial" font-size="28">World Blessing Map</text>
+  </g>
+
+</svg>
