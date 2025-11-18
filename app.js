@@ -1182,7 +1182,7 @@ function initWorldMap() {
   function renderDots(data) {
     dotLayer.innerHTML = "";
 
-    const svg = svgContainer.querySelector("svg");
+    const svg = document.getElementById("worldSVG");
     const W = svg.viewBox.baseVal.width;
     const H = svg.viewBox.baseVal.height;
 
