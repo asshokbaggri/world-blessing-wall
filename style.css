@@ -931,3 +931,19 @@ footer,
 .svg-container {
   z-index: 1;
 }
+
+.svg-container {
+  position: relative;
+  z-index: 1 !important;
+}
+
+#dotLayer {
+  position: absolute;
+  z-index: 3 !important;
+}
+
+.map-actions,
+.global-count {
+  position: absolute;
+  z-index: 10 !important;
+}
