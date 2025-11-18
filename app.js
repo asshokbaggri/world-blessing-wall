@@ -1137,14 +1137,41 @@ function initWorldMap() {
   const drawerList = document.getElementById("drawerList");
 
   svgContainer.innerHTML = `
-    <svg id="worldSVG"
-         xmlns="http://www.w3.org/2000/svg"
-         viewBox="0 0 2000 1000"
-         preserveAspectRatio="xMidYMid meet">
+  <svg id="worldSVG" xmlns="http://www.w3.org/2000/svg"
+       viewBox="0 0 2000 1000"
+       preserveAspectRatio="xMidYMid meet"
+       style="width:100%; height:100%;">
+    <defs>
+      <!-- subtle vignette + darken -->
+      <filter id="darken">
+        <feComponentTransfer color-interpolation-filters="sRGB">
+          <feFuncR type="gamma" amplitude="1" exponent="1.0" slope="0.9"/>
+          <feFuncG type="gamma" amplitude="1" exponent="1.0" slope="0.9"/>
+          <feFuncB type="gamma" amplitude="1" exponent="1.0" slope="0.9"/>
+        </feComponentTransfer>
+      </filter>
+
+      <linearGradient id="vignette" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0" stop-color="#000000" stop-opacity="0.08"/>
+        <stop offset="1" stop-color="#000000" stop-opacity="0.24"/>
+      </linearGradient>
+    </defs>
+
+    <!-- base image (same low-res world svg) -->
     <image href="https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg"
-           width="2000"
-           height="1000"
-           style="filter: brightness(1.25) contrast(1.1); opacity: 0.95;" />
+           x="0" y="0" width="2000" height="1000"
+           style="filter:brightness(0.14) contrast(1.1) saturate(.7); opacity:1;" />
+
+    <!-- subtle overlay to ensure map is dark but borders visible -->
+    <rect x="0" y="0" width="2000" height="1000"
+          style="fill:url(#vignette); mix-blend-mode:multiply; opacity:0.6;" />
+
+    <!-- optional soft highlight layer so country borders stay visible on dark -->
+    <g style="opacity:0.18; mix-blend-mode:screen; filter:url(#darken)">
+      <image href="https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg"
+             x="0" y="0" width="2000" height="1000"
+             style="filter:brightness(1.8) contrast(1.15) saturate(0.25);"/>
+    </g>
   </svg>
   `;
 
