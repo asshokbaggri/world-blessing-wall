@@ -756,66 +756,88 @@ footer,
   100% { box-shadow: 0 0 14px rgba(255,225,150,0.25); }
 }
 
-/* ---------------------------
-   🔥 TRENDING SLIDER (NEW)
-----------------------------*/
+/* --------------------------------------
+      🔥 UNIVERSAL TRENDING SLIDER
+   (Desktop + Laptop + Tablet + Mobile)
+---------------------------------------*/
 
 .trending-wrapper {
     width: 100%;
     overflow: hidden;
-    margin: 0 auto 40px auto;
     padding: 10px 0;
+    margin: 0 auto 45px auto;
     position: relative;
 }
 
+/* MAIN TRACK (Infinite Scroll) */
 .trending-track {
-    display: flex;
+    display: inline-flex;
     gap: 16px;
-    width: max-content;
-    animation: trendingScroll 18s linear infinite;
+    white-space: nowrap;
+    animation: trendingScroll 22s linear infinite;
+    will-change: transform;
 }
 
+/* CARD */
 .trending-item {
-    min-width: 240px;
-    padding: 14px 18px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.08);
+    flex: 0 0 auto;                 /* Never shrink */
+    width: 250px;                   /* Desktop perfect width */
+    padding: 16px 18px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
     border-radius: 14px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-    backdrop-filter: blur(12px);
-    cursor: pointer;
-    transition: transform 0.25s ease, background 0.25s;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    transition: transform 0.25s ease, background 0.25s ease;
 }
 
 .trending-item:hover {
     transform: translateY(-4px);
-    background: rgba(255,255,255,0.11);
+    background: rgba(255,255,255,0.15);
 }
 
+/* TEXT */
 .tr-title {
-    font-weight: 600;
     font-size: 1rem;
+    font-weight: 600;
     margin-bottom: 4px;
 }
 
 .tr-reads {
     font-size: 0.85rem;
-    opacity: 0.8;
+    opacity: 0.85;
 }
 
-/* Auto-scrolling animation */
+/* SMOOTH LOOP */
 @keyframes trendingScroll {
     0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
+    100% { transform: translateX(-100%); }
 }
 
-/* Mobile fix */
-@media (max-width: 600px) {
+/* --------------------------
+      MOBILE RESPONSIVE
+---------------------------*/
+@media (max-width: 900px) {     /* Tablet Fix */
     .trending-item {
-        min-width: 200px;
+        width: 220px;
+        padding: 14px 16px;
+    }
+}
+
+@media (max-width: 600px) {     /* Mobile Fix */
+    .trending-track {
+        gap: 12px;
+        animation-duration: 20s;  /* Slow & smooth on mobile */
+    }
+
+    .trending-item {
+        width: 200px;
         padding: 12px 14px;
     }
     .tr-title {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
+    }
+    .tr-reads {
+        font-size: 0.8rem;
     }
 }
