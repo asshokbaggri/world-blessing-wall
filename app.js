@@ -1136,6 +1136,17 @@ function initWorldMap() {
   const drawerTitle = document.getElementById("drawerTitle");
   const drawerList = document.getElementById("drawerList");
 
+  svgContainer.innerHTML = `
+  <svg xmlns="http://www.w3.org/2000/svg" 
+       viewBox="0 0 2000 1000"
+       preserveAspectRatio="xMidYMid meet">
+    <image href="https://upload.wikimedia.org/wikipedia/commons/5/54/BlankMap-World6.svg"
+           width="2000"
+           height="1000"
+           style="filter: brightness(1.8); opacity:0.9;" />
+  </svg>
+  `;
+
   loadMapData();
 
   // 2) FIRESTORE → COUNTRY GROUPING
