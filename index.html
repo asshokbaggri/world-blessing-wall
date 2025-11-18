@@ -156,11 +156,37 @@
     </div>
   </section>
 
-  <!-- MAP -->
-  <section id="map" class="map fade-section">
-    <h3>🌍 Blessings Around The World</h3>
-    <div class="map-box">World Map (coming soon)</div>
+  <!-- ===== PHASE 6 — WORLD MAP ===== -->
+  <section id="worldMapSection" class="feed fade-section" aria-label="World map">
+    <h2 class="section-title">🌍 Blessings Around The World</h2>
+    <p class="muted" style="text-align:center; margin-top:-6px;">Tap a country to see blessings</p>
+
+    <div id="mapWrap" class="map-wrap">
+      <!-- svg will load dynamically into #svgContainer -->
+      <div id="svgContainer" class="svg-container" aria-hidden="true"></div>
+
+      <!-- overlay for dots (absolute inside container) -->
+      <div id="dotLayer" class="dot-layer"></div>
+
+      <!-- corner global count -->
+      <div id="globalCount" class="global-count">Global Blessings: <span id="globalCountNum">0</span></div>
+
+      <!-- share / screenshot button -->
+      <div class="map-actions">
+        <button id="shareMapBtn" class="btn">Share Map</button>
+      </div>
+    </div>
+
+    <!-- country drawer -->
+    <aside id="countryDrawer" class="country-drawer" aria-hidden="true">
+      <button id="drawerClose" class="drawer-close" aria-label="Close">✕</button>
+      <h3 id="drawerTitle">Country — 0</h3>
+      <div id="drawerList" class="drawer-list"></div>
+    </aside>
   </section>
+
+  <!-- html2canvas CDN for screenshot (can be moved to bottom of body) -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <!-- FOOTER -->
   <footer class="footer fade-section">
