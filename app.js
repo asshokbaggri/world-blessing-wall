@@ -1286,3 +1286,81 @@ function openDrawer(code, list) {
 document.addEventListener("DOMContentLoaded", () => {
     if (document.getElementById("mapWrap")) initWorldMapD3();
 });
+
+// FIRESTORE → COUNTRY DATA
+async function loadCountryCounts() {
+  const q = query(collection(db, "blessings"), orderBy("timestamp", "desc"));
+  const snap = await getDocs(q);
+
+  const result = {};
+
+  snap.forEach(d => {
+    const cc = (d.data().countryCode || "").toUpperCase();
+    if (!cc || !COUNTRY_COORDS[cc]) return;
+
+    if (!result[cc]) result[cc] = [];
+    result[cc].push(d.data());
+  });
+
+  return result;
+}
+
+// DOT DRAWING
+async function drawDots() {
+  const data = await loadCountryCounts();
+
+  let global = 0;
+  Object.values(data).forEach(arr => global += arr.length);
+  animateCount(document.getElementById("globalCountNum"), global);
+
+  const dotLayer = document.getElementById("dotLayer");
+  dotLayer.innerHTML = "";
+
+  const W = document.getElementById("worldSVG").getBoundingClientRect().width;
+  const H = document.getElementById("worldSVG").getBoundingClientRect().height;
+
+  const scaleX = (lon) => ((lon + 180) / 360) * W;
+  const scaleY = (lat) => ((90 - lat) / 180) * H;
+
+  Object.keys(data).forEach(code => {
+    const coords = COUNTRY_COORDS[code];
+    const list = data[code];
+
+    const dot = document.createElement("div");
+    dot.className = "country-dot size-m";
+    dot.style.left = scaleX(coords.lon) + "px";
+    dot.style.top  = scaleY(coords.lat) + "px";
+    dot.dataset.code = code;
+
+    dot.onclick = () => openCountryDrawer(code, list);
+
+    dotLayer.appendChild(dot);
+  });
+}
+
+function openCountryDrawer(code, list) {
+  const drawer = document.getElementById("countryDrawer");
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerList = document.getElementById("drawerList");
+
+  drawerTitle.textContent = `${COUNTRY_COORDS[code].name} — ${list.length} blessings`;
+  drawerList.innerHTML = "";
+
+  list.forEach(b => {
+    const card = document.createElement("div");
+    card.className = "blessing-card";
+    card.innerHTML = `
+      <b>${b.text}</b>
+      ${b.username ? `<div class="blessing-username">— ${b.username}</div>` : ""}
+    `;
+    drawerList.appendChild(card);
+  });
+
+  drawer.classList.add("open");
+}
+
+document.getElementById("drawerClose").onclick = () =>
+  document.getElementById("countryDrawer").classList.remove("open");
+
+// Start dots after map loads
+setTimeout(drawDots, 800);
