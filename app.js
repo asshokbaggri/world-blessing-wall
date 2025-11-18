@@ -1050,7 +1050,7 @@ async function loadTrendingBlessings() {
   const qTrend = query(
     collection(db, "blessings"),
     orderBy("reads", "desc"),
-    limit(4)
+    limit(5)
   );
 
   const snap = await getDocs(qTrend);
