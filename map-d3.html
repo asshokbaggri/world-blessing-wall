@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>World Map — Dark Premium (D3)</title>
+
+<!-- D3 v7 -->
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+
+<style>
+  /* Minimal dark-premium styling to match your site */
+  :root{
+    --bg:#0b0e12;
+    --panel: rgba(27,34,48,0.6);
+    --muted:#9aa6b8;
+    --gold: #ffd78a;
+  }
+  body{
+    margin:0;
+    font-family: Inter, system-ui, sans-serif;
+    background: linear-gradient(180deg,#0a0c0f,#12151a);
+    color:#eee;
+    display:flex;
+    justify-content:center;
+    padding:36px;
+  }
+
+  .map-wrap {
+    width:min(1100px,92vw);
+    max-width:1100px;
+    border-radius:14px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    padding:18px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.6);
+    position:relative;
+  }
+
+  .map-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .map-title{ font-family: "Playfair Display", serif; font-size:20px; color: #fff; }
+  .map-actions { color:var(--muted); }
+
+  /* SVG container */
+  svg#d3map {
+    width:100%;
+    height:520px;
+    display:block;
+    border-radius:12px;
+    overflow:visible;
+    background: linear-gradient(180deg, rgba(10,12,15,0.6), rgba(20,24,33,0.6));
+  }
+
+  .countries path{
+    fill:#111318;
+    stroke: rgba(255,255,255,0.04);
+    stroke-width:0.8;
+  }
+  .countries path:hover{
+    fill: rgba(255,255,255,0.03);
+  }
+
+  /* dots */
+  g.dots circle{
+    fill: radial-gradient(circle at 30% 30%, #fff7d3, #ffd36a); /* not supported in SVG fill attr — we use solid + glow */
+    fill: #ffd88a;
+    stroke: rgba(255,220,120,0.12);
+    stroke-width: 0.6;
+    filter: drop-shadow(0 6px 18px rgba(255,200,100,0.14));
+    opacity: 0.95;
+    cursor: pointer;
+    transform-origin: center;
+    transition: r .18s ease;
+  }
+  g.dots circle:hover{
+    transform: scale(1.18);
+    opacity:1;
+  }
+
+  /* global dot sizes */
+  .size-s { r: 4; }
+  .size-m { r: 7; }
+  .size-l { r: 12; }
+
+  /* tooltip */
+  .tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: rgba(12,14,18,0.9);
+    color: #fff;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    border: 1px solid rgba(255,255,255,0.04);
+    transform: translate(-50%, -130%);
+    white-space: nowrap;
+  }
+  .drawer {
+    position:absolute;
+    right:18px;
+    bottom:18px;
+    width:360px;
+    max-width:40%;
+    background: linear-gradient(180deg, rgba(20,24,32,0.98), rgba(12,14,18,0.95));
+    border-radius:12px;
+    padding:12px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    display:none;
+    z-index:50;
+  }
+  .drawer.open { display:block; }
+
+  .drawer h3 { margin:0 0 8px 0; color:var(--gold); font-size:16px; }
+  .drawer .list { max-height:40vh; overflow:auto; padding-top:6px; }
+  .drawer .card { background: rgba(255,255,255,0.03); margin-bottom:8px; border-radius:8px; padding:8px; font-size:13px; }
+  .drawer .close { float:right; background:transparent; border:none; color:var(--muted); font-size:16px; cursor:pointer; }
+
+  @media (max-width:720px){
+    svg#d3map { height:360px; }
+    .drawer { left:10px; right:10px; width:auto; max-width:calc(100% - 20px); }
+  }
+</style>
+</head>
+<body>
+
+  <div class="map-wrap" id="mapWrap">
+    <div class="map-header">
+      <div class="map-title">🌍 Blessings Around The World</div>
+      <div class="map-actions">Tap a dot to open country details</div>
+    </div>
+
+    <!-- svg -->
+    <svg id="d3map" viewBox="0 0 2000 1000" preserveAspectRatio="xMidYMid meet" role="img" aria-label="World map"></svg>
+
+    <!-- tooltip -->
+    <div id="mapTooltip" class="tooltip" style="display:none;"></div>
+
+    <!-- drawer -->
+    <aside id="mapDrawer" class="drawer" aria-hidden="true">
+      <button id="drawerClose" class="close">✕</button>
+      <h3 id="drawerTitle">Country — 0</h3>
+      <div id="drawerList" class="list"></div>
+    </aside>
+  </div>
+
+<script>
+(async function(){
+  const svg = d3.select("#d3map");
+  const width = 2000; // viewBox width
+  const height = 1000; // viewBox height
+
+  const projection = d3.geoMercator()
+                       .scale(1)
+                       .translate([0,0]);
+
+  const path = d3.geoPath().projection(projection);
+
+  // groups
+  const gCountries = svg.append("g").attr("class","countries");
+  const gDots = svg.append("g").attr("class","dots");
+
+  // tooltip / drawer
+  const tooltip = document.getElementById("mapTooltip");
+  const drawer = document.getElementById("mapDrawer");
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerList = document.getElementById("drawerList");
+  document.getElementById("drawerClose").onclick = ()=> drawer.classList.remove("open");
+
+  // load geojson (change path if needed)
+  const geo = await d3.json("world.geojson");
+
+  // compute bounds & set projection scale/translate to fit viewBox
+  const b = path.bounds(geo);
+  const s = 0.95 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height);
+  const t = [
+    (width - s * (b[1][0] + b[0][0])) / 2,
+    (height - s * (b[1][1] + b[0][1])) / 2
+  ];
+  projection.scale(s).translate(t);
+
+  // draw countries
+  gCountries.selectAll("path")
+    .data(geo.features)
+    .enter()
+    .append("path")
+    .attr("d", path)
+    .attr("data-name", d => d.properties && (d.properties.name || d.properties.NAME || "") )
+    .attr("data-iso", d => (d.id || d.properties?.ISO_A2 || d.properties?.iso_a2 || "").toUpperCase());
+
+  // build index by ISO2 for quick centroid lookup
+  const featureByISO = {};
+  geo.features.forEach(f => {
+    const iso = (f.id || f.properties?.ISO_A2 || f.properties?.iso_a2 || "").toUpperCase();
+    if (iso) featureByISO[iso] = f;
+    // also try numeric id keys or other props if needed
+  });
+
+  // helper exposed: placeDots(mapData)
+  // mapData = { "IN": { count: 12, blessings: [...] }, "US": { count: 4, blessings: [...] } }
+  window.placeDots = function(mapData = {}) {
+    // convert to array of {iso, count, blessings, x, y}
+    const items = [];
+    for (const iso in mapData) {
+      const feat = featureByISO[iso];
+      if (!feat) {
+        // fallback: try find match by name (case-insensitive)
+        const name = mapData[iso].name || "";
+        const found = geo.features.find(f => {
+          const n = (f.properties?.name || f.properties?.NAME || "").toLowerCase();
+          return n === String(name).toLowerCase();
+        });
+        if (found) {
+          const [cx,cy] = path.centroid(found);
+          items.push({
+            iso: iso,
+            count: mapData[iso].count || 1,
+            blessings: mapData[iso].blessings || [],
+            x: cx, y: cy,
+            name: found.properties?.name || found.properties?.NAME || iso
+          });
+        }
+        continue;
+      }
+      const [cx, cy] = path.centroid(feat);
+      // centroid can be NaN for tiny polygons; skip those
+      if (!isFinite(cx) || !isFinite(cy)) continue;
+      items.push({
+        iso,
+        count: mapData[iso].count || 1,
+        blessings: mapData[iso].blessings || [],
+        x: cx, y: cy,
+        name: feat.properties?.name || feat.properties?.NAME || iso
+      });
+    }
+
+    // bind
+    const dots = gDots.selectAll("circle").data(items, d => d.iso);
+
+    // exit
+    dots.exit().transition().duration(260).attr("r",0).remove();
+
+    // update
+    dots.attr("cx", d=>d.x).attr("cy", d=>d.y)
+        .attr("r", d => sizeByCount(d.count))
+        .attr("opacity", 1);
+
+    // enter
+    const enter = dots.enter().append("circle")
+      .attr("cx", d=>d.x)
+      .attr("cy", d=>d.y)
+      .attr("r", 0)
+      .attr("fill", "#ffd38a")
+      .attr("stroke", "rgba(255,200,120,0.12)")
+      .attr("data-iso", d=>d.iso)
+      .style("filter","drop-shadow(0 10px 30px rgba(255,190,70,0.18))")
+      .on("mouseenter", (event,d)=>{
+         tooltip.style.display = "block";
+         tooltip.textContent = `${d.name} — ${d.count} blessings`;
+      })
+      .on("mousemove", (event,d)=>{
+         tooltip.style.left = (event.clientX) + "px";
+         tooltip.style.top  = (event.clientY - 18) + "px";
+      })
+      .on("mouseleave", ()=>{
+         tooltip.style.display = "none";
+      })
+      .on("click", (event,d)=>{
+         openDrawerFor(d);
+      });
+
+    enter.transition().duration(380).attr("r", d => sizeByCount(d.count));
+
+    // helper to open drawer
+    function openDrawerFor(d){
+      drawerTitle.textContent = `${d.name} — ${d.count} blessings`;
+      drawerList.innerHTML = "";
+      if ((d.blessings || []).length === 0) {
+        drawerList.innerHTML = "<div style='color:var(--muted)'>No blessings found</div>";
+      } else {
+        d.blessings.slice(0,50).forEach(b => {
+          const div = document.createElement("div");
+          div.className = "card";
+          const username = b.username ? `<div style="color:var(--muted);font-size:12px">— ${escapeHtml(b.username)}</div>` : "";
+          div.innerHTML = `<div style="font-weight:600">${escapeHtml(b.text)}</div>${username}<div style="font-size:11px;color:var(--muted)">${escapeHtml(b.time || '')}</div>`;
+          drawerList.appendChild(div);
+        });
+      }
+      drawer.classList.add("open");
+    }
+
+    // sizing helper
+    function sizeByCount(count){
+      if (count > 200) return 16;
+      if (count > 50) return 10;
+      if (count > 10) return 8;
+      return 6;
+    }
+
+    // small helper
+    function escapeHtml(s){ return String(s || "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
+  };
+
+  // expose also a helper to clear dots
+  window.clearMapDots = function(){ gDots.selectAll("circle").remove(); drawer.classList.remove("open"); tooltip.style.display="none"; };
+
+  // ready notice
+  console.info("D3 map ready — call placeDots(mapData) with your country grouping object (ISO2 keys).");
+})();
+</script>
+</body>
+</html>
