@@ -1110,3 +1110,181 @@ window.addEventListener("load", revealOnScroll);
 
 // ---------- Start "My Blessings" UI quick hint (runs after client ready) ----------
 console.info("World Blessing Wall — app.js v1.2 loaded (My-Blessings + username)");
+
+// ---------- Phase 6 Map JS ----------
+// call initWorldMap() after DOMContentLoaded or on page ready
+function initWorldMap() {
+  const svgContainer = document.getElementById('svgContainer');
+  const dotLayer = document.getElementById('dotLayer');
+  const globalCountNum = document.getElementById('globalCountNum');
+  const drawer = document.getElementById('countryDrawer');
+  const drawerTitle = document.getElementById('drawerTitle');
+  const drawerList = document.getElementById('drawerList');
+  const shareBtn = document.getElementById('shareMapBtn');
+
+  // sample data (replace with your API results)
+  const countries = {
+    IN: { name: 'India', lat: 22.0, lon: 78.0, count: 342, blessings: [
+      { text:'Jai shree ram — — Asshok', time:'yesterday' },
+      { text:'Ram ji Ram sa — Mehul', time:'2 days ago' }
+    ]},
+    BR: { name: 'Brazil', lat: -14.2, lon: -51.9, count: 68, blessings: [ {text:'Brazil blessing', time:'today'} ]},
+    US: { name: 'United States', lat: 37.1, lon: -95.7, count: 184, blessings: [ {text:'US blessing', time:'today'} ]},
+    // add more...
+  };
+
+  // GLOBAL COUNT from data
+  let globalCount = Object.values(countries).reduce((s,c)=>s+(c.count||0),0);
+  globalCountNum.textContent = globalCount;
+
+  // load world svg file and insert
+  fetch('/world.svg') // ensure file exists
+    .then(r => r.text())
+    .then(svgText => {
+      svgContainer.innerHTML = svgText;
+      // make svg responsive
+      const svg = svgContainer.querySelector('svg');
+      if(svg){
+        svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+        svg.style.width = '100%';
+        svg.style.height = '100%';
+      }
+      // After svg loaded, place dots
+      placeAllDots();
+    })
+    .catch(err => {
+      // fallback: show placeholder rectangle
+      svgContainer.innerHTML = '<div style="color:var(--text-dim)">Map failed to load — put world.svg in site root.</div>';
+      console.error('SVG load failed', err);
+    });
+
+  // equirectangular projection: convert lat/lon to x,y inside svg container dimensions
+  function lonLatToXY(lon, lat, w, h){
+    // lon in [-180,180], lat in [-90,90]
+    // equirectangular: x = (lon+180)/360 * w ; y = (90-lat)/180 * h
+    const x = ((lon + 180) / 360) * w;
+    const y = ((90 - lat) / 180) * h;
+    return { x, y };
+  }
+
+  // place dots by iterating countries
+  function placeAllDots(){
+    const rect = svgContainer.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+    dotLayer.innerHTML = '';
+    for(const code in countries){
+      const c = countries[code];
+      if(!c.lat || !c.lon) continue;
+      const pos = lonLatToXY(c.lon, c.lat, w, h);
+      const el = document.createElement('div');
+      el.className = 'country-dot';
+      // size class
+      if(c.count > 200) el.classList.add('size-l');
+      else if(c.count > 60) el.classList.add('size-m');
+      else el.classList.add('size-s');
+      el.style.left = pos.x + 'px';
+      el.style.top = pos.y + 'px';
+      el.setAttribute('data-code', code);
+      el.setAttribute('title', `${c.name} — ${c.count} blessings`);
+      el.style.pointerEvents = 'auto';
+      dotLayer.appendChild(el);
+
+      el.addEventListener('click', (e) => {
+        openDrawerFor(code);
+        e.stopPropagation();
+      });
+
+      // slight randomized pulse phase
+      if(Math.random()>0.35) el.classList.add('pulse');
+    }
+  }
+
+  // handle window resize -> reposition dots
+  window.addEventListener('resize', debounce(()=> placeAllDots(), 180));
+
+  // open drawer
+  function openDrawerFor(code){
+    const c = countries[code];
+    if(!c) return;
+    drawerTitle.textContent = `${c.name} — ${c.count} blessings`;
+    drawerList.innerHTML = '';
+    (c.blessings || []).forEach(b => {
+      const card = document.createElement('div');
+      card.className = 'blessing-card';
+      card.innerHTML = `<b>${b.text}</b><div class="reads">${b.time}</div>`;
+      drawerList.appendChild(card);
+    });
+    drawer.classList.add('open');
+  }
+
+  // close drawer
+  document.getElementById('drawerClose').addEventListener('click', () => drawer.classList.remove('open'));
+
+  // update function to call when a new blessing is added in a country
+  function updateCountryCount(code, delta=1, newBlessing=null){
+    const c = countries[code];
+    if(!c) return;
+    c.count += delta;
+    if(newBlessing) c.blessings = c.blessings || [], c.blessings.unshift(newBlessing);
+
+    // update global
+    globalCount += delta;
+    animateCount(globalCountNum, globalCount);
+
+    // find dot element and pop
+    const dot = dotLayer.querySelector(`[data-code="${code}"]`);
+    if(dot){
+      dot.classList.add('pop');
+      setTimeout(()=> dot.classList.remove('pop'), 550);
+      // adjust size class if thresholds crossed
+      dot.classList.remove('size-s','size-m','size-l');
+      if(c.count > 200) dot.classList.add('size-l');
+      else if(c.count > 60) dot.classList.add('size-m');
+      else dot.classList.add('size-s');
+      dot.setAttribute('title', `${c.name} — ${c.count} blessings`);
+    }
+  }
+
+  // simple count animation (fast)
+  function animateCount(el, value){
+    // quick number change anim
+    el.textContent = value;
+    el.classList.add('counter-anim');
+    setTimeout(()=> el.classList.remove('counter-anim'), 420);
+  }
+
+  // share map — minimal clean shot using html2canvas
+  shareBtn.addEventListener('click', async () => {
+    const wrap = document.querySelector('.map-wrap');
+    wrap.classList.add('share-mode'); // hide UI
+    // small delay so styles settle
+    await sleep(220);
+    html2canvas(wrap, { backgroundColor: null, useCORS: true, scale: 2 }).then(canvas => {
+      // produce image
+      const data = canvas.toDataURL('image/png');
+      // download
+      const a = document.createElement('a');
+      a.href = data;
+      a.download = 'blessings-map.png';
+      a.click();
+      wrap.classList.remove('share-mode');
+    }).catch(err=>{
+      console.error('html2canvas error',err);
+      wrap.classList.remove('share-mode');
+    });
+  });
+
+  // small helpers
+  function sleep(ms){ return new Promise(res=>setTimeout(res, ms)); }
+  function debounce(fn, t){ let id; return ()=> { clearTimeout(id); id = setTimeout(fn, t); }; }
+
+  // expose update function globally for live updates
+  window.updateCountryCount = updateCountryCount;
+  window.worldMapData = countries;
+}
+
+// init
+document.addEventListener('DOMContentLoaded', () => {
+  if(document.getElementById('mapWrap')) initWorldMap();
+});
