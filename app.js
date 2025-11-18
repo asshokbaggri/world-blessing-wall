@@ -1165,8 +1165,10 @@ function initWorldMap() {
 
     // GLOBAL COUNT
     let global = 0;
-    Object.values(mapData).forEach((c) => (global += c.count));
-    globalCountNum.textContent = global;
+    Object.values(mapData).forEach((c) => global += c.count);
+
+    // Smooth animation
+    animateCount(globalCountNum, global);
 
     // PLACE DOTS
     renderDots(mapData);
