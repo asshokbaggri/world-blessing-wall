@@ -775,3 +775,137 @@ footer,
   padding: 0 16px;
   width: 100%;
 }
+
+/* ---------- WORLD MAP (PHASE 6) ---------- */
+.map-wrap {
+  width: min(1100px, 92vw);
+  margin: 18px auto 60px;
+  position: relative;
+  border-radius: 14px;
+  overflow: visible;
+}
+
+/* svg container (responsive) */
+.svg-container{
+  position: relative;
+  width: 100%;
+  height: 420px;
+  background: linear-gradient(180deg, rgba(10,12,15,0.6), rgba(20,24,33,0.6));
+  border-radius: 14px;
+  border:1px solid rgba(255,255,255,0.04);
+  backdrop-filter: blur(6px);
+  overflow: hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* layer for dots (absolute coords) */
+.dot-layer{
+  position:absolute;
+  inset:0;
+  pointer-events:none; /* dots will have pointer-events via children set individually */
+}
+
+/* dot base */
+.country-dot{
+  position:absolute;
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  background: radial-gradient(circle at 40% 30%, #fff3c8, #ffd36a 40%, #f0a73b 60%, rgba(240,167,59,0.7) 100%);
+  box-shadow: 0 0 8px rgba(255,205,120,0.6);
+  transform: translate(-50%, -50%) scale(1);
+  transition: transform .22s ease, box-shadow .22s ease, opacity .3s ease;
+  pointer-events:auto;
+}
+
+/* dot sizes for counts (small, medium, large) */
+.country-dot.size-s { width:10px; height:10px; }
+.country-dot.size-m { width:16px; height:16px; }
+.country-dot.size-l { width:22px; height:22px; }
+
+/* pulse animation */
+@keyframes dotPulse {
+  0% { box-shadow: 0 0 6px rgba(255,210,120,0.25); transform: translate(-50%, -50%) scale(1); }
+  50% { box-shadow: 0 0 18px rgba(255,210,120,0.55); transform: translate(-50%, -50%) scale(1.08); }
+  100% { box-shadow: 0 0 6px rgba(255,210,120,0.25); transform: translate(-50%, -50%) scale(1); }
+}
+
+.country-dot.pulse { animation: dotPulse 2.6s infinite ease-in-out; }
+
+/* pop effect on new blessing */
+.country-dot.pop {
+  transform: translate(-50%, -50%) scale(1.35);
+  box-shadow: 0 0 28px rgba(255,225,150,0.9);
+  transition: transform .28s cubic-bezier(.2,.9,.3,1), box-shadow .28s ease;
+}
+
+/* global count small badge */
+.global-count{
+  position:absolute;
+  right:18px;
+  top:14px;
+  background: rgba(0,0,0,0.32);
+  color: #ffe8b3;
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,0.06);
+  font-weight:700;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+}
+
+/* actions */
+.map-actions { position:absolute; left:18px; top:14px; }
+.map-actions .btn { padding:8px 12px; }
+
+/* Drawer (glass) */
+.country-drawer {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: min(520px, 90vw);
+  max-height: 70vh;
+  background: linear-gradient(180deg, rgba(20,24,32,0.98), rgba(12,14,18,0.95));
+  border-radius: 14px;
+  border:1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+  padding: 16px;
+  overflow:auto;
+  transform: translateY(12px);
+  opacity:0;
+  transition: transform .28s cubic-bezier(.2,.9,.3,1), opacity .28s ease;
+  z-index:9999;
+  pointer-events:none;
+}
+
+/* drawer open */
+.country-drawer.open {
+  transform: translateY(0);
+  opacity:1;
+  pointer-events:auto;
+}
+
+/* close button */
+.drawer-close {
+  position:absolute;
+  right:10px; top:8px;
+  background:transparent; border:none; color:var(--text-dim); font-size:18px;
+}
+
+/* drawer list items (blessing cards) */
+.drawer-list .blessing-card { margin-bottom:10px; }
+
+/* SHARE mode — hides UI and expands map for screenshot */
+.map-wrap.share-mode .global-count,
+.map-wrap.share-mode .map-actions,
+.menu, header, footer { opacity:0; pointer-events:none; transition:opacity .18s ease; }
+.map-wrap.share-mode .svg-container { height: 560px; border-radius:8px; }
+
+/* responsive */
+@media (max-width:720px){
+  .svg-container{ height:360px; }
+  .country-drawer { left:10px; right:10px; bottom:18px; width: calc(100% - 20px); max-height:55vh; }
+}
