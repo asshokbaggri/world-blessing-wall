@@ -915,7 +915,7 @@ footer,
     width: 100%;
     max-width: 850px;
     margin: auto;
-    overflow: hidden;
+    overflow: visible !important;
 }
 
 .svg-container {
@@ -924,8 +924,10 @@ footer,
 }
 
 #dotLayer {
-  position: absolute;
-  z-index: 3 !important;
+    position: absolute;
+    inset: 0;
+    z-index: 5 !important;
+    pointer-events: none;
 }
 
 .map-actions,
