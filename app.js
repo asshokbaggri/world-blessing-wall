@@ -1197,8 +1197,9 @@ function initWorldMap() {
     dotLayer.innerHTML = "";
 
     const svg = document.getElementById("worldSVG");
-    const W = svg.viewBox.baseVal.width;
-    const H = svg.viewBox.baseVal.height;
+    const rect = svg.getBoundingClientRect();
+    const W = rect.width;
+    const H = rect.height;
 
     for (const code in data) {
       const c = data[code];
