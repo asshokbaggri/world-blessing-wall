@@ -1111,147 +1111,178 @@ window.addEventListener("load", revealOnScroll);
 // ---------- Start "My Blessings" UI quick hint (runs after client ready) ----------
 console.info("World Blessing Wall — app.js v1.2 loaded (My-Blessings + username)");
 
-// ---------- Phase 6 Map JS (REAL FIRESTORE DATA) ----------
+/* ============================================================
+   D3 WORLD MAP — FINAL MODULE
+   Replaces old map logic completely
+   ============================================================ */
 
-// COUNTRY COORDS
-const COUNTRY_COORDS = {
-  IN: { lat: 22.0, lon: 78.0, name: "India" },
-  US: { lat: 37.1, lon: -95.7, name: "United States" },
-  BR: { lat: -14.2, lon: -51.9, name: "Brazil" },
-  AE: { lat: 24.0, lon: 54.0, name: "United Arab Emirates" },
-  GB: { lat: 54.8, lon: -4.6, name: "United Kingdom" },
-  CA: { lat: 56.1, lon: -106.3, name: "Canada" },
-  AU: { lat: -25.0, lon: 133.0, name: "Australia" },
-  SG: { lat: 1.35, lon: 103.8, name: "Singapore" },
-  NP: { lat: 28.3, lon: 84.0, name: "Nepal" },
-  PK: { lat: 30.4, lon: 69.3, name: "Pakistan" },
-  BD: { lat: 23.6, lon: 90.4, name: "Bangladesh" }
-};
+import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
-function initWorldMap() {
-  const svgContainer = document.getElementById("svgContainer");
-  const dotLayer = document.getElementById("dotLayer");
-  const globalCountNum = document.getElementById("globalCountNum");
-  const drawer = document.getElementById("countryDrawer");
-  const drawerTitle = document.getElementById("drawerTitle");
-  const drawerList = document.getElementById("drawerList");
+/* GEOJSON FILE (YOUR FINAL WORLD FILE) */
+const WORLD_JSON_URL = "world.geojson";
 
-  svgContainer.innerHTML = `
-  <svg id="worldSVG" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1001" preserveAspectRatio="xMidYMid meet">
-    <rect width="2000" height="1001" fill="transparent"/>
-    <g fill="#2b2b2b" stroke="#444" stroke-width="1">
-      <path d="M536 176l4 1 4-2 5 3 5-5 3 2 6-3 4-1 8 4-1 3 7-3 3 2-1 4-8 2-2 6 5 8 1 3-6-1-6 5-7-2-5 4-3-1-3 4-7 0-2 2-5-1-3-3-6 2-4-1-3 3-4-3-4 1-5-5-6 1-4-4-4 2-3-2-6 2-4-3-3 1-4-4-5 1-4-3-3 1-3-3-6 1-3-2-5 2-4-3-4 2-5-3-4 3-6-1-3 2-6-2-3 2-6-4-4 2-3-3-5 2-5-3-3 2-4-3-6 1-3-3-6 2-4-2-5 3-4-2-4 2-6-3-4 2-4-3-5 2-5-3-4 2-5-3-4 2-4-3-5 2-4-3-5 2-4-2-6 3-3-3-6 3-3-3-6 4-3-3-6 4-4-3-6 3-4-4-6 4-3-4-7 4-3-4-7 4-3-5-7 4-4-5-7 4-3-5-7 4-3-5-8 5-3-6-8 6-3-6-9 7-4-7-9 7-4-7-9 8-4-8-10 8-5-8-10 9-5-8-11 9-5-8-11 9-5-9-11 10-5-9-12 10-6-9-12 10-6-9-12 11-6-10-13 11-7-10-13 11-6-11-13 12-7-12-13 12-7-12-14 12-7-12-14 13-7-13-14 13-8-13-14 13-8-13-14 14-8-14-15 14-8-14-15 14-8-14-15 15-8-15-15 15-8-15-16 15-8-15-16 15-8-16-15 15-9-15-16 15-8-15-16 15-9-16-15 16-8-16-15 16-9-15-16 15-8-15-16 15-8-15-16 15"/>
-      <!-- Asia, Africa, Americas, Europe — FULL WORLD MAP PATHS -->
-      <!-- (compressed but 100% accurate shape) -->
-      <path d="M1070 245l12-8 10 4 7-3 8 2 6-4 9 1 4-4 9-1 6-6 11-4 9 3 8-4 10 1 6 5 10-2 8 5 12-6 10 4 9-3 7 4 11-2 12 6 8-4 11 4 10-2 9 5 11-1 6 6 12-4 10 6 8-3 10 5 9-2 8 6 10-4 7 6 11-4 8 7 10-3 9 8 10-2 9 9 11-1 7 11 11 0 6 13 10 1 5 14 10 3 3 15 10 5 2 16 9 6 2 17 8 8-2 18 6 10-1 18 5 11-3 19 4 12-4 19 4 13-5 19 3 14-6 19 2 15-7 19 1 16-8 19-8 18-9 18-11 17-12 16-14 15-16 14-18 12-20 10-21 8-22 5-22 3-23 0-23-3-22-5-21-8-19-10-17-12-15-14-13-15-11-17-9-18-7-19-5-20-2-21 0-22 3-22 5-22 8-21 11-19 13-17 16-15 18-13 21-10 22-7 24-4 26-2z"/>
-    </g>
-  </svg>
-  `;
+/* MAP INIT */
+function initWorldMapD3() {
+    const wrap = document.getElementById("mapWrap");
+    if (!wrap) return;
 
-  loadMapData();
+    const svgContainer = document.getElementById("svgContainer");
+    const dotLayer = document.getElementById("dotLayer");
+    const globalCountNum = document.getElementById("globalCountNum");
 
-  // 2) FIRESTORE → COUNTRY GROUPING
-  async function loadMapData() {
-    const blessingsSnap = await getDocs(
-      query(collection(db, "blessings"), orderBy("timestamp", "desc"))
-    );
-
-    const mapData = {}; // { IN: {count, blessings} }
-
-    blessingsSnap.forEach((doc) => {
-      const d = doc.data();
-      const cc = (d.countryCode || "").toUpperCase();
-      if (!cc) return;
-      if (!COUNTRY_COORDS[cc]) return; // skip unknown
-
-      if (!mapData[cc]) mapData[cc] = { count: 0, blessings: [] };
-
-      mapData[cc].count++;
-      mapData[cc].blessings.push({
-        text: d.text,
-        time: timeAgo(d.timestamp),
-        username: d.username || "",
-        country: d.country
-      });
-    });
-
-    // GLOBAL COUNT
-    let global = 0;
-    Object.values(mapData).forEach((c) => global += c.count);
-
-    // Smooth animation
-    animateCount(globalCountNum, global);
-
-    // PLACE DOTS
-    renderDots(mapData);
-  }
-
-  // 3) PLACE DOTS
-  function lonLatToXY(lon, lat, w, h) {
-    const x = ((lon + 180) / 360) * w;
-    const y = ((90 - lat) / 180) * h;
-    return { x, y };
-  }
-
-  function renderDots(data) {
+    /* CLEAN UP OLD MAP */
+    svgContainer.innerHTML = "";
     dotLayer.innerHTML = "";
 
-    const svg = document.getElementById("worldSVG");
-    const rect = svg.getBoundingClientRect();
-    const W = rect.width;
-    const H = rect.height;
+    /* CREATE SVG */
+    const svg = d3
+        .select("#svgContainer")
+        .append("svg")
+        .attr("width", "100%")
+        .attr("height", "100%")
+        .attr("id", "d3WorldMap");
 
-    for (const code in data) {
-      const c = data[code];
-      const coords = COUNTRY_COORDS[code];
-      if (!coords) continue;
-
-      const pos = lonLatToXY(coords.lon, coords.lat, W, H);
-
-      const d = document.createElement("div");
-      d.className = "country-dot";
-
-      // SIZE BASED ON COUNT
-      if (c.count > 200) d.classList.add("size-l");
-      else if (c.count > 50) d.classList.add("size-m");
-      else d.classList.add("size-s");
-
-      d.style.left = pos.x + "px";
-      d.style.top = pos.y + "px";
-      d.setAttribute("data-code", code);
-      d.title = `${coords.name} — ${c.count} blessings`;
-
-      d.addEventListener("click", () => openDrawer(code, data[code]));
-      dotLayer.appendChild(d);
+    /* RESPONSIVE SIZE */
+    function getSize() {
+        const r = wrap.getBoundingClientRect();
+        return { w: r.width, h: r.width * 0.50 }; // 2:1 ratio
     }
-  }
 
-  // 4) DRAWER
-  function openDrawer(code, obj) {
-    const coords = COUNTRY_COORDS[code];
-    drawerTitle.textContent = `${coords.name} — ${obj.count} blessings`;
+    function resizeSVG() {
+        const { w, h } = getSize();
+        svg.attr("viewBox", `0 0 ${w} ${h}`);
+    }
+    resizeSVG();
+    window.addEventListener("resize", resizeSVG);
 
+    /* PROJECTION */
+    const projection = d3
+        .geoMercator()
+        .scale(130)            // scale will be adjusted dynamically
+        .translate([400, 240]); // temporary, will adjust later
+
+    const path = d3.geoPath(projection);
+
+    /* LOAD GEOJSON + FIRESTORE */
+    Promise.all([
+        d3.json(WORLD_JSON_URL),
+        loadFirestoreBlessings()
+    ]).then(([geo, blessings]) => {
+
+        const { w, h } = getSize();
+
+        /* AUTO-FIT MAP INTO VIEWBOX */
+        const bounds = d3.geoBounds(geo);
+        const [[minLon, minLat], [maxLon, maxLat]] = bounds;
+
+        const s =
+            0.95 /
+            Math.max(
+                (maxLon - minLon) / w,
+                (maxLat - minLat) / h
+            );
+
+        projection
+            .scale(s * 140)
+            .translate([w / 2, h / 1.9]);
+
+        /* DRAW COUNTRIES */
+        svg
+            .selectAll("path")
+            .data(geo.features)
+            .enter()
+            .append("path")
+            .attr("d", path)
+            .attr("fill", "#1d1d1d")
+            .attr("stroke", "#555")
+            .attr("stroke-width", 0.5);
+
+        /* GROUP BLESSINGS BY COUNTRY CODE */
+        const grouped = groupByCountry(blessings);
+
+        /* UPDATE GLOBAL COUNT */
+        const globalTotal = blessings.length;
+        animateCount(globalCountNum, globalTotal);
+
+        /* PLACE DOTS */
+        dotLayer.innerHTML = ""; // clear
+
+        for (const countryCode in grouped) {
+            const f = geo.features.find(
+                x =>
+                    (x.id || x.properties.ISO_A2 || "").toUpperCase() ===
+                    countryCode
+            );
+            if (!f) continue;
+
+            /* CENTROID CALCULATION */
+            const [x, y] = path.centroid(f);
+
+            const count = grouped[countryCode].length;
+
+            let sizeClass = "size-s";
+            if (count > 200) sizeClass = "size-l";
+            else if (count > 50) sizeClass = "size-m";
+
+            const dot = document.createElement("div");
+            dot.className = "country-dot " + sizeClass;
+            dot.style.left = x + "px";
+            dot.style.top = y + "px";
+            dot.dataset.code = countryCode;
+
+            dot.onclick = () => openDrawer(countryCode, grouped[countryCode]);
+
+            dotLayer.appendChild(dot);
+        }
+    });
+}
+
+/* ------- FIRESTORE LOAD ------- */
+async function loadFirestoreBlessings() {
+    const snap = await getDocs(
+        query(collection(db, "blessings"), orderBy("timestamp", "desc"))
+    );
+    let arr = [];
+    snap.forEach((d) => arr.push(d.data()));
+    return arr;
+}
+
+/* ------- GROUP BY COUNTRY ------- */
+function groupByCountry(list) {
+    let map = {};
+    list.forEach((b) => {
+        const cc = (b.countryCode || "").toUpperCase();
+        if (!cc) return;
+        if (!map[cc]) map[cc] = [];
+        map[cc].push(b);
+    });
+    return map;
+}
+
+/* ------- DRAWER ------- */
+function openDrawer(code, list) {
+    const drawer = document.getElementById("countryDrawer");
+    const title = document.getElementById("drawerTitle");
+    const drawerList = document.getElementById("drawerList");
+
+    title.textContent = `${code} — ${list.length} blessings`;
     drawerList.innerHTML = "";
 
-    obj.blessings.slice(0, 50).forEach((b) => {
-      const card = document.createElement("div");
-      card.className = "blessing-card";
-      card.innerHTML = `
-        <b>${b.text}</b>
-        ${b.username ? `<div class="blessing-username">— ${b.username}</div>` : ""}
-        <small>${b.time}</small>
-      `;
-      drawerList.appendChild(card);
+    list.slice(0, 50).forEach((b) => {
+        const card = document.createElement("div");
+        card.className = "blessing-card";
+        card.innerHTML = `
+            <b>${b.text}</b>
+            ${b.username ? `<div class="blessing-username">— ${b.username}</div>` : ""}
+            <small>${timeAgo(b.timestamp)}</small>
+        `;
+        drawerList.appendChild(card);
     });
 
     drawer.classList.add("open");
-  }
-
-  document.getElementById("drawerClose").onclick = () =>
-    drawer.classList.remove("open");
 }
 
-// INIT
+/* RUN */
 document.addEventListener("DOMContentLoaded", () => {
-  if (document.getElementById("mapWrap")) initWorldMap();
+    if (document.getElementById("mapWrap")) initWorldMapD3();
 });
