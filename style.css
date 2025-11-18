@@ -763,11 +763,32 @@ footer,
   width: 100%;
 }
 
-/* Challenge box centering fix */
-.challenge-box {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding-left: 16px;
-  padding-right: 16px;
-  box-sizing: border-box;
+/* ---------------------------
+   ✨ TODAY'S CHALLENGE FIXED
+----------------------------*/
+#challengeBox {
+    max-width: 680px;              /* SAME as streak width */
+    width: 90%;                    /* Mobile friendly */
+    margin: 16px auto 40px auto;   /* Center always */
+    padding: 14px 20px;
+
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    backdrop-filter: blur(12px);
+
+    text-align: center;
+    font-size: 1rem;
+    color: #fff;
+
+    box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+}
+
+/* Mobile perfect size */
+@media (max-width: 600px) {
+    #challengeBox {
+        max-width: 94%;
+        padding: 14px 16px;
+        font-size: 0.95rem;
+    }
 }
