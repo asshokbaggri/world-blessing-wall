@@ -1112,175 +1112,93 @@ window.addEventListener("load", revealOnScroll);
 console.info("World Blessing Wall — app.js v1.2 loaded (My-Blessings + username)");
 
 /* ============================================================
-   🌍 WORLD MAP — FINAL D3 MODULE (ONLY WORKING VERSION)
+   🌍 WORLD MAP — FINAL FIXED D3 MODULE (DOTS + DRAWER WORKING)
    ============================================================ */
 
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
-/* Your world map file */
+/* World map geojson */
 const WORLD_JSON_URL = "world.geojson";
 
-/* MAIN MAP INIT */
-function initWorldMapD3() {
-    const wrap = document.getElementById("mapWrap");
-    if (!wrap) return;
+/* -------- FIXED NORMALIZER (Always extracts ISO code) -------- */
+function normalizeCountryForMap(input = "") {
+    const raw = (input || "").trim();
+    if (!raw) return { country: "", countryCode: "" };
 
-    const svgContainer = document.getElementById("svgContainer");
-    const dotLayer = document.getElementById("dotLayer");
-    const globalCountNum = document.getElementById("globalCountNum");
+    const parts = raw.split(/\s+/);
 
-    /* CLEAR OLD MAP */
-    svgContainer.innerHTML = "";
-    dotLayer.innerHTML = "";
-
-    /* CREATE NEW SVG */
-    const svg = d3
-        .select("#svgContainer")
-        .append("svg")
-        .attr("width", "100%")
-        .attr("height", "100%")
-        .attr("id", "d3WorldMap");
-
-    /* RESPONSIVE RATIO */
-    function getSize() {
-        const r = wrap.getBoundingClientRect();
-        return { w: r.width, h: r.width * 0.50 }; // 2:1
+    // Format: "IN India"
+    if (parts[0].length === 2) {
+        const cc = parts[0].toUpperCase();
+        const name = parts.slice(1).join(" ").trim();
+        return { country: name || cc, countryCode: cc };
     }
 
-    function resizeSVG() {
-        const { w, h } = getSize();
-        svg.attr("viewBox", `0 0 ${w} ${h}`);
-    }
-    resizeSVG();
-    window.addEventListener("resize", resizeSVG);
-
-    /* PROJECTION */
-    const projection = d3.geoMercator();
-    const path = d3.geoPath(projection);
-
-    /* LOAD GEOJSON + FIRESTORE DATA */
-    Promise.all([
-        d3.json(WORLD_JSON_URL).then(g => { window.__geoData = g; return g; }),
-        loadFirestoreBlessings()
-    ]).then(([geo, blessings]) => {
-
-        const { w, h } = getSize();
-
-        /* AUTO FIT WORLD INTO VIEW */
-        const bounds = d3.geoBounds(geo);
-        const [[minLon, minLat], [maxLon, maxLat]] = bounds;
-
-        const scale =
-            0.98 /
-            Math.max(
-                (maxLon - minLon) / w,
-                (maxLat - minLat) / h
-            );
-
-        projection
-            .scale(scale * 140)
-            .translate([w / 2, h / 1.8]);
-
-        /* DRAW COUNTRIES */
-        svg
-            .selectAll("path")
-            .data(geo.features)
-            .enter()
-            .append("path")
-            .attr("d", path)
-            .attr("fill", "#1f1f1f")
-            .attr("stroke", "#555")
-            .attr("stroke-width", 0.45);
-
-        /* --------- GROUP BLESSINGS BY COUNTRY -------- */
-        const grouped = groupByCountry(blessings);
-
-        /* GLOBAL TOTAL */
-        const globalTotal = blessings.length;
-        animateCount(globalCountNum, globalTotal);
-
-        /* --------- PLOT DOTS -------- */
-        dotLayer.innerHTML = "";
-
-        for (const countryCode in grouped) {
-            /* Find country in geojson */
-            const f = geo.features.find(
-                x =>
-                    (x.id ||
-                     x.properties.ISO_A2 ||
-                     "").toUpperCase() === countryCode
-            );
-            if (!f) continue;
-
-            /* centroid */
-            const [cx, cy] = path.centroid(f);
-
-            const count = grouped[countryCode].length;
-
-            let sizeClass = "size-s";
-            if (count > 200) sizeClass = "size-l";
-            else if (count > 50) sizeClass = "size-m";
-
-            /* DOT */
-            const dot = document.createElement("div");
-            dot.className = "country-dot " + sizeClass;
-            dot.style.left = cx + "px";
-            dot.style.top = cy + "px";
-            dot.dataset.code = countryCode;
-
-            dot.onclick = () =>
-                openDrawer(countryCode, grouped[countryCode]);
-
-            dotLayer.appendChild(dot);
-        }
-    });
+    return { country: raw, countryCode: "" };
 }
 
-/* --------- LOAD ALL BLESSINGS FROM FIRESTORE -------- */
-async function loadFirestoreBlessings() {
+/* --------- LOAD ALL BLESSINGS WITH FIXED PARSER -------- */
+async function loadBlessingsForMap() {
     const snap = await getDocs(
         query(collection(db, "blessings"), orderBy("timestamp", "desc"))
     );
     let arr = [];
-    snap.forEach((d) => arr.push(d.data()));
+
+    snap.forEach((d) => {
+        const data = d.data();
+
+        // FIX: enforce stable ISO code extraction
+        const { country, countryCode } =
+            normalizeCountryForMap(data.country || data.countryCode || "");
+
+        arr.push({
+            text: data.text || "",
+            username: data.username || "",
+            timestamp: data.timestamp || "",
+            country: country || "",
+            countryCode: countryCode || ""
+        });
+    });
+
     return arr;
 }
 
-/* --------- GROUP BLESSINGS INTO {IN: [], US: []} -------- */
-function groupByCountry(list, geo = window.__geoData) {
+/* --------- GROUP BY COUNTRY (SAFE MATCHING) -------- */
+function groupByCountryFixed(list, geo) {
     const result = {};
 
-    function resolveCode(b) {
+    list.forEach((b) => {
         let cc = (b.countryCode || "").toUpperCase();
-        if (cc && cc.length === 2) return cc;
-
-        const name = (b.country || "").trim().toLowerCase();
-        if (!name || !geo) return "";
-
-        const match = geo.features.find(f =>
-            f.properties.ADMIN?.toLowerCase() === name ||
-            f.properties.NAME?.toLowerCase() === name ||
-            f.properties.SOVEREIGNT?.toLowerCase() === name
-        );
-        if (match) {
-            return (match.id || match.properties.ISO_A2 || "").toUpperCase();
+        if (cc && cc.length === 2) {
+            if (!result[cc]) result[cc] = [];
+            result[cc].push(b);
+            return;
         }
 
-        return "";
-    }
+        // fallback: match by name
+        const name = (b.country || "").trim().toLowerCase();
+        if (!name) return;
 
-    list.forEach(b => {
-        const cc = resolveCode(b);
-        if (!cc) return;
+        const match = geo.features.find(f => {
+            const p = f.properties;
+            return (
+                p.ADMIN?.toLowerCase() === name ||
+                p.NAME?.toLowerCase() === name ||
+                p.SOVEREIGNT?.toLowerCase() === name
+            );
+        });
 
-        if (!result[cc]) result[cc] = [];
-        result[cc].push(b);
+        if (match) {
+            cc = (match.id || match.properties.ISO_A2 || "").toUpperCase();
+            if (!result[cc]) result[cc] = [];
+            result[cc].push(b);
+        }
     });
 
     return result;
 }
 
-/* --------- COUNTRY DRAWER -------- */
+/* -------- COUNTRY DRAWER -------- */
 function openDrawer(code, list) {
     const drawer = document.getElementById("countryDrawer");
     const title = document.getElementById("drawerTitle");
@@ -1289,7 +1207,7 @@ function openDrawer(code, list) {
     title.textContent = `${code} — ${list.length} blessings`;
     body.innerHTML = "";
 
-    list.slice(0, 80).forEach((b) => {
+    list.slice(0, 100).forEach((b) => {
         const card = document.createElement("div");
         card.className = "blessing-card";
         card.innerHTML = `
@@ -1306,7 +1224,112 @@ function openDrawer(code, list) {
 document.getElementById("drawerClose").onclick = () =>
     document.getElementById("countryDrawer").classList.remove("open");
 
-/* --------- MOUNT MAP -------- */
+/* ============================================================
+   INIT WORLD MAP
+   ============================================================ */
+function initWorldMapD3() {
+    const wrap = document.getElementById("mapWrap");
+    if (!wrap) return;
+
+    const svgContainer = document.getElementById("svgContainer");
+    const dotLayer = document.getElementById("dotLayer");
+    const globalCountNum = document.getElementById("globalCountNum");
+
+    // CLEAR OLD MAP
+    svgContainer.innerHTML = "";
+    dotLayer.innerHTML = "";
+
+    // SVG
+    const svg = d3
+        .select("#svgContainer")
+        .append("svg")
+        .attr("width", "100%")
+        .attr("height", "100%")
+        .attr("id", "d3WorldMap");
+
+    function getSize() {
+        const r = wrap.getBoundingClientRect();
+        return { w: r.width, h: r.width * 0.50 }; // 2:1 ratio
+    }
+
+    function resizeSVG() {
+        const { w, h } = getSize();
+        svg.attr("viewBox", `0 0 ${w} ${h}`);
+    }
+    resizeSVG();
+    window.addEventListener("resize", resizeSVG);
+
+    const projection = d3.geoMercator();
+    const path = d3.geoPath(projection);
+
+    // LOAD MAP + FIRESTORE
+    Promise.all([
+        d3.json(WORLD_JSON_URL),
+        loadBlessingsForMap()
+    ]).then(([geo, blessings]) => {
+        window.__GEO = geo;
+
+        const { w, h } = getSize();
+
+        // FIT WORLD
+        const [[minLon, minLat], [maxLon, maxLat]] = d3.geoBounds(geo);
+
+        const scale =
+            0.98 /
+            Math.max(
+                (maxLon - minLon) / w,
+                (maxLat - minLat) / h
+            );
+
+        projection
+            .scale(scale * 140)
+            .translate([w / 2, h / 1.8]);
+
+        // COUNTRIES
+        svg.selectAll("path")
+            .data(geo.features)
+            .enter()
+            .append("path")
+            .attr("d", path)
+            .attr("fill", "#1f1f1f")
+            .attr("stroke", "#555")
+            .attr("stroke-width", 0.45);
+
+        // GROUP
+        const grouped = groupByCountryFixed(blessings, geo);
+
+        // GLOBAL COUNT
+        animateCount(globalCountNum, blessings.length);
+
+        // DOTS
+        dotLayer.innerHTML = "";
+
+        for (const countryCode in grouped) {
+            const f = geo.features.find(x =>
+                (x.id || x.properties.ISO_A2 || "").toUpperCase() === countryCode
+            );
+            if (!f) continue;
+
+            const [cx, cy] = path.centroid(f);
+            const count = grouped[countryCode].length;
+
+            // SIZE CLASSES
+            let sizeClass = "size-s";
+            if (count > 200) sizeClass = "size-l";
+            else if (count > 50) sizeClass = "size-m";
+
+            const dot = document.createElement("div");
+            dot.className = "country-dot " + sizeClass;
+            dot.style.left = cx + "px";
+            dot.style.top = cy + "px";
+            dot.dataset.code = countryCode;
+
+            dot.onclick = () => openDrawer(countryCode, grouped[countryCode]);
+            dotLayer.appendChild(dot);
+        }
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     if (document.getElementById("mapWrap")) initWorldMapD3();
 });
