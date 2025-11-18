@@ -756,3 +756,26 @@ footer,
   100% { box-shadow: 0 0 14px rgba(255,225,150,0.25); }
 }
 
+/* --- FIX: Streak + Challenge spacing alignment --- */
+
+#streakSection,
+#challengeSection,
+.streak-box,
+.challenge-box {
+    margin-top: 0 !important;
+    padding-top: 12px !important;
+}
+
+.streak-container {
+    margin-top: 0 !important;
+}
+
+#streakWrapper {
+    margin-top: 0 !important;
+    padding-top: 15px !important;
+}
+
+/* Remove any extra spacing above My Blessings */
+#myBlessings {
+    margin-top: 0 !important;
+}
