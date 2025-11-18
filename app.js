@@ -1136,16 +1136,7 @@ function initWorldMap() {
   const drawerTitle = document.getElementById("drawerTitle");
   const drawerList = document.getElementById("drawerList");
 
-  // 1) LOAD SVG
-  fetch('./world.svg')
-    .then((r) => r.text())
-    .then((svgText) => {
-      svgContainer.innerHTML = svgText;
-      const svg = svgContainer.querySelector("svg");
-      svg.style.width = "100%";
-      svg.style.height = "100%";
-      loadMapData();
-    });
+  loadMapData();
 
   // 2) FIRESTORE → COUNTRY GROUPING
   async function loadMapData() {
