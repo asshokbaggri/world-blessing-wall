@@ -755,3 +755,10 @@ footer,
   50% { box-shadow: 0 0 22px rgba(255,225,150,0.45); }
   100% { box-shadow: 0 0 14px rgba(255,225,150,0.25); }
 }
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  width: 100%;
+}
