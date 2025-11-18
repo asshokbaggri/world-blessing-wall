@@ -756,26 +756,32 @@ footer,
   100% { box-shadow: 0 0 14px rgba(255,225,150,0.25); }
 }
 
-/* --- FIX: Streak + Challenge spacing alignment --- */
+/* ====== FINAL FIX: Restore layout spacing after removing Trending ====== */
 
+/* Streak section wrapper */
+#streakBox, 
 #streakSection,
-#challengeSection,
-.streak-box,
-.challenge-box {
-    margin-top: 0 !important;
-    padding-top: 12px !important;
-}
-
+.streak-section,
 .streak-container {
-    margin-top: 0 !important;
+    margin-top: 40px !important;
+    padding-top: 0 !important;
 }
 
-#streakWrapper {
-    margin-top: 0 !important;
-    padding-top: 15px !important;
+/* Challenge section wrapper */
+#challengeBox,
+#challengeSection,
+.challenge-section {
+    margin-top: 20px !important;
 }
 
-/* Remove any extra spacing above My Blessings */
-#myBlessings {
-    margin-top: 0 !important;
+/* Prevent collapsing of margins */
+section {
+    display: block;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+/* Fix overflow issue caused by previous slider removal */
+body {
+    overflow-x: hidden !important;
 }
