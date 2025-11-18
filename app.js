@@ -1112,14 +1112,6 @@ window.addEventListener("load", revealOnScroll);
 console.info("World Blessing Wall — app.js v1.2 loaded (My-Blessings + username)");
 
 // ---------- Phase 6 Map JS (REAL FIRESTORE DATA) ----------
-import {
-  getDocs,
-  query,
-  collection,
-  where,
-  orderBy,
-  limit
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // COUNTRY COORDS
 const COUNTRY_COORDS = {
