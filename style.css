@@ -756,120 +756,66 @@ footer,
   100% { box-shadow: 0 0 14px rgba(255,225,150,0.25); }
 }
 
-/* ============================================================
-   ⭐ FINAL TRENDING BLESSINGS CSS (2025 Premium UI)
-   - Fully centered
-   - Mobile + Desktop perfect
-   - No overflow / No breaking UI
-   - Matches Live Blessings layout
-============================================================ */
+/* ---------------------------
+   🔥 TRENDING SLIDER (NEW)
+----------------------------*/
 
-/* Section wrapper (same width as Live Feed) */
-#trendingSection {
-  max-width: 980px;
-  margin: 32px auto 10px;
-  padding: 0 14px;
-}
-
-/* Heading */
-.trending-heading {
-  font-size: 26px;
-  font-weight: 700;
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* ⭐ Horizontal slider container */
-#trendingSlider {
-  display: flex;
-  gap: 16px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding-bottom: 8px;
-  scroll-snap-type: x mandatory;
-
-  /* Hide scrollbar */
-  scrollbar-width: none;
-}
-#trendingSlider::-webkit-scrollbar {
-  display: none;
-}
-
-/* ⭐ Individual trending card */
-.trending-item {
-  scroll-snap-align: start;
-  min-width: 210px;
-  max-width: 210px;
-
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(18px);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 16px;
-
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-/* Hover glow (desktop only) */
-@media (hover: hover) {
-  .trending-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 0 18px rgba(255, 225, 170, 0.35);
-  }
-}
-
-/* Title */
-.tr-tr-title,
-.tr-title {
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Reads text */
-.tr-reads {
-  font-size: 14px;
-  opacity: 0.75;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* Highlight glow after clicking */
-.highlight-glow {
-  animation: glowFlash 1.2s ease-out;
-}
-@keyframes glowFlash {
-  0% { box-shadow: 0 0 0 rgba(255, 230, 150, 0); }
-  30% { box-shadow: 0 0 25px rgba(255, 230, 150, 0.6); }
-  100% { box-shadow: 0 0 0 rgba(255, 230, 150, 0); }
-}
-
-/* Center wrapper same as Live feed width */
 .trending-wrapper {
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 0 14px;
+    width: 100%;
+    overflow: hidden;
+    margin: 0 auto 40px auto;
+    padding: 10px 0;
+    position: relative;
 }
 
-/* Make slider always fit inside wrapper */
-.trending-slider {
-  width: 100%;
-  display: flex;
-  gap: 16px;
-  overflow-x: auto;
-  padding-bottom: 8px;
-  scrollbar-width: none;
+.trending-track {
+    display: flex;
+    gap: 16px;
+    width: max-content;
+    animation: trendingScroll 18s linear infinite;
 }
-.trending-slider::-webkit-scrollbar {
-  display: none;
+
+.trending-item {
+    min-width: 240px;
+    padding: 14px 18px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    backdrop-filter: blur(12px);
+    cursor: pointer;
+    transition: transform 0.25s ease, background 0.25s;
+}
+
+.trending-item:hover {
+    transform: translateY(-4px);
+    background: rgba(255,255,255,0.11);
+}
+
+.tr-title {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 4px;
+}
+
+.tr-reads {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+/* Auto-scrolling animation */
+@keyframes trendingScroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+/* Mobile fix */
+@media (max-width: 600px) {
+    .trending-item {
+        min-width: 200px;
+        padding: 12px 14px;
+    }
+    .tr-title {
+        font-size: 0.9rem;
+    }
 }
