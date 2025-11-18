@@ -1050,7 +1050,7 @@ async function loadTrendingBlessings() {
   const qTrend = query(
     collection(db, "blessings"),
     orderBy("reads", "desc"),
-    limit(5)
+    limit(10)
   );
 
   const snap = await getDocs(qTrend);
@@ -1059,6 +1059,7 @@ async function loadTrendingBlessings() {
 
   slider.innerHTML = "";
 
+  let html = "";
   snap.docs.forEach(docSnap => {
     const d = docSnap.data();
     const id = docSnap.id;
@@ -1067,24 +1068,30 @@ async function loadTrendingBlessings() {
     const reads = d.reads || 0;
     const title = text.length > 28 ? text.slice(0, 28) + "…" : text;
 
-    const div = document.createElement("div");
-    div.className = "trending-item";
-
-    div.innerHTML = `
-      <div class="tr-title">${title}</div>
-      <div class="tr-reads">👀 ${reads} reads</div>
+    html += `
+      <div class="trending-item" data-id="${id}">
+        <div class="tr-title">${title}</div>
+        <div class="tr-reads">👀 ${reads} reads</div>
+      </div>
     `;
+  });
 
-    div.onclick = () => {
-      const target = document.querySelector(`.blessing-card[data-id="${id}"]`);
+  // Twice for infinite loop illusion
+  slider.innerHTML = html + html;
+
+  // Click scroll to blessing
+  slider.querySelectorAll(".trending-item").forEach(card => {
+    card.onclick = () => {
+      const id = card.dataset.id;
+      const target = document.querySelector(
+        `.blessing-card[data-id="${id}"]`
+      );
       if (target) {
         target.scrollIntoView({ behavior: "smooth", block: "center" });
         target.classList.add("highlight-glow");
         setTimeout(() => target.classList.remove("highlight-glow"), 1200);
       }
     };
-
-    slider.appendChild(div);
   });
 }
 
