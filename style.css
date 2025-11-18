@@ -911,11 +911,11 @@ footer,
 }
 
 #svgContainer svg {
-    width: 100%;
-    height: auto !important;
-    aspect-ratio: 2 / 1 !important;
-    object-fit: contain;
-    display: block;
+  width: 100%;
+  height: auto !important;
+  object-fit: contain;
+  display: block;
+  max-width: 100%;
 }
 
 #mapWrap {
