@@ -756,32 +756,52 @@ footer,
   100% { box-shadow: 0 0 14px rgba(255,225,150,0.25); }
 }
 
-/* ====== FINAL FIX: Restore layout spacing after removing Trending ====== */
+/* ============ FINAL FULL-WIDTH FIX (Desktop + Mobile) ============ */
 
-/* Streak section wrapper */
-#streakBox, 
-#streakSection,
-.streak-section,
-.streak-container {
-    margin-top: 40px !important;
-    padding-top: 0 !important;
+/* Remove any accidental horizontal overflow */
+html, body {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
 }
 
-/* Challenge section wrapper */
+/* The main container (jisme streak, challenge, my blessings sab aata hai) */
+main, 
+#live, 
+#streakBox,
+#streakSection,
+.challenge-section,
 #challengeBox,
 #challengeSection,
-.challenge-section {
-    margin-top: 20px !important;
-}
-
-/* Prevent collapsing of margins */
+#myBlessingsSection,
 section {
-    display: block;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    width: 100%;
+    max-width: 100%;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box !important;
+    padding-left: 16px;
+    padding-right: 16px;
 }
 
-/* Fix overflow issue caused by previous slider removal */
-body {
-    overflow-x: hidden !important;
+/* Prevent inner content from stretching out */
+.streak-container,
+.streak-section,
+.challenge-container,
+.my-blessings-container {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* Fix internal card overflow */
+.blessing-card {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* Prevent any rogue element from pushing layout sideways */
+* {
+    max-width: 100%;
+    box-sizing: border-box;
 }
