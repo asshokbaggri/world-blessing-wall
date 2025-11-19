@@ -1112,224 +1112,255 @@ window.addEventListener("load", revealOnScroll);
 console.info("World Blessing Wall — app.js v1.2 loaded (My-Blessings + username)");
 
 /* ============================================================
-   🌍 WORLD MAP — FINAL FIXED D3 MODULE (DOTS + DRAWER WORKING)
+   🌍 WORLD MAP — FIXED D3 MODULE (robust centroids + dot-layer sizing)
+   Replace the previous D3 init block with this exact code.
    ============================================================ */
 
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
-/* World map geojson */
 const WORLD_JSON_URL = "world.geojson";
 
-/* -------- FIXED NORMALIZER (Always extracts ISO code) -------- */
-function normalizeCountryForMap(input = "") {
-    const raw = (input || "").trim();
-    if (!raw) return { country: "", countryCode: "" };
-
-    const parts = raw.split(/\s+/);
-
-    // Format: "IN India"
-    if (parts[0].length === 2) {
-        const cc = parts[0].toUpperCase();
-        const name = parts.slice(1).join(" ").trim();
-        return { country: name || cc, countryCode: cc };
-    }
-
-    return { country: raw, countryCode: "" };
+/* small helper to safely get pixel centroid for a GeoJSON feature */
+function getFeaturePixelCentroid(feature, projection) {
+  try {
+    // get geographic centroid (lon, lat)
+    const center = d3.geoCentroid(feature); // [lon, lat]
+    if (!center || !isFinite(center[0]) || !isFinite(center[1])) return null;
+    // project into pixel coords
+    const p = projection(center);
+    if (!p || !isFinite(p[0]) || !isFinite(p[1])) return null;
+    return p; // [x, y]
+  } catch (e) {
+    return null;
+  }
 }
 
-/* --------- LOAD ALL BLESSINGS WITH FIXED PARSER -------- */
-async function loadBlessingsForMap() {
-    const snap = await getDocs(
-        query(collection(db, "blessings"), orderBy("timestamp", "desc"))
-    );
-    let arr = [];
-
-    snap.forEach((d) => {
-        const data = d.data();
-
-        // FIX: enforce stable ISO code extraction
-        const { country, countryCode } =
-            normalizeCountryForMap(data.country || data.countryCode || "");
-
-        arr.push({
-            text: data.text || "",
-            username: data.username || "",
-            timestamp: data.timestamp || "",
-            country: country || "",
-            countryCode: countryCode || ""
-        });
-    });
-
-    return arr;
-}
-
-/* --------- GROUP BY COUNTRY (SAFE MATCHING) -------- */
-function groupByCountryFixed(list, geo) {
-    const result = {};
-
-    list.forEach((b) => {
-        let cc = (b.countryCode || "").toUpperCase();
-        if (cc && cc.length === 2) {
-            if (!result[cc]) result[cc] = [];
-            result[cc].push(b);
-            return;
-        }
-
-        // fallback: match by name
-        const name = (b.country || "").trim().toLowerCase();
-        if (!name) return;
-
-        const match = geo.features.find(f => {
-            const p = f.properties;
-            return (
-                p.ADMIN?.toLowerCase() === name ||
-                p.NAME?.toLowerCase() === name ||
-                p.SOVEREIGNT?.toLowerCase() === name
-            );
-        });
-
-        if (match) {
-            cc = (match.id || match.properties.ISO_A2 || "").toUpperCase();
-            if (!result[cc]) result[cc] = [];
-            result[cc].push(b);
-        }
-    });
-
-    return result;
-}
-
-/* -------- COUNTRY DRAWER -------- */
+/* country drawer (unchanged) */
 function openDrawer(code, list) {
-    const drawer = document.getElementById("countryDrawer");
-    const title = document.getElementById("drawerTitle");
-    const body = document.getElementById("drawerList");
+  const drawer = document.getElementById("countryDrawer");
+  const title = document.getElementById("drawerTitle");
+  const body = document.getElementById("drawerList");
 
-    title.textContent = `${code} — ${list.length} blessings`;
-    body.innerHTML = "";
+  title.textContent = `${code} — ${list.length} blessings`;
+  body.innerHTML = "";
 
-    list.slice(0, 100).forEach((b) => {
-        const card = document.createElement("div");
-        card.className = "blessing-card";
-        card.innerHTML = `
-            <b>${b.text}</b>
-            ${b.username ? `<div class="blessing-username">— ${b.username}</div>` : ""}
-            <small>${timeAgo(b.timestamp)}</small>
-        `;
-        body.appendChild(card);
-    });
+  list.slice(0, 100).forEach((b) => {
+      const card = document.createElement("div");
+      card.className = "blessing-card";
+      card.innerHTML = `
+          <b>${b.text}</b>
+          ${b.username ? `<div class="blessing-username">— ${b.username}</div>` : ""}
+          <small>${timeAgo(b.timestamp)}</small>
+      `;
+      body.appendChild(card);
+  });
 
-    drawer.classList.add("open");
+  drawer.classList.add("open");
 }
 
 document.getElementById("drawerClose").onclick = () =>
-    document.getElementById("countryDrawer").classList.remove("open");
+  document.getElementById("countryDrawer").classList.remove("open");
 
-/* ============================================================
-   INIT WORLD MAP
-   ============================================================ */
-function initWorldMapD3() {
-    const wrap = document.getElementById("mapWrap");
-    if (!wrap) return;
-
-    const svgContainer = document.getElementById("svgContainer");
-    const dotLayer = document.getElementById("dotLayer");
-    const globalCountNum = document.getElementById("globalCountNum");
-
-    // CLEAR OLD MAP
-    svgContainer.innerHTML = "";
-    dotLayer.innerHTML = "";
-
-    // SVG
-    const svg = d3
-        .select("#svgContainer")
-        .append("svg")
-        .attr("width", "100%")
-        .attr("height", "100%")
-        .attr("id", "d3WorldMap");
-
-    function getSize() {
-        const r = wrap.getBoundingClientRect();
-        return { w: r.width, h: r.width * 0.50 }; // 2:1 ratio
-    }
-
-    function resizeSVG() {
-        const { w, h } = getSize();
-        svg.attr("viewBox", `0 0 ${w} ${h}`);
-    }
-    resizeSVG();
-    window.addEventListener("resize", resizeSVG);
-
-    const projection = d3.geoMercator();
-    const path = d3.geoPath(projection);
-
-    // LOAD MAP + FIRESTORE
-    Promise.all([
-        d3.json(WORLD_JSON_URL),
-        loadBlessingsForMap()
-    ]).then(([geo, blessings]) => {
-        window.__GEO = geo;
-
-        const { w, h } = getSize();
-
-        // FIT WORLD
-        const [[minLon, minLat], [maxLon, maxLat]] = d3.geoBounds(geo);
-
-        const scale =
-            0.98 /
-            Math.max(
-                (maxLon - minLon) / w,
-                (maxLat - minLat) / h
-            );
-
-        projection
-            .scale(scale * 140)
-            .translate([w / 2, h / 1.8]);
-
-        // COUNTRIES
-        svg.selectAll("path")
-            .data(geo.features)
-            .enter()
-            .append("path")
-            .attr("d", path)
-            .attr("fill", "#1f1f1f")
-            .attr("stroke", "#555")
-            .attr("stroke-width", 0.45);
-
-        // GROUP
-        const grouped = groupByCountryFixed(blessings, geo);
-
-        // GLOBAL COUNT
-        animateCount(globalCountNum, blessings.length);
-
-        // DOTS
-        dotLayer.innerHTML = "";
-
-        for (const countryCode in grouped) {
-            const f = geo.features.find(x =>
-                (x.id || x.properties.ISO_A2 || "").toUpperCase() === countryCode
-            );
-            if (!f) continue;
-
-            const [cx, cy] = path.centroid(f);
-            const count = grouped[countryCode].length;
-
-            // SIZE CLASSES
-            let sizeClass = "size-s";
-            if (count > 200) sizeClass = "size-l";
-            else if (count > 50) sizeClass = "size-m";
-
-            const dot = document.createElement("div");
-            dot.className = "country-dot " + sizeClass;
-            dot.style.left = cx + "px";
-            dot.style.top = cy + "px";
-            dot.dataset.code = countryCode;
-
-            dot.onclick = () => openDrawer(countryCode, grouped[countryCode]);
-            dotLayer.appendChild(dot);
-        }
+/* load blessings for map (keeps same contract) */
+async function loadBlessingsForMap() {
+  const snap = await getDocs(
+    query(collection(db, "blessings"), orderBy("timestamp", "desc"))
+  );
+  const arr = [];
+  snap.forEach((d) => {
+    const data = d.data();
+    // prefer explicit 2-letter code if present, else leave for matching later
+    const cc = (data.countryCode || "").toString().trim().toUpperCase();
+    const country = (data.country || "").toString().trim();
+    arr.push({
+      text: data.text || "",
+      username: data.username || "",
+      timestamp: data.timestamp || data.created || "",
+      country,
+      countryCode: (cc && cc.length === 2) ? cc : ""
     });
+  });
+  return arr;
 }
 
+/* helper to group by ISO using geo fallback */
+function groupByCountryFixed(list, geo) {
+  const result = {};
+
+  list.forEach((b) => {
+    let cc = (b.countryCode || "").toUpperCase();
+    if (cc && cc.length === 2) {
+      if (!result[cc]) result[cc] = [];
+      result[cc].push(b);
+      return;
+    }
+
+    const name = (b.country || "").trim().toLowerCase();
+    if (!name || !geo) return;
+
+    const match = geo.features.find(f => {
+      const p = f.properties || {};
+      return (
+        (p.ADMIN || "").toString().toLowerCase() === name ||
+        (p.NAME || "").toString().toLowerCase() === name ||
+        (p.SOVEREIGNT || "").toString().toLowerCase() === name
+      );
+    });
+
+    if (match) {
+      cc = (match.id || match.properties.ISO_A2 || "").toUpperCase();
+      if (!cc) return;
+      if (!result[cc]) result[cc] = [];
+      result[cc].push(b);
+    }
+  });
+
+  return result;
+}
+
+/* MAIN INIT (replace your existing initWorldMapD3) */
+function initWorldMapD3() {
+  const wrap = document.getElementById("mapWrap");
+  if (!wrap) return;
+
+  const svgContainer = document.getElementById("svgContainer");
+  const dotLayer = document.getElementById("dotLayer");
+  const globalCountNum = document.getElementById("globalCountNum");
+
+  // clear any old markup
+  svgContainer.innerHTML = "";
+  dotLayer.innerHTML = "";
+
+  // create svg
+  const svg = d3
+    .select(svgContainer)
+    .append("svg")
+    .attr("id", "d3WorldMap")
+    .attr("preserveAspectRatio", "xMidYMid meet")
+    .style("display", "block");
+
+  function getSize() {
+    const r = wrap.getBoundingClientRect();
+    // width based; map ratio ~2:1 works well
+    return { w: Math.max(300, Math.round(r.width)), h: Math.round(r.width * 0.50) };
+  }
+
+  // sync container heights so dotLayer uses same pixel space
+  function resizeEverything() {
+    const { w, h } = getSize();
+
+    // svg viewBox set to pixel canvas for path.centroid/projection consistency
+    svg.attr("viewBox", `0 0 ${w} ${h}`)
+       .attr("width", w)
+       .attr("height", h);
+
+    // make sure the html container has exact pixel height (important!)
+    svgContainer.style.width = `${w}px`;
+    svgContainer.style.height = `${h}px`;
+
+    // dotLayer must match same pixel size and use relative positioning
+    dotLayer.style.position = "absolute";
+    dotLayer.style.top = "0px";
+    dotLayer.style.left = "0px";
+    dotLayer.style.width = `${w}px`;
+    dotLayer.style.height = `${h}px`;
+    dotLayer.style.pointerEvents = "none"; // container ignores pointer, children can receive
+  }
+  resizeEverything();
+  window.addEventListener("resize", () => {
+    resizeEverything();
+    // re-render world on resize for pixel-correct dots
+    // (we simply re-run the draw sequence)
+    drawMap(); 
+  });
+
+  const projection = d3.geoMercator();
+  const path = d3.geoPath().projection(projection);
+
+  // draw map and dots - extracted so we can rerun on resize
+  async function drawMap() {
+    // clear svg content (but keep svg element)
+    svg.selectAll("*").remove();
+    dotLayer.innerHTML = "";
+
+    const { w, h } = getSize();
+
+    // load geo + blessings in parallel
+    const [geo, blessings] = await Promise.all([ d3.json(WORLD_JSON_URL), loadBlessingsForMap() ]);
+    if (!geo) return;
+
+    // fit world into viewBox pixel canvas
+    const bounds = d3.geoBounds(geo);
+    const [[minLon, minLat], [maxLon, maxLat]] = bounds;
+
+    const scale =
+      0.98 /
+      Math.max(
+        (maxLon - minLon) / w,
+        (maxLat - minLat) / h
+      );
+
+    projection
+      .scale(scale * 140)
+      .translate([w / 2, h / 1.8]);
+
+    // draw countries
+    svg.selectAll("path")
+      .data(geo.features)
+      .join("path")
+      .attr("d", path)
+      .attr("fill", "#1f1f1f")
+      .attr("stroke", "#555")
+      .attr("stroke-width", 0.45);
+
+    // grouping
+    const grouped = groupByCountryFixed(blessings, geo);
+
+    // global counter
+    animateCount(globalCountNum, blessings.length);
+
+    // plot dots using geoCentroid -> projection (robust)
+    Object.keys(grouped).forEach(countryCode => {
+      // find geo feature
+      const feat = geo.features.find(x =>
+        ((x.id || x.properties.ISO_A2 || "") + "").toUpperCase() === countryCode
+      );
+      if (!feat) return;
+
+      const p = getFeaturePixelCentroid(feat, projection);
+      if (!p) return; // skip if invalid
+
+      const [cx, cy] = p;
+      if (!isFinite(cx) || !isFinite(cy)) return;
+
+      const count = grouped[countryCode].length;
+      let sizeClass = "size-s";
+      if (count > 200) sizeClass = "size-l";
+      else if (count > 50) sizeClass = "size-m";
+
+      const dot = document.createElement("div");
+      dot.className = `country-dot ${sizeClass}`;
+      // allow clicks on dot
+      dot.style.pointerEvents = "auto";
+      // position relative to dotLayer's pixel space
+      dot.style.left = Math.round(cx) + "px";
+      dot.style.top  = Math.round(cy) + "px";
+      dot.dataset.code = countryCode;
+
+      dot.onclick = (ev) => {
+        ev.stopPropagation();
+        openDrawer(countryCode, grouped[countryCode]);
+      };
+
+      dotLayer.appendChild(dot);
+    });
+  }
+
+  // initial draw
+  drawMap();
+}
+
+// mount
 document.addEventListener("DOMContentLoaded", () => {
-    if (document.getElementById("mapWrap")) initWorldMapD3();
+  if (document.getElementById("mapWrap")) initWorldMapD3();
 });
