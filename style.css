@@ -794,7 +794,6 @@ footer,
   border-radius: 14px;
   border:1px solid rgba(255,255,255,0.04);
   backdrop-filter: blur(6px);
-  overflow: hidden;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -948,4 +947,19 @@ footer,
     height: 420px !important;
     max-height: 420px !important;
     min-height: 420px !important;
+}
+
+/* === FINAL DOT FIX === */
+.svg-container {
+    overflow: visible !important;
+}
+
+#svgContainer, 
+#worldMap {
+    position: relative;
+    z-index: 3 !important;
+}
+
+#dotLayer {
+    z-index: 5 !important;
 }
