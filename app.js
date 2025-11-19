@@ -1235,68 +1235,63 @@ function initWorldMapD3() {
 
     // for each country place a dot (HTML div) on dotLayer using pixel centroid
     Object.keys(grouped).forEach(countryCode => {
-    const fullCountryName = grouped[countryCode][0]?.country || "";
-      // 1) Try: match by name (India, Pakistan, etc.)
+
+      const list = grouped[countryCode] || [];
+      const fullCountryName = list[0]?.country || "";
+
+      // 1) Try match by NAME
       let feat = geo.features.find(f =>
-        (f.properties?.name || "").trim().toUpperCase() === fullCountryName.toUpperCase()
+        (f.properties?.name || "").trim().toUpperCase() === fullCountryName.trim().toUpperCase()
       );
 
-      // 2) If blessing gave only code → convert code → full name
+      // 2) If blessing only has code → convert code → full name
       if (!feat) {
           const isoToName = {
-              "IN": "India",
-              "US": "United States of America",
-              "AE": "United Arab Emirates",
-              "GB": "United Kingdom",
-              "UK": "United Kingdom",
-              "CA": "Canada",
-              "PK": "Pakistan",
-              "IT": "Italy",
-              "SG": "Singapore",
-              "JP": "Japan",
-              "FR": "France",
-              "DE": "Germany",
-              "NP": "Nepal",
-              "BD": "Bangladesh",
-              "LK": "Sri Lanka",
-              "AU": "Australia"
+            "IN": "India",
+            "US": "United States of America",
+            "AE": "United Arab Emirates",
+            "GB": "United Kingdom",
+            "UK": "United Kingdom",
+            "CA": "Canada",
+            "PK": "Pakistan",
+            "IT": "Italy",
+            "SG": "Singapore",
+            "JP": "Japan",
+            "FR": "France",
+            "DE": "Germany",
+            "NP": "Nepal",
+            "BD": "Bangladesh",
+            "LK": "Sri Lanka",
+            "AU": "Australia"
           };
 
           const lookupName = isoToName[countryCode];
           if (lookupName) {
-              feat = geo.features.find(f =>
-                (f.properties?.name || "").trim().toUpperCase() === lookupName.toUpperCase()
-              );
+            feat = geo.features.find(f =>
+              (f.properties?.name || "").trim().toUpperCase() === lookupName.trim().toUpperCase()
+            );
           }
       }
 
-      // 3) If still no match → skip
+      // 3) Still no match → skip
       if (!feat) return;
 
-      // centroid in pixel space
-      const centroid = pathGen.centroid(feat); // [x, y] in svg pixels (requires svg viewBox matching w,h)
-      if (!centroid || !isFinite(centroid[0]) || !isFinite(centroid[1])) return;
-      const [cx, cy] = centroid;
+      // place centroids…
+      const centroid = pathGen.centroid(feat);
+      if (!centroid || !isFinite(centroid[0])) return;
 
-      const count = (grouped[countryCode] || []).length || 1;
+      const [cx, cy] = centroid;
+      const count = list.length;
+ 
       let sizeClass = "size-s";
       if (count > 200) sizeClass = "size-l";
       else if (count > 50) sizeClass = "size-m";
 
-      // create dot div
       const dot = document.createElement("div");
       dot.className = `country-dot ${sizeClass}`;
       dot.style.left = Math.round(cx) + "px";
-      dot.style.top  = Math.round(cy) + "px";
+      dot.style.top = Math.round(cy) + "px";
       dot.dataset.code = countryCode;
-      dot.title = `${countryCode} — ${count} blessings`;
-      dot.style.pointerEvents = "auto"; // allow click
-
-      // click opens drawer
-      dot.addEventListener("click", (ev) => {
-        ev.stopPropagation();
-        openDrawer(countryCode, grouped[countryCode]);
-      });
 
       dotLayer.appendChild(dot);
     });
