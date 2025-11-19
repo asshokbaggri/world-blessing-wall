@@ -1128,6 +1128,62 @@ function getPixelSizeForWrap(wrap) {
   return { w, h };
 }
 
+// ==========================================
+// REQUIRED BY D3 MAP — placeDots()
+// ==========================================
+window.placeDots = function(mapData = {}) {
+  const dotLayer = document.getElementById("dotLayer");
+  if (!dotLayer) return;
+
+  dotLayer.innerHTML = ""; // clear old dots
+
+  Object.keys(mapData).forEach(code => {
+    const item = mapData[code];
+    if (!item || !item.count) return;
+
+    const svg = document.getElementById("d3WorldMap");
+    const feat = window.__worldGeo?.features?.find(
+      f =>
+        f.id?.toUpperCase() === code ||
+        f.properties?.ISO_A2?.toUpperCase() === code
+    );
+    if (!feat) return;
+
+    const path = d3.geoPath().projection(window.__d3Projection);
+    const [cx, cy] = path.centroid(feat);
+
+    const dot = document.createElement("div");
+    dot.className = "country-dot size-m";
+    dot.style.left = cx + "px";
+    dot.style.top = cy + "px";
+    dot.dataset.code = code;
+    dot.title = `${code} — ${item.count} blessings`;
+
+    dot.addEventListener("click", () => {
+      const drawer = document.getElementById("countryDrawer");
+      const drawerTitle = document.getElementById("drawerTitle");
+      const drawerList = document.getElementById("drawerList");
+
+      drawerTitle.textContent = `${code} — ${item.count} blessings`;
+      drawerList.innerHTML = "";
+
+      item.blessings.forEach(b => {
+        const el = document.createElement("div");
+        el.className = "blessing-card";
+        el.innerHTML = `
+          <div style="font-weight:600">${b.text}</div>
+          <div style="font-size:12px; color:var(--text-dim); margin-top:4px">— ${b.username}</div>
+        `;
+        drawerList.appendChild(el);
+      });
+
+      drawer.classList.add("open");
+    });
+
+    dotLayer.appendChild(dot);
+  });
+};
+
 function initWorldMapD3() {
   const wrap = document.getElementById("mapWrap");
   if (!wrap) return;
@@ -1191,6 +1247,10 @@ function initWorldMapD3() {
       (typeof loadBlessingsForMap === "function") ? loadBlessingsForMap() : Promise.resolve([])
     ]);
     if (!geo) return;
+
+    // store for placeDots()
+    window.__worldGeo = geo;
+    window.__d3Projection = projection;
 
     // fit projection to pixel canvas
     try {
