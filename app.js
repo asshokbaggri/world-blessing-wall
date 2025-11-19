@@ -1235,10 +1235,28 @@ function initWorldMapD3() {
 
     // for each country place a dot (HTML div) on dotLayer using pixel centroid
     Object.keys(grouped).forEach(countryCode => {
-      const feat = geo.features.find(f =>
-        (((f.id || "") + "").toUpperCase() === countryCode) ||
-        (((f.properties && (f.properties.ISO_A2 || f.properties.iso_a2)) || "") + "").toUpperCase() === countryCode
+      let feat = geo.features.find(f =>
+        (f.properties?.ISO_A2 || f.properties?.iso_a2 || "").toUpperCase() === countryCode
       );
+
+      // fallback 1: match name (India, United States…)
+      if (!feat) {
+        feat = geo.features.find(f =>
+          (f.properties?.NAME || "").toUpperCase().includes(countryCode)
+        );
+      }
+
+      // fallback 2: match numeric id (India = 356)
+      if (!feat) {
+        const codeMap = {
+          "IN": 356, "US": 840, "AE": 784, "GB": 826, "CA": 124,
+          "AU": 36, "SG": 702, "JP": 392, "CN": 156, "FR": 250,
+          "DE": 276, "PK": 586, "BD": 50, "LK": 144, "NP": 524
+        };
+        const num = codeMap[countryCode];
+        if (num) feat = geo.features.find(f => f.id == num);
+      }
+
       if (!feat) return;
 
       // centroid in pixel space
