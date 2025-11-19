@@ -905,3 +905,8 @@ footer,
   position: relative;
 }
 
+#mapWrap {
+  position: relative;
+  min-height: 450px;
+}
+
