@@ -914,3 +914,11 @@ footer,
   z-index: 999999 !important;
   overflow: visible !important;
 }
+
+#svgContainer {
+    pointer-events: none !important;
+}
+
+#dotLayer {
+    pointer-events: auto !important;
+}
