@@ -1171,8 +1171,8 @@ function initWorldMapD3() {
     svgContainer.style.width  = `${w}px`;
     svgContainer.style.height = `${h}px`;
 
-    dotLayer.style.width  = `${w}px`;
-    dotLayer.style.height = `${h}px`;
+    dotLayer.style.width = "0px";
+    dotLayer.style.height = "0px";
     dotLayer.style.top = "0px";
     dotLayer.style.left = "0px";
   }
