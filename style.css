@@ -909,16 +909,8 @@ footer,
   left: 0 !important;
   width: 100% !important;
   height: 100% !important;
-  inset: 0 !important;
-  pointer-events: none !important;   /* ← THE FIX */
+  pointer-events: auto !important;
   z-index: 999999 !important;
   overflow: visible !important;
 }
 
-#svgContainer {
-    pointer-events: none !important;
-}
-
-#dotLayer {
-    pointer-events: auto !important;
-}
