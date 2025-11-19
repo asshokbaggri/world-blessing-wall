@@ -822,7 +822,7 @@ footer,
   position: absolute;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  pointer-events: auto;            /* allow clicks */
+  pointer-events: auto !important;            /* allow clicks */
   z-index: 20;
   background: radial-gradient(circle at 40% 30%, #fff3c8, #ffd36a 40%, #f0a73b 60%, rgba(240,167,59,0.7) 100%);
   box-shadow: 0 6px 18px rgba(255,205,120,0.16);
@@ -910,7 +910,7 @@ footer,
   width: 100% !important;
   height: 100% !important;
   inset: 0 !important;
-  pointer-events: auto !important;
+  pointer-events: none !important;   /* ← THE FIX */
   z-index: 999999 !important;
   overflow: visible !important;
 }
