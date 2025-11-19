@@ -776,11 +776,9 @@ footer,
   width: 100%;
 }
 
-/* =======================
-   FINAL WORLD MAP FIX (CLEAN)
-   ======================= */
+/* ======== FINAL WORLD MAP FIX (UNIFIED + SAFARI-PROOF) ======== */
 
-/* Main wrapper */
+/* Wrap stays open */
 #mapWrap {
     position: relative;
     width: 100%;
@@ -789,87 +787,46 @@ footer,
     overflow: visible !important;
 }
 
-/* SVG container follows JS-dynamic height */
+/* MAIN FIX — FIXED MAP HEIGHT (NOT auto!) */
 #svgContainer {
     position: relative;
     width: 100%;
-    height: auto !important;
+    height: 420px !important;      /* <- REAL FIX */
+    max-height: 420px !important;
+    min-height: 420px !important;
     overflow: visible !important;
-    z-index: 3;
+    z-index: 2 !important;         /* map below dots */
 }
 
-/* D3-injected SVG */
+/* D3 SVG wrapper */
 .svg-container {
     position: relative;
-    width: 100%;
-    overflow: visible !important;
-}
-
-/* Dot layer perfectly overlays SVG */
-#dotLayer {
-    position: absolute;
-    inset: 0;
     width: 100%;
     height: 100% !important;
     overflow: visible !important;
-    pointer-events: none;
-    z-index: 5 !important;
-}
-
-/* Dot styling */
-.country-dot {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    pointer-events: auto;
-    z-index: 20 !important;
-    background: radial-gradient(circle at 40% 30%, #fff3c8, #ffd36a 40%, #f0a73b 60%, rgba(240,167,59,0.7) 100%);
-    box-shadow: 0 0 8px rgba(255,205,120,0.6);
-    transition: transform .22s ease, box-shadow .22s ease;
-}
-
-.country-dot.size-s { width:10px; height:10px; }
-.country-dot.size-m { width:16px; height:16px; }
-.country-dot.size-l { width:22px; height:22px; }
-
-/* ======= FINAL DOT LAYER FIX (iPhone + Safari) ======= */
-
-#mapWrap {
-    position: relative;
-    width: 100%;
-    max-width: 850px;
-    margin: auto;
-    overflow: visible !important;
-}
-
-#svgContainer {
-    position: relative;
-    width: 100%;
-    height: auto !important;     /* Safari need this */
-    overflow: visible !important;
-    z-index: 2 !important;       /* map BELOW dots */
-}
-
-.svg-container {
-    overflow: visible !important;
-    position: relative;
     z-index: 1;
 }
 
+/* Dot layer overlays EXACT SAME HEIGHT */
 #dotLayer {
     position: absolute;
-    inset: 0;
+    top: 0; left: 0;
     width: 100%;
-    height: 100% !important;     /* follow SVG true height */
+    height: 420px !important;      /* MUST MATCH ABOVE */
     overflow: visible !important;
     pointer-events: none;
-    z-index: 10 !important;      /* dots ABOVE map */
+    z-index: 10 !important;
 }
 
-/* dots */
+/* Dots always on TOP */
 .country-dot {
     position: absolute;
     transform: translate(-50%, -50%);
     pointer-events: auto;
-    z-index: 20 !important;      /* always top */
+    z-index: 20 !important;
 }
+
+/* Dot sizes */
+.country-dot.size-s { width:10px; height:10px; }
+.country-dot.size-m { width:16px; height:16px; }
+.country-dot.size-l { width:22px; height:22px; }
