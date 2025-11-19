@@ -860,3 +860,38 @@ footer,
   .svg-container { height: 360px; }
   .country-drawer { left:10px; right:10px; bottom:18px; width: calc(100% - 20px); max-height:55vh; }
 }
+
+/* SVG countries */
+#d3WorldMap path {
+  fill:#1b1d21;
+  stroke:#444;
+  stroke-width:0.6;
+}
+
+/* D3 dots (SVG circles) */
+.d3-dot {
+  fill:#ffd88a;
+  stroke:rgba(255,200,120,0.12);
+  filter: drop-shadow(0px 6px 18px rgba(255,200,100,0.14));
+  cursor:pointer;
+}
+
+/* sizes */
+.dot-s { r:6; }
+.dot-m { r:10; }
+.dot-l { r:16; }
+
+/* drawer */
+.drawer {
+  position:absolute;
+  right:18px;
+  bottom:18px;
+  width:350px;
+  max-width:90%;
+  background:rgba(20,20,20,0.85);
+  padding:14px;
+  border-radius:12px;
+  display:none;
+}
+.drawer.open { display:block; }
+
