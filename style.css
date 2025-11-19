@@ -814,11 +814,12 @@ footer,
 /* DOT LAYER - absolute overlay on top of SVG */
 #dotLayer {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 100%;
+  height: 100%; /* keep */
   pointer-events: none;
-  z-index: 99999; /* ensure dots stay above the map */
+  z-index: 99999;
   overflow: visible;
 }
 
