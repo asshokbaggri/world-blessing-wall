@@ -1293,6 +1293,9 @@ function initWorldMapD3() {
   resizeEverything();
   drawMap();
 
+  // map is now ready → notify global listener
+  window.dispatchEvent(new Event("d3-map-ready"));
+
   // on resize: recalc and redraw
   let resizeTimer = null;
   window.addEventListener("resize", () => {
