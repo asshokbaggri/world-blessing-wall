@@ -1235,49 +1235,41 @@ function initWorldMapD3() {
 
     // for each country place a dot (HTML div) on dotLayer using pixel centroid
     Object.keys(grouped).forEach(countryCode => {
+      // 1) Try: match by name (India, Pakistan, etc.)
       let feat = geo.features.find(f =>
-        (f.properties?.ISO_A2 || f.properties?.iso_a2 || "").toUpperCase() === countryCode
+        (f.properties?.name || "").trim().toUpperCase() === fullCountryName.toUpperCase()
       );
 
-      // fallback 1 — match NAME with proper mapping
+      // 2) If blessing gave only code → convert code → full name
       if (!feat) {
-        const nameMap = {
-          "IN": "INDIA",
-          "US": "UNITED STATES",
-          "AE": "UNITED ARAB EMIRATES",
-          "GB": "UNITED KINGDOM",
-          "CA": "CANADA",
-          "AU": "AUSTRALIA",
-          "SG": "SINGAPORE",
-          "JP": "JAPAN",
-          "CN": "CHINA",
-          "FR": "FRANCE",
-          "DE": "GERMANY",
-          "PK": "PAKISTAN",
-          "BD": "BANGLADESH",
-          "LK": "SRI LANKA",
-          "NP": "NEPAL"
-        };
+          const isoToName = {
+              "IN": "India",
+              "US": "United States of America",
+              "AE": "United Arab Emirates",
+              "GB": "United Kingdom",
+              "UK": "United Kingdom",
+              "CA": "Canada",
+              "PK": "Pakistan",
+              "IT": "Italy",
+              "SG": "Singapore",
+              "JP": "Japan",
+              "FR": "France",
+              "DE": "Germany",
+              "NP": "Nepal",
+              "BD": "Bangladesh",
+              "LK": "Sri Lanka",
+              "AU": "Australia"
+          };
 
-        const fullName = nameMap[countryCode];
-        if (fullName) {
-          feat = geo.features.find(f =>
-            (f.properties?.NAME || "").toUpperCase() === fullName
-          );
-        }
+          const lookupName = isoToName[countryCode];
+          if (lookupName) {
+              feat = geo.features.find(f =>
+                (f.properties?.name || "").trim().toUpperCase() === lookupName.toUpperCase()
+              );
+          }
       }
 
-      // fallback 2 — numeric id
-      if (!feat) {
-        const codeMap = {
-          "IN": 356, "US": 840, "AE": 784, "GB": 826, "CA": 124,
-          "AU": 36, "SG": 702, "JP": 392, "CN": 156, "FR": 250,
-          "DE": 276, "PK": 586, "BD": 50, "LK": 144, "NP": 524
-        };
-        const num = codeMap[countryCode];
-        if (num) feat = geo.features.find(f => f.id == num);
-      }
-
+      // 3) If still no match → skip
       if (!feat) return;
 
       // centroid in pixel space
