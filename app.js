@@ -1112,269 +1112,212 @@ window.addEventListener("load", revealOnScroll);
 console.info("World Blessing Wall — app.js v1.2 loaded (My-Blessings + username)");
 
 /* ============================================================
-   🌍 WORLD MAP — FIXED D3 MODULE (robust centroids + dot-layer sizing)
-   Replace the previous D3 init block with this exact code.
+   D3 WORLD MAP — INIT (paste this replacement into app.js)
+   - Requires: d3 imported (you already import earlier)
+   - Expects: world.geojson at same folder (WORLD_JSON_URL)
+   - Uses: loadBlessingsForMap() and groupByCountryFixed() from your app (if present)
    ============================================================ */
 
-import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+const WORLD_JSON_URL = "world.geojson"; // change if path different
 
-const WORLD_JSON_URL = "world.geojson";
-
-/* small helper to safely get pixel centroid for a GeoJSON feature */
-function getFeaturePixelCentroid(feature, projection) {
-  try {
-    // get geographic centroid (lon, lat)
-    const center = d3.geoCentroid(feature); // [lon, lat]
-    if (!center || !isFinite(center[0]) || !isFinite(center[1])) return null;
-    // project into pixel coords
-    const p = projection(center);
-    if (!p || !isFinite(p[0]) || !isFinite(p[1])) return null;
-    return p; // [x, y]
-  } catch (e) {
-    return null;
-  }
+function getPixelSizeForWrap(wrap) {
+  const r = wrap.getBoundingClientRect();
+  // keep min size to avoid degenerate map
+  const w = Math.max(320, Math.round(r.width));
+  const h = Math.round(w * 0.52); // ~2:1 ratio
+  return { w, h };
 }
 
-/* country drawer (unchanged) */
-function openDrawer(code, list) {
-  const drawer = document.getElementById("countryDrawer");
-  const title = document.getElementById("drawerTitle");
-  const body = document.getElementById("drawerList");
-
-  title.textContent = `${code} — ${list.length} blessings`;
-  body.innerHTML = "";
-
-  list.slice(0, 100).forEach((b) => {
-      const card = document.createElement("div");
-      card.className = "blessing-card";
-      card.innerHTML = `
-          <b>${b.text}</b>
-          ${b.username ? `<div class="blessing-username">— ${b.username}</div>` : ""}
-          <small>${timeAgo(b.timestamp)}</small>
-      `;
-      body.appendChild(card);
-  });
-
-  drawer.classList.add("open");
-}
-
-document.getElementById("drawerClose").onclick = () =>
-  document.getElementById("countryDrawer").classList.remove("open");
-
-/* load blessings for map (keeps same contract) */
-async function loadBlessingsForMap() {
-  const snap = await getDocs(
-    query(collection(db, "blessings"), orderBy("timestamp", "desc"))
-  );
-  const arr = [];
-  snap.forEach((d) => {
-    const data = d.data();
-    // prefer explicit 2-letter code if present, else leave for matching later
-    const cc = (data.countryCode || "").toString().trim().toUpperCase();
-    const country = (data.country || "").toString().trim();
-    arr.push({
-      text: data.text || "",
-      username: data.username || "",
-      timestamp: data.timestamp || data.created || "",
-      country,
-      countryCode: (cc && cc.length === 2) ? cc : ""
-    });
-  });
-  return arr;
-}
-
-/* helper to group by ISO using geo fallback */
-function groupByCountryFixed(list, geo) {
-  const result = {};
-
-  list.forEach((b) => {
-    let cc = (b.countryCode || "").toUpperCase();
-    if (cc && cc.length === 2) {
-      if (!result[cc]) result[cc] = [];
-      result[cc].push(b);
-      return;
-    }
-
-    const name = (b.country || "").trim().toLowerCase();
-    if (!name || !geo) return;
-
-    const match = geo.features.find(f => {
-      const p = f.properties || {};
-      return (
-        (p.ADMIN || "").toString().toLowerCase() === name ||
-        (p.NAME || "").toString().toLowerCase() === name ||
-        (p.SOVEREIGNT || "").toString().toLowerCase() === name
-      );
-    });
-
-    if (match) {
-      cc = (match.id || match.properties.ISO_A2 || "").toUpperCase();
-      if (!cc) return;
-      if (!result[cc]) result[cc] = [];
-      result[cc].push(b);
-    }
-  });
-
-  return result;
-}
-
-/* MAIN INIT (replace your existing initWorldMapD3) */
 function initWorldMapD3() {
   const wrap = document.getElementById("mapWrap");
   if (!wrap) return;
-
   const svgContainer = document.getElementById("svgContainer");
   const dotLayer = document.getElementById("dotLayer");
   const globalCountNum = document.getElementById("globalCountNum");
+  const drawer = document.getElementById("countryDrawer");
+  const drawerClose = document.getElementById("drawerClose");
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerList  = document.getElementById("drawerList");
 
-  // clear any old markup
+  if (drawerClose) drawerClose.onclick = () => {
+    drawer.classList.remove("open");
+  };
+
+  // ensure containers cleared
   svgContainer.innerHTML = "";
   dotLayer.innerHTML = "";
 
-  // create svg
-  const { w, h } = (function () {
-      const r = wrap.getBoundingClientRect();
-      const width = Math.max(300, Math.round(r.width));
-      const height = Math.round(width * 0.52); // perfect world map ratio
-      return { w: width, h: height };
-  })();
+  // create svg element inside svgContainer (we keep plain DOM SVG for easier pixel sizing)
+  const svg = d3.select(svgContainer)
+                .append("svg")
+                .attr("id", "d3WorldMap")
+                .attr("preserveAspectRatio", "xMidYMid meet")
+                .style("display", "block");
 
-  // REAL height + REAL width svg
-  const svg = d3
-    .select(svgContainer)
-    .append("svg")
-    .attr("id", "d3WorldMap")
-    .attr("width", w)
-    .attr("height", h)
-    .attr("viewBox", `0 0 ${w} ${h}`)
-    .style("display", "block");
+  // groups in svg (for country paths)
+  const gCountries = svg.append("g").attr("class", "countries");
 
-  // DotLayer must match exactly
-  dotLayer.style.width = w + "px";
-  dotLayer.style.height = h + "px";
+  // projection + path (will be configured after geo load)
+  const projection = d3.geoMercator();
+  const pathGen = d3.geoPath().projection(projection);
 
-  function getSize() {
-    const r = wrap.getBoundingClientRect();
-    // width based; map ratio ~2:1 works well
-    return { w: Math.max(300, Math.round(r.width)), h: Math.round(r.width * 0.50) };
-  }
-
-  // sync container heights so dotLayer uses same pixel space
+  // resize handler: set svg viewBox / container pixel sizes and also resize dotLayer
   function resizeEverything() {
-    const { w, h } = getSize();
+    const { w, h } = getPixelSizeForWrap(wrap);
 
-    // svg viewBox set to pixel canvas for path.centroid/projection consistency
-    svg.attr("viewBox", `0 0 ${w} ${h}`)
-       .attr("width", w)
-       .attr("height", h);
+    svg.attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h);
 
-    // make sure the html container has exact pixel height (important!)
-    svgContainer.style.width = `${w}px`;
+    // force the html container to have exact pixel height so dotLayer aligns
+    svgContainer.style.width  = `${w}px`;
     svgContainer.style.height = `${h}px`;
 
-    // dotLayer must match same pixel size and use relative positioning
-    dotLayer.style.position = "absolute";
-    dotLayer.style.top = "0px";
-    dotLayer.style.left = "0px";
-    dotLayer.style.width = `${w}px`;
+    dotLayer.style.width  = `${w}px`;
     dotLayer.style.height = `${h}px`;
-    dotLayer.style.pointerEvents = "none"; // container ignores pointer, children can receive
+    dotLayer.style.top = svgContainer.offsetTop + "px";
+    dotLayer.style.left = svgContainer.offsetLeft + "px";
   }
-  resizeEverything();
-  window.addEventListener("resize", () => {
-    resizeEverything();
-    // re-render world on resize for pixel-correct dots
-    // (we simply re-run the draw sequence)
-    drawMap(); 
-  });
 
-  const projection = d3.geoMercator();
-  const path = d3.geoPath().projection(projection);
-
-  // draw map and dots - extracted so we can rerun on resize
+  // draw map + dots. We re-run on resize to keep pixel-perfect overlay.
   async function drawMap() {
-    // clear svg content (but keep svg element)
-    svg.selectAll("*").remove();
+    // clear previous
+    gCountries.selectAll("*").remove();
     dotLayer.innerHTML = "";
 
-    const { w, h } = getSize();
+    const { w, h } = getPixelSizeForWrap(wrap);
 
-    // load geo + blessings in parallel
-    const [geo, blessings] = await Promise.all([ d3.json(WORLD_JSON_URL), loadBlessingsForMap() ]);
+    // load geo + blessings in parallel (loadBlessingsForMap expected in your file)
+    const [geo, blessings] = await Promise.all([
+      d3.json(WORLD_JSON_URL),
+      (typeof loadBlessingsForMap === "function") ? loadBlessingsForMap() : Promise.resolve([])
+    ]);
     if (!geo) return;
 
-    // fit world into viewBox pixel canvas
-    const bounds = d3.geoBounds(geo);
-    const [[minLon, minLat], [maxLon, maxLat]] = bounds;
-
-    const scale =
-      0.98 /
-      Math.max(
-        (maxLon - minLon) / w,
-        (maxLat - minLat) / h
-      );
-
-    projection
-      .scale(scale * 140)
-      .translate([w / 2, h / 1.8]);
+    // fit projection to pixel canvas
+    try {
+      projection.fitSize([w, h], geo);
+    } catch (e) {
+      // fallback manual
+      const b = d3.geoBounds(geo);
+      const [[minLon, minLat], [maxLon, maxLat]] = b;
+      const scale = 0.98 / Math.max((maxLon - minLon) / w, (maxLat - minLat) / h);
+      projection.scale(scale * 140).translate([w / 2, h / 1.8]);
+    }
+    pathGen.projection(projection);
 
     // draw countries
-    svg.selectAll("path")
+    gCountries.selectAll("path")
       .data(geo.features)
       .join("path")
-      .attr("d", path)
-      .attr("fill", "#1f1f1f")
-      .attr("stroke", "#555")
-      .attr("stroke-width", 0.45);
+      .attr("d", pathGen)
+      .attr("fill", "#111318")
+      .attr("stroke", "rgba(255,255,255,0.04)")
+      .attr("stroke-width", 0.5);
 
-    // grouping
-    const grouped = groupByCountryFixed(blessings, geo);
+    // group blessings by country (use your helper if present)
+    const grouped = (typeof groupByCountryFixed === "function") ? groupByCountryFixed(blessings, geo) : (function(){
+      // fallback grouping: use explicit countryCode fields
+      const r = {};
+      (blessings || []).forEach(b => {
+        const cc = (b.countryCode || "").toUpperCase() || "";
+        if (!cc) return;
+        if (!r[cc]) r[cc] = [];
+        r[cc].push(b);
+      });
+      return r;
+    })();
 
-    // global counter
-    animateCount(globalCountNum, blessings.length);
+    // update global counter
+    if (globalCountNum) animateCount(globalCountNum, (blessings || []).length || 0);
 
-    // plot dots using geoCentroid -> projection (robust)
+    // for each country place a dot (HTML div) on dotLayer using pixel centroid
     Object.keys(grouped).forEach(countryCode => {
-      // find geo feature
-      const feat = geo.features.find(x =>
-        ((x.id || x.properties.ISO_A2 || "") + "").toUpperCase() === countryCode
+      const feat = geo.features.find(f =>
+        (((f.id || "") + "").toUpperCase() === countryCode) ||
+        (((f.properties && (f.properties.ISO_A2 || f.properties.iso_a2)) || "") + "").toUpperCase() === countryCode
       );
       if (!feat) return;
 
-      const p = getFeaturePixelCentroid(feat, projection);
-      if (!p) return; // skip if invalid
+      // centroid in pixel space
+      const centroid = pathGen.centroid(feat); // [x, y] in svg pixels (requires svg viewBox matching w,h)
+      if (!centroid || !isFinite(centroid[0]) || !isFinite(centroid[1])) return;
+      const [cx, cy] = centroid;
 
-      const [cx, cy] = p;
-      if (!isFinite(cx) || !isFinite(cy)) return;
-
-      const count = grouped[countryCode].length;
+      const count = (grouped[countryCode] || []).length || 1;
       let sizeClass = "size-s";
       if (count > 200) sizeClass = "size-l";
       else if (count > 50) sizeClass = "size-m";
 
+      // create dot div
       const dot = document.createElement("div");
       dot.className = `country-dot ${sizeClass}`;
-      // allow clicks on dot
-      dot.style.pointerEvents = "auto";
-      // position relative to dotLayer's pixel space
       dot.style.left = Math.round(cx) + "px";
       dot.style.top  = Math.round(cy) + "px";
       dot.dataset.code = countryCode;
+      dot.title = `${countryCode} — ${count} blessings`;
+      dot.style.pointerEvents = "auto"; // allow click
 
-      dot.onclick = (ev) => {
+      // click opens drawer
+      dot.addEventListener("click", (ev) => {
         ev.stopPropagation();
         openDrawer(countryCode, grouped[countryCode]);
-      };
+      });
 
       dotLayer.appendChild(dot);
     });
+
+  } // drawMap
+
+  // SAFE: open drawer (re-uses DOM area)
+  function openDrawer(code, list){
+    drawerTitle.textContent = `${code} — ${list.length} blessings`;
+    drawerList.innerHTML = "";
+    if (!list || list.length === 0) {
+      drawerList.innerHTML = "<div style='color:var(--text-dim)'>No blessings found</div>";
+    } else {
+      list.slice(0, 200).forEach(b => {
+        const c = document.createElement("div");
+        c.className = "blessing-card";
+        const username = b.username ? `<div style="color:var(--text-dim); font-size:12px; margin-top:6px">— ${escapeHtml(b.username)}</div>` : "";
+        const time = timeAgo(b.timestamp || b.created) || "";
+        c.innerHTML = `<div style="font-weight:600">${escapeHtml(b.text)}</div>${username}<div style="font-size:11px;color:var(--text-dim);margin-top:6px">${escapeHtml(time)}</div>`;
+        drawerList.appendChild(c);
+      });
+    }
+    drawer.classList.add("open");
+    drawer.style.display = ""; // ensure visible
   }
 
-  // initial draw
-  drawMap();
-}
+  function escapeHtml(s){ return String(s || "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
 
-// mount
+  // initial sizing + draw
+  resizeEverything();
+  drawMap();
+
+  // on resize: recalc and redraw
+  let resizeTimer = null;
+  window.addEventListener("resize", () => {
+    // throttle resize
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      resizeEverything();
+      drawMap();
+    }, 150);
+  });
+
+  // close drawer if user clicks outside
+  window.addEventListener("click", (ev) => {
+    if (!drawer.contains(ev.target)) {
+      drawer.classList.remove("open");
+    }
+  });
+
+  // expose helpers in case other code wants to refresh map
+  window.initWorldMapD3 = initWorldMapD3; // noop self-ref
+  window.redrawWorldMap = async () => { resizeEverything(); await drawMap(); };
+
+} // initWorldMapD3()
+
+// auto init when DOM ready
 document.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("mapWrap")) initWorldMapD3();
 });
