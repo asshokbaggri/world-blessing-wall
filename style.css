@@ -897,12 +897,6 @@ footer,
   stroke-width: 0.5;
 }
 
-#svgContainer {
-  position: relative;
-  width: 100%;
-  height: 420px;
-}
-
 /* MAIN MAP WRAPPER */
 #mapWrap {
   position: relative;
