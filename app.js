@@ -1321,3 +1321,48 @@ function initWorldMapD3() {
 document.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("mapWrap")) initWorldMapD3();
 });
+
+/* ============================================================
+   WORLD MAP — CONNECT FIREBASE → D3 (placeDots)
+   ============================================================ */
+
+async function loadDotsForMap() {
+  // all blessings
+  const snap = await getDocs(
+    query(collection(db, "blessings"), orderBy("timestamp", "desc"))
+  );
+
+  const mapData = {};   // final object sent to D3
+
+  snap.forEach(doc => {
+    const d = doc.data();
+    const iso = (d.countryCode || "").toUpperCase();
+    if (!iso || iso.length !== 2) return;
+
+    if (!mapData[iso]) {
+      mapData[iso] = { count: 0, blessings: [] };
+    }
+
+    mapData[iso].count++;
+    mapData[iso].blessings.push({
+      text: d.text || "",
+      username: d.username || "",
+      time: d.timestamp ? d.timestamp.toDate().toLocaleString() : ""
+    });
+  });
+
+  // call D3 map
+  if (window.placeDots) {
+    window.placeDots(mapData);
+  }
+
+  // update global count
+  const globalCountNum = document.getElementById("globalCountNum");
+  if (globalCountNum) {
+    globalCountNum.textContent = Object.values(mapData).reduce((a,b)=>a+b.count, 0);
+  }
+}
+
+// Call automatically when map is ready
+window.addEventListener("d3-map-ready", loadDotsForMap);
+
