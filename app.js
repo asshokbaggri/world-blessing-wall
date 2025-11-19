@@ -1239,14 +1239,35 @@ function initWorldMapD3() {
         (f.properties?.ISO_A2 || f.properties?.iso_a2 || "").toUpperCase() === countryCode
       );
 
-      // fallback 1: match name (India, United States…)
+      // fallback 1 — match NAME with proper mapping
       if (!feat) {
-        feat = geo.features.find(f =>
-          (f.properties?.NAME || "").toUpperCase().includes(countryCode)
-        );
+        const nameMap = {
+          "IN": "INDIA",
+          "US": "UNITED STATES",
+          "AE": "UNITED ARAB EMIRATES",
+          "GB": "UNITED KINGDOM",
+          "CA": "CANADA",
+          "AU": "AUSTRALIA",
+          "SG": "SINGAPORE",
+          "JP": "JAPAN",
+          "CN": "CHINA",
+          "FR": "FRANCE",
+          "DE": "GERMANY",
+          "PK": "PAKISTAN",
+          "BD": "BANGLADESH",
+          "LK": "SRI LANKA",
+          "NP": "NEPAL"
+        };
+
+        const fullName = nameMap[countryCode];
+        if (fullName) {
+          feat = geo.features.find(f =>
+            (f.properties?.NAME || "").toUpperCase() === fullName
+          );
+        }
       }
 
-      // fallback 2: match numeric id (India = 356)
+      // fallback 2 — numeric id
       if (!feat) {
         const codeMap = {
           "IN": 356, "US": 840, "AE": 784, "GB": 826, "CA": 124,
