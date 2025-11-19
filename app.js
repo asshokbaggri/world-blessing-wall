@@ -1232,12 +1232,26 @@ function initWorldMapD3() {
   dotLayer.innerHTML = "";
 
   // create svg
+  const { w, h } = (function () {
+      const r = wrap.getBoundingClientRect();
+      const width = Math.max(300, Math.round(r.width));
+      const height = Math.round(width * 0.52); // perfect world map ratio
+      return { w: width, h: height };
+  })();
+
+  // REAL height + REAL width svg
   const svg = d3
     .select(svgContainer)
     .append("svg")
     .attr("id", "d3WorldMap")
-    .attr("preserveAspectRatio", "xMidYMid meet")
+    .attr("width", w)
+    .attr("height", h)
+    .attr("viewBox", `0 0 ${w} ${h}`)
     .style("display", "block");
+
+  // DotLayer must match exactly
+  dotLayer.style.width = w + "px";
+  dotLayer.style.height = h + "px";
 
   function getSize() {
     const r = wrap.getBoundingClientRect();
