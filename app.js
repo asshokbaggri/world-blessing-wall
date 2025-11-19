@@ -1293,6 +1293,11 @@ function initWorldMapD3() {
       dot.style.top = Math.round(cy) + "px";
       dot.dataset.code = countryCode;
 
+      // CLICK → open drawer with blessings
+      dot.addEventListener("click", () => {
+          openDrawer(countryCode, list);
+      });
+
       dotLayer.appendChild(dot);
     });
 
