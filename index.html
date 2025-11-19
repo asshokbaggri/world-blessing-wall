@@ -156,33 +156,30 @@
     </div>
   </section>
 
-  <!-- ===== WORLD MAP — D3 VERSION ===== -->
+  <!-- ===== WORLD MAP — D3 (REPLACEMENT) ===== -->
   <section id="worldMapSection" class="feed fade-section" aria-label="World map">
     <h2 class="section-title">🌍 Blessings Around The World</h2>
-    <p class="muted" style="text-align:center;margin-top:-6px;">Tap a country to see blessings</p>
+    <p class="muted" style="text-align:center;margin-top:-6px;">Tap a dot to see blessings</p>
 
-    <!-- ONE AND ONLY MAP WRAPPER -->
-    <div id="mapWrap" class="map-wrap">
+    <div id="mapWrap" class="map-wrap" style="position:relative; margin:18px auto; width:min(1100px,92vw);">
+      <!-- svg container: D3 injects SVG here and JS will set its pixel height -->
+      <div id="svgContainer" class="svg-container" style="position:relative; width:100%;"></div>
 
-        <!-- D3 SVG will inject here -->
-        <div id="svgContainer" class="svg-container"></div>
+      <!-- HTML dot layer (absolute overlay) -->
+      <div id="dotLayer" class="dot-layer" style="position:absolute; inset:0; pointer-events:none;"></div>
 
-        <!-- Dots layer -->
-        <div id="dotLayer" class="dot-layer"></div>
+      <!-- Global count -->
+      <div id="globalCount" class="global-count" style="position:absolute; right:18px; top:14px; z-index:9999; background: rgba(0,0,0,0.32); color:#ffe8b3; padding:8px 12px; border-radius:999px; border:1px solid rgba(255,255,255,0.06); font-weight:700;">
+        Global Blessings: <span id="globalCountNum">0</span>
+      </div>
 
-        <!-- Global count -->
-        <div id="globalCount" class="global-count">
-            Global Blessings: <span id="globalCountNum">0</span>
-        </div>
-
-        <!-- Country drawer -->
-        <aside id="countryDrawer" class="country-drawer" aria-hidden="true">
-            <button id="drawerClose" class="drawer-close">✕</button>
-            <h3 id="drawerTitle">Country — 0</h3>
-            <div id="drawerList" class="drawer-list"></div>
-        </aside>
+      <!-- Country drawer -->
+      <aside id="countryDrawer" class="country-drawer" aria-hidden="true" style="position:fixed; right:24px; bottom:24px; width:min(520px,90vw); max-height:70vh; display:none; z-index:10000;">
+        <button id="drawerClose" class="drawer-close" style="position:absolute; right:10px; top:8px; font-size:18px; background:transparent; border:none; color:var(--text-dim);">✕</button>
+        <h3 id="drawerTitle">Country — 0</h3>
+        <div id="drawerList" class="drawer-list" style="overflow:auto; padding-top:6px;"></div>
+      </aside>
     </div>
-
   </section>
 
   <!-- FOOTER -->
