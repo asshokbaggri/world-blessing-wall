@@ -1235,6 +1235,7 @@ function initWorldMapD3() {
 
     // for each country place a dot (HTML div) on dotLayer using pixel centroid
     Object.keys(grouped).forEach(countryCode => {
+    const fullCountryName = grouped[countryCode][0]?.country || "";
       // 1) Try: match by name (India, Pakistan, etc.)
       let feat = geo.features.find(f =>
         (f.properties?.name || "").trim().toUpperCase() === fullCountryName.toUpperCase()
