@@ -1328,6 +1328,9 @@ function initWorldMapD3() {
     drawer.style.display = ""; // ensure visible
   }
 
+  window.openDrawer = openDrawer;
+
+
   function escapeHtml(s){ return String(s || "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
 
   // initial sizing + draw
