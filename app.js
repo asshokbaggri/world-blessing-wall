@@ -1233,6 +1233,8 @@ function initWorldMapD3() {
     // update global counter
     if (globalCountNum) animateCount(globalCountNum, (blessings || []).length || 0);
 
+    window.__lastMapGroup = grouped;   // <-- store grouping globally for clicks
+
     // for each country place a dot (HTML div) on dotLayer using pixel centroid
     Object.keys(grouped).forEach(countryCode => {
 
@@ -1295,8 +1297,11 @@ function initWorldMapD3() {
 
       // CLICK → open drawer with blessings
       dot.addEventListener("click", () => {
+          const g = window.__lastMapGroup || {};
+          const list = g[countryCode] || [];
           openDrawer(countryCode, list);
       });
+
 
       dotLayer.appendChild(dot);
     });
