@@ -811,43 +811,6 @@ footer,
   z-index: 2;
 }
 
-/* DOT LAYER - absolute overlay on top of SVG */
-#dotLayer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;            /* container ignores pointer; each dot may override */
-  z-index: 10;                     /* dots above svg */
-  overflow: visible;
-}
-
-/* Dot elements (HTML divs) — positioned in pixel space by JS */
-.country-dot {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  pointer-events: auto;            /* allow clicks */
-  z-index: 20;
-  background: radial-gradient(circle at 40% 30%, #fff3c8, #ffd36a 40%, #f0a73b 60%, rgba(240,167,59,0.7) 100%);
-  box-shadow: 0 6px 18px rgba(255,205,120,0.16);
-  border: 1px solid rgba(255,255,255,0.06);
-  transition: transform .18s ease, box-shadow .18s ease, opacity .2s;
-  cursor: pointer;
-  will-change: transform, left, top;
-}
-
-/* sizes */
-.country-dot.size-s { width:10px; height:10px; }
-.country-dot.size-m { width:16px; height:16px; }
-.country-dot.size-l { width:22px; height:22px; }
-
-.country-dot:hover {
-  transform: translate(-50%, -50%) scale(1.18);
-  box-shadow: 0 14px 36px rgba(255,200,80,0.24);
-}
-
 /* global count style (kept small inline fallback) */
 .global-count {
   position: absolute;
