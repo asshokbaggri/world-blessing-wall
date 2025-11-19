@@ -940,3 +940,12 @@ footer,
 .country-dot.size-s { width:10px; height:10px; }
 .country-dot.size-m { width:16px; height:16px; }
 .country-dot.size-l { width:22px; height:22px; }
+
+/* HARD FIX: FORCE MAP + DOTS SAME HEIGHT ALWAYS */
+#svgContainer,
+.svg-container,
+#dotLayer {
+    height: 420px !important;
+    max-height: 420px !important;
+    min-height: 420px !important;
+}
