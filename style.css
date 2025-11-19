@@ -906,8 +906,13 @@ footer,
 
 #svgContainer {
   width: 100%;
-  height: auto !important;
-  min-height: 400px;
+  height: 100% !important;
+  min-height: 480px;
   position: relative;
+}
+
+#dotLayer {
+  height: 100% !important;
+  inset: 0 !important;
 }
 
