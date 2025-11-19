@@ -1318,9 +1318,9 @@ function initWorldMapD3() {
       list.slice(0, 200).forEach(b => {
         const c = document.createElement("div");
         c.className = "blessing-card";
-        const username = b.username ? `<div style="color:var(--text-dim); font-size:12px; margin-top:6px">— ${escapeHtml(b.username)}</div>` : "";
+        const username = b.username ? `<div style="color:var(--text-dim); font-size:12px; margin-top:6px">— ${escapeHTML(b.username)}</div>` : "";
         const time = timeAgo(b.timestamp || b.created) || "";
-        c.innerHTML = `<div style="font-weight:600">${escapeHtml(b.text)}</div>${username}<div style="font-size:11px;color:var(--text-dim);margin-top:6px">${escapeHtml(time)}</div>`;
+        c.innerHTML = `<div style="font-weight:600">${escapeHTML(b.text)}</div>${username}<div style="font-size:11px;color:var(--text-dim);margin-top:6px">${escapeHTML(time)}</div>`;
         drawerList.appendChild(c);
       });
     }
@@ -1331,7 +1331,7 @@ function initWorldMapD3() {
   window.openDrawer = openDrawer;
 
 
-  function escapeHtml(s){ return String(s || "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
+  function escapeHTML(s){ return String(s || "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
 
   // initial sizing + draw
   resizeEverything();
