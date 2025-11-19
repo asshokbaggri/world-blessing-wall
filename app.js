@@ -1353,3 +1353,5 @@ async function loadBlessingsForMap() {
   return blessings;
 }
 
+window.loadBlessingsForMap = loadBlessingsForMap;
+
