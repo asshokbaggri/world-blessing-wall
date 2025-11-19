@@ -1329,43 +1329,23 @@ document.addEventListener("DOMContentLoaded", () => {
    WORLD MAP — CONNECT FIREBASE → D3 (placeDots)
    ============================================================ */
 
-async function loadDotsForMap() {
-  // all blessings
+async function loadBlessingsForMap() {
   const snap = await getDocs(
     query(collection(db, "blessings"), orderBy("timestamp", "desc"))
   );
 
-  const mapData = {};   // final object sent to D3
+  const blessings = [];
 
   snap.forEach(doc => {
     const d = doc.data();
-    const iso = (d.countryCode || "").toUpperCase();
-    if (!iso || iso.length !== 2) return;
-
-    if (!mapData[iso]) {
-      mapData[iso] = { count: 0, blessings: [] };
-    }
-
-    mapData[iso].count++;
-    mapData[iso].blessings.push({
+    blessings.push({
       text: d.text || "",
       username: d.username || "",
-      time: d.timestamp ? d.timestamp.toDate().toLocaleString() : ""
+      countryCode: (d.countryCode || "").toUpperCase(),
+      timestamp: d.timestamp || d.created
     });
   });
 
-  // call D3 map
-  if (window.placeDots) {
-    window.placeDots(mapData);
-  }
-
-  // update global count
-  const globalCountNum = document.getElementById("globalCountNum");
-  if (globalCountNum) {
-    globalCountNum.textContent = Object.values(mapData).reduce((a,b)=>a+b.count, 0);
-  }
+  return blessings;
 }
-
-// Call automatically when map is ready
-window.addEventListener("d3-map-ready", loadDotsForMap);
 
