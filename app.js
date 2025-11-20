@@ -1311,6 +1311,17 @@ const COUNTRY_CENTROIDS = {
   "ZW": { lat: -19.0154, lng: 29.1549 }
 };
 
+// Convert ISO-2 → ISO-3 for GeoJSON matching
+function normalizeCode(cc = "") {
+  cc = cc.trim().toUpperCase();
+  const map = window.__ISO2_TO_ISO3 || {
+    "IN": "IND", "US": "USA", "AE": "ARE", "GB": "GBR", "AU": "AUS",
+    "SG": "SGP", "ID": "IDN", "JP": "JPN", "CN": "CHN", "DE": "DEU",
+    "FR": "FRA", "PK": "PAK", "LK": "LKA", "BD": "BGD", "NP": "NPL"
+  };
+  return map[cc] || cc;
+}
+
 function resolveCountryCode(raw = "") {
   if (!raw) return "";
 
