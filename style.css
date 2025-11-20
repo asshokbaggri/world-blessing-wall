@@ -926,3 +926,7 @@ footer,
   pointer-events: auto;
 }
 
+.country-dot {
+  z-index: 20 !important;
+  pointer-events: auto !important;
+}
