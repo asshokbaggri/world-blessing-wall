@@ -1246,16 +1246,14 @@ function initWorldMapD3() {
     Object.keys(grouped).forEach(countryCode => {
 
         const list = grouped[countryCode] || [];
-        let fullCountryName = (list[0]?.country || "").trim();
+        let fullCountryName = list[0]?.country || "";
+
+        // Standardize
+        fullCountryName = (fullCountryName || "").trim();
         const code = countryCode.toUpperCase();
 
-        // 🔥 HARD STOP: if no name in DB, skip — prevents empty-match bug
-        if (!fullCountryName) return;
-
-        let feat = null;
-
-        // 1) Match by ISO code (correct + safest)
-        feat = geo.features.find(f => {
+        // 1) Match by ISO
+        let feat = geo.features.find(f => {
           const p = f.properties || {};
           return (
             (p.iso_a2 && p.iso_a2.toUpperCase() === code) ||
@@ -1263,7 +1261,7 @@ function initWorldMapD3() {
           );
         });
 
-        // 2) Exact name match
+        // 2) Exact country name match
         if (!feat) {
           feat = geo.features.find(f => {
             const p = f.properties || {};
@@ -1274,7 +1272,7 @@ function initWorldMapD3() {
           });
         }
 
-        // 3) Partial contains match
+        // 3) Partial match
         if (!feat) {
           feat = geo.features.find(f => {
             const p = f.properties || {};
@@ -1285,10 +1283,9 @@ function initWorldMapD3() {
           });
         }
 
-        // ❌ Still nothing → SKIP this country (no wrong match allowed)
-        if (!feat) return;
+        if (!feat) return; // still nothing → skip
 
-        // 4) Final: get centroid
+        // Place dot
         const centroid = pathGen.centroid(feat);
         if (!centroid || !isFinite(centroid[0])) return;
 
@@ -1402,4 +1399,3 @@ async function loadBlessingsForMap() {
 }
 
 window.loadBlessingsForMap = loadBlessingsForMap;
-
