@@ -1275,8 +1275,6 @@ function initWorldMapD3() {
           });
       }
 
-      }
-
       // 5) Still no match → skip
       if (!feat) return;
 
