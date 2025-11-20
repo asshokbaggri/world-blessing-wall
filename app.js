@@ -1554,38 +1554,29 @@ function initWorldMapD3() {
 
         if (!feat) return; // still nothing → skip
 
-        // ---- PLACE DOT USING HYBRID SYSTEM (GPS → fallback centroid) ----
-        list.forEach((bl, i) => {
-            const pos = getBlessingPixelPos(bl, projection);
-            if (!pos) return;
+        // ---- SINGLE CLUSTER DOT PER COUNTRY ----
+        const total = list.length;
+        const pos = getBlessingPixelPos(list[0], projection);
+        if (!pos) return;
 
-            // ⭐ MICRO-SPREAD (avoid dots stacking)
-            const angle = i * (Math.PI * 0.7);
-            const spread = Math.min(12, 4 + i * 0.6);
-            const ox = Math.cos(angle) * spread;
-            const oy = Math.sin(angle) * spread;
+        // auto scale dot
+        let cls = "size-s";
+        if (total > 1000) cls = "size-xl";
+        else if (total > 100) cls = "size-l";
+        else if (total > 10) cls = "size-m";
 
-            pos.x += ox;
-            pos.y += oy;
+        const dot = document.createElement("div");
+        dot.className = "country-dot " + cls;
 
-            const dot = document.createElement("div");
+        dot.style.left = pos.x + "px";
+        dot.style.top = pos.y + "px";
 
-            // Auto-size based on total blessings per country
-            if (list.length <= 3) dot.className = "country-dot size-s";
-            else if (list.length <= 10) dot.className = "country-dot size-m";
-            else dot.className = "country-dot size-l";
+        dot.onclick = (ev) => {
+          ev.stopPropagation();
+          setTimeout(() => openDrawer(countryCode, list), 20);
+        };
 
-            dot.style.left = pos.x + "px";
-            dot.style.top = pos.y + "px";
-
-            // ⭐ Safe click (mobile friendly)
-            dot.onclick = (ev) => {
-                ev.stopPropagation();
-                setTimeout(() => openDrawer(countryCode, list), 20);
-            };
-
-            dotLayer.appendChild(dot);
-        });
+        dotLayer.appendChild(dot);
     });
   } // drawMap
 
