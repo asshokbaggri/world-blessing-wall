@@ -1128,35 +1128,29 @@ function getPixelSizeForWrap(wrap) {
   return { w, h };
 }
 
-function normalizeCode(cc, countryName) {
+function normalizeCode(cc) {
   cc = (cc || "").trim().toUpperCase();
-
   const map = {
-    "INDIA": "IN",
-    "UNITED STATES": "US",
-    "USA": "US",
-    "UAE": "AE",
-    "UNITED KINGDOM": "GB",
-    "ENGLAND": "GB",
-    "PAKISTAN": "PK",
-    "NEPAL": "NP",
-    "BANGLADESH": "BD",
-    "SRI LANKA": "LK",
-    "CHINA": "CN",
-    "JAPAN": "JP",
-    "CANADA": "CA",
-    "AUSTRALIA": "AU",
-    "SINGAPORE": "SG",
-    "INDONESIA": "ID",
-    "GERMANY": "DE",
-    "FRANCE": "FR"
+    "IN": "IND",
+    "US": "USA",
+    "AE": "ARE",
+    "GB": "GBR",
+    "UK": "GBR",
+    "CA": "CAN",
+    "AU": "AUS",
+    "SG": "SGP",
+    "ID": "IDN",
+    "JP": "JPN",
+    "CN": "CHN",
+    "DE": "DEU",
+    "FR": "FRA",
+    "PK": "PAK",
+    "LK": "LKA",
+    "BD": "BGD",
+    "NP": "NPL"
   };
-
-  if (cc) return cc;
-  const key = (countryName || "").trim().toUpperCase();
-  return map[key] || "";
+  return map[cc] || cc;
 }
-
 
 function initWorldMapD3() {
   const wrap = document.getElementById("mapWrap");
@@ -1283,11 +1277,13 @@ function initWorldMapD3() {
         const code = countryCode.toUpperCase();
 
         // 1) Match by ISO
+        const iso3 = normalizeCode(code);
+
         let feat = geo.features.find(f => {
           const p = f.properties || {};
           return (
-            (p.iso_a2 && p.iso_a2.toUpperCase() === code) ||
-            (p.iso_a3 && p.iso_a3.toUpperCase() === code)
+            p.iso_a2?.toUpperCase() === code ||
+            p.iso_a3?.toUpperCase() === iso3
           );
         });
 
@@ -1420,7 +1416,7 @@ async function loadBlessingsForMap() {
     blessings.push({
       text: d.text || "",
       username: d.username || "",
-      countryCode: normalizeCode(d.countryCode, d.country),
+      countryCode: normalizeCode(d.countryCode),
       timestamp: d.timestamp || d.created
     });
   });
