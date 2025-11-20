@@ -1560,10 +1560,15 @@ function initWorldMapD3() {
             pos.y += oy;
 
             const dot = document.createElement("div");
-            dot.className = "country-dot";   // FIXED
+
+            // Auto-size based on total blessings per country
+            if (list.length <= 3) dot.className = "country-dot size-s";
+            else if (list.length <= 10) dot.className = "country-dot size-m";
+            else dot.className = "country-dot size-l";
+
             dot.style.left = pos.x + "px";
-            dot.style.top  = pos.y + "px";
-           
+            dot.style.top = pos.y + "px";
+
             // ⭐ Safe click (mobile friendly)
             dot.onclick = (ev) => {
                 ev.stopPropagation();
