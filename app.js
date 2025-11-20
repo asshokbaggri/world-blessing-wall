@@ -1337,23 +1337,22 @@ function resolveCountryCode(raw = "") {
 function getBlessingPixelPos(blessing, projection) {
     let lat = null, lng = null;
 
-    // 1) If Geo (precise) is available → use it
+    // GPS → highest accuracy
     if (blessing.geo && blessing.geo.lat && blessing.geo.lng) {
         lat = parseFloat(blessing.geo.lat);
         lng = parseFloat(blessing.geo.lng);
     }
 
-    // 2) Otherwise → use centroid map
+    // Fallback → centroid
     if (lat === null || lng === null) {
         const cc = (blessing.countryCode || "").toUpperCase();
-        const c = centroidList[cc];
+        const c = COUNTRY_CENTROIDS[cc];   // FIXED
         if (c) {
             lat = c.lat;
             lng = c.lng;
         }
     }
 
-    // If still not found → return null
     if (lat === null || lng === null) return null;
 
     const point = projection([lng, lat]);
