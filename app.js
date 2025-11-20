@@ -1238,75 +1238,72 @@ function initWorldMapD3() {
     // for each country place a dot (HTML div) on dotLayer using pixel centroid
     Object.keys(grouped).forEach(countryCode => {
 
-      const list = grouped[countryCode] || [];
-      const fullCountryName = list[0]?.country || "";
+        const list = grouped[countryCode] || [];
+        const fullCountryName = list[0]?.country || "";
 
-      // 1) Standardize countryCode
-      const code = countryCode.toUpperCase();
+        const code = countryCode.toUpperCase();
 
-      // 2) Try direct match with geojson ISO code if available
-      let feat = geo.features.find(f => {
-          const p = f.properties || {};
-          return (
-              (p.iso_a2 && p.iso_a2.toUpperCase() === code) ||
-              (p.iso_a3 && p.iso_a3.toUpperCase() === code)
-          );
-      });
+        // 1) Try match by ISO codes
+        let feat = geo.features.find(f => {
+            const p = f.properties || {};
+            return (
+                (p.iso_a2 && p.iso_a2.toUpperCase() === code) ||
+                (p.iso_a3 && p.iso_a3.toUpperCase() === code)
+            );
+        });
 
-      // 3) If still not found → convert ISO → common name using built-in GeoJSON names
-      if (!feat) {
-          feat = geo.features.find(f => {
-              const name = (f.properties?.name || "").toUpperCase();
-              const alt = (f.properties?.name_long || "").toUpperCase();
-              return (
-                  name.includes(list[0].country.toUpperCase()) ||
-                  alt.includes(list[0].country.toUpperCase())
-              );
-          });
-      }
+        // 2) Match by country name from blessing
+        if (!feat) {
+            feat = geo.features.find(f => {
+                const name = (f.properties?.name || "").toUpperCase();
+                const alt  = (f.properties?.name_long || "").toUpperCase();
+                return (
+                    name.includes(fullCountryName.toUpperCase()) ||
+                    alt.includes(fullCountryName.toUpperCase())
+                );
+            });
+        }
 
-      // 4) Hard fallback: match by normalized text similarity
-      if (!feat) {
-          const target = (list[0].country || "")
-              .replace(/[^a-z]/gi, "")
-              .toUpperCase();
+        // 3) Hard fallback
+        if (!feat) {
+            const target = (fullCountryName || "")
+                .replace(/[^a-z]/gi, "")
+                .toUpperCase();
 
-          feat = geo.features.find(f => {
-              const n = (f.properties?.name || "")
-                  .replace(/[^a-z]/gi, "")
-                  .toUpperCase();
-              return n === target;
-          });
-      }
+            feat = geo.features.find(f => {
+                const n = (f.properties?.name || "")
+                    .replace(/[^a-z]/gi, "")
+                    .toUpperCase();
+                return n === target;
+            });
+        }
 
-      // 5) Still no match → skip
-      if (!feat) return;
+        // 4) Still no match → skip
+        if (!feat) return;
 
-      // place centroids…
-      const centroid = pathGen.centroid(feat);
-      if (!centroid || !isFinite(centroid[0])) return;
+        // 5) Place dot
+        const centroid = pathGen.centroid(feat);
+        if (!centroid || !isFinite(centroid[0])) return;
 
-      const [cx, cy] = centroid;
-      const count = list.length;
+        const [cx, cy] = centroid;
+        const count = list.length;
 
-      let sizeClass = "size-s";
-      if (count > 200) sizeClass = "size-l";
-      else if (count > 50) sizeClass = "size-m";
+        let sizeClass = "size-s";
+        if (count > 200) sizeClass = "size-l";
+        else if (count > 50) sizeClass = "size-m";
 
-      const dot = document.createElement("div");
-      dot.className = `country-dot ${sizeClass}`;
-      dot.style.left = Math.round(cx) + "px";
-      dot.style.top  = Math.round(cy) + "px";
-      dot.dataset.code = countryCode;
+        const dot = document.createElement("div");
+        dot.className = `country-dot ${sizeClass}`;
+        dot.style.left = Math.round(cx) + "px";
+        dot.style.top  = Math.round(cy) + "px";
+        dot.dataset.code = countryCode;
 
-      // CLICK drawer
-      dot.addEventListener("click", () => {
-          const g = window.__lastMapGroup || {};
-          const list = g[countryCode] || [];
-          openDrawer(countryCode, list);
-      });
+        dot.addEventListener("click", () => {
+            const g = window.__lastMapGroup || {};
+            openDrawer(countryCode, g[countryCode] || []);
+        });
 
-      dotLayer.appendChild(dot);
+        dotLayer.appendChild(dot);
 
     });
 
