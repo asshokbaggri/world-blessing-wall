@@ -1561,8 +1561,7 @@ function initWorldMapD3() {
 
             dotLayer.appendChild(dot);
         });
-
-
+    });
   } // drawMap
 
   // SAFE: open drawer (re-uses DOM area)
