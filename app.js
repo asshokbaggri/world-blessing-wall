@@ -1482,6 +1482,15 @@ function initWorldMapD3() {
       .attr("stroke", "rgba(255,255,255,0.04)")
       .attr("stroke-width", 0.5);
 
+    // ----- COUNTRY HOVER HIGHLIGHT -----
+    d3.selectAll("#svgContainer svg path")
+      .on("mouseenter", function () {
+        d3.select(this).classed("country-hover", true);
+      })
+      .on("mouseleave", function () {
+        d3.select(this).classed("country-hover", false);
+      });
+     
     // group blessings by country (use your helper if present)
     const grouped = (typeof groupByCountryFixed === "function") ? groupByCountryFixed(blessings, geo) : (function(){
       // fallback grouping: use explicit countryCode fields
