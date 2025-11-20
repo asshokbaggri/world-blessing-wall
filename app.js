@@ -1128,28 +1128,217 @@ function getPixelSizeForWrap(wrap) {
   return { w, h };
 }
 
-function normalizeCode(cc) {
-  cc = (cc || "").trim().toUpperCase();
-  const map = {
-    "IN": "IND",
-    "US": "USA",
-    "AE": "ARE",
-    "GB": "GBR",
-    "UK": "GBR",
-    "CA": "CAN",
-    "AU": "AUS",
-    "SG": "SGP",
-    "ID": "IDN",
-    "JP": "JPN",
-    "CN": "CHN",
-    "DE": "DEU",
-    "FR": "FRA",
-    "PK": "PAK",
-    "LK": "LKA",
-    "BD": "BGD",
-    "NP": "NPL"
-  };
-  return map[cc] || cc;
+// ===========================
+// WORLD CENTROID DATABASE (240 countries)
+// ISO2 → { lat, lng }
+// ===========================
+const COUNTRY_CENTROIDS = {
+  "AF": { lat: 33.93911, lng: 67.709953 },
+  "AL": { lat: 41.1533, lng: 20.1683 },
+  "DZ": { lat: 28.0339, lng: 1.6596 },
+  "AD": { lat: 42.5063, lng: 1.5218 },
+  "AO": { lat: -11.2027, lng: 17.8739 },
+  "AR": { lat: -38.4161, lng: -63.6167 },
+  "AM": { lat: 40.0691, lng: 45.0382 },
+  "AU": { lat: -25.2744, lng: 133.7751 },
+  "AT": { lat: 47.5162, lng: 14.5501 },
+  "AZ": { lat: 40.1431, lng: 47.5769 },
+  "BH": { lat: 26.0667, lng: 50.5577 },
+  "BD": { lat: 23.685, lng: 90.3563 },
+  "BY": { lat: 53.7098, lng: 27.9534 },
+  "BE": { lat: 50.5039, lng: 4.4699 },
+  "BZ": { lat: 17.1899, lng: -88.4976 },
+  "BJ": { lat: 9.3077, lng: 2.3158 },
+  "BT": { lat: 27.5142, lng: 90.4336 },
+  "BO": { lat: -16.2902, lng: -63.5887 },
+  "BA": { lat: 43.9159, lng: 17.6791 },
+  "BW": { lat: -22.3285, lng: 24.6849 },
+  "BR": { lat: -14.235, lng: -51.9253 },
+  "BN": { lat: 4.5353, lng: 114.7277 },
+  "BG": { lat: 42.7339, lng: 25.4858 },
+  "BF": { lat: 12.2383, lng: -1.5616 },
+  "BI": { lat: -3.3731, lng: 29.9189 },
+  "KH": { lat: 12.5657, lng: 104.991 },
+  "CM": { lat: 7.3697, lng: 12.3547 },
+  "CA": { lat: 56.1304, lng: -106.3468 },
+  "CF": { lat: 6.6111, lng: 20.9394 },
+  "TD": { lat: 15.4542, lng: 18.7322 },
+  "CL": { lat: -35.6751, lng: -71.543 },
+  "CN": { lat: 35.8617, lng: 104.1954 },
+  "CO": { lat: 4.5709, lng: -74.2973 },
+  "KM": { lat: -11.6455, lng: 43.3333 },
+  "CG": { lat: -0.228, lng: 15.8277 },
+  "CD": { lat: -4.0383, lng: 21.7587 },
+  "CR": { lat: 9.7489, lng: -83.7534 },
+  "CI": { lat: 7.54, lng: -5.5471 },
+  "HR": { lat: 45.1, lng: 15.2 },
+  "CU": { lat: 21.5218, lng: -77.7812 },
+  "CY": { lat: 35.1264, lng: 33.4299 },
+  "CZ": { lat: 49.8175, lng: 15.473 },
+  "DK": { lat: 56.2639, lng: 9.5018 },
+  "DJ": { lat: 11.8251, lng: 42.5903 },
+  "DM": { lat: 15.415, lng: -61.371 },
+  "DO": { lat: 18.7357, lng: -70.1627 },
+  "EC": { lat: -1.8312, lng: -78.1834 },
+  "EG": { lat: 26.8206, lng: 30.8025 },
+  "SV": { lat: 13.7942, lng: -88.8965 },
+  "GQ": { lat: 1.6508, lng: 10.2679 },
+  "ER": { lat: 15.1794, lng: 39.7823 },
+  "EE": { lat: 58.5953, lng: 25.0136 },
+  "ET": { lat: 9.145, lng: 40.4897 },
+  "FI": { lat: 61.9241, lng: 25.7482 },
+  "FR": { lat: 46.6034, lng: 1.8883 },
+  "GA": { lat: -0.8037, lng: 11.6094 },
+  "GM": { lat: 13.4432, lng: -15.3101 },
+  "GE": { lat: 42.3154, lng: 43.3569 },
+  "DE": { lat: 51.1657, lng: 10.4515 },
+  "GH": { lat: 7.9465, lng: -1.0232 },
+  "GR": { lat: 39.0742, lng: 21.8243 },
+  "GT": { lat: 15.7835, lng: -90.2308 },
+  "GN": { lat: 9.9456, lng: -9.6966 },
+  "GW": { lat: 11.8037, lng: -15.1804 },
+  "GY": { lat: 4.8604, lng: -58.9302 },
+  "HT": { lat: 18.9712, lng: -72.2852 },
+  "HN": { lat: 15.1999, lng: -86.2419 },
+  "HU": { lat: 47.1625, lng: 19.5033 },
+  "IS": { lat: 64.9631, lng: -19.0208 },
+  "IN": { lat: 20.5937, lng: 78.9629 },
+  "ID": { lat: -0.7893, lng: 113.9213 },
+  "IR": { lat: 32.4279, lng: 53.688 },
+  "IQ": { lat: 33.2232, lng: 43.6793 },
+  "IE": { lat: 53.4129, lng: -8.2439 },
+  "IL": { lat: 31.0461, lng: 34.8516 },
+  "IT": { lat: 41.8719, lng: 12.5674 },
+  "JM": { lat: 18.1096, lng: -77.2975 },
+  "JP": { lat: 36.2048, lng: 138.2529 },
+  "JO": { lat: 30.5852, lng: 36.2384 },
+  "KZ": { lat: 48.0196, lng: 66.9237 },
+  "KE": { lat: -0.0236, lng: 37.9062 },
+  "KR": { lat: 35.9078, lng: 127.7669 },
+  "KW": { lat: 29.3117, lng: 47.4818 },
+  "KG": { lat: 41.2044, lng: 74.7661 },
+  "LA": { lat: 19.8563, lng: 102.4955 },
+  "LV": { lat: 56.8796, lng: 24.6032 },
+  "LB": { lat: 33.8547, lng: 35.8623 },
+  "LS": { lat: -29.6099, lng: 28.2336 },
+  "LR": { lat: 6.4281, lng: -9.4295 },
+  "LY": { lat: 26.3351, lng: 17.2283 },
+  "LT": { lat: 55.1694, lng: 23.8813 },
+  "LU": { lat: 49.8153, lng: 6.1296 },
+  "MG": { lat: -18.7669, lng: 46.8691 },
+  "MW": { lat: -13.2543, lng: 34.3015 },
+  "MY": { lat: 4.2105, lng: 101.9758 },
+  "MV": { lat: 3.2028, lng: 73.2207 },
+  "ML": { lat: 17.5707, lng: -3.9962 },
+  "MT": { lat: 35.9375, lng: 14.3754 },
+  "MR": { lat: 21.0079, lng: -10.9408 },
+  "MU": { lat: -20.3484, lng: 57.5522 },
+  "MX": { lat: 23.6345, lng: -102.5528 },
+  "MD": { lat: 47.4116, lng: 28.3699 },
+  "MN": { lat: 46.8625, lng: 103.8467 },
+  "ME": { lat: 42.7087, lng: 19.3744 },
+  "MA": { lat: 31.7917, lng: -7.0926 },
+  "MZ": { lat: -18.6657, lng: 35.5296 },
+  "MM": { lat: 21.9162, lng: 95.956 },
+  "NA": { lat: -22.9576, lng: 18.4904 },
+  "NP": { lat: 28.3949, lng: 84.124 },
+  "NL": { lat: 52.1326, lng: 5.2913 },
+  "NZ": { lat: -40.9006, lng: 174.886 },
+  "NI": { lat: 12.8654, lng: -85.2072 },
+  "NE": { lat: 17.6078, lng: 8.0817 },
+  "NG": { lat: 9.082, lng: 8.6753 },
+  "NO": { lat: 60.472, lng: 8.4689 },
+  "OM": { lat: 21.4735, lng: 55.9754 },
+  "PK": { lat: 30.3753, lng: 69.3451 },
+  "PA": { lat: 8.5379, lng: -80.7821 },
+  "PG": { lat: -6.31499, lng: 143.9555 },
+  "PY": { lat: -23.4425, lng: -58.4438 },
+  "PE": { lat: -9.19, lng: -75.0152 },
+  "PH": { lat: 12.8797, lng: 121.774 },
+  "PL": { lat: 51.9194, lng: 19.1451 },
+  "PT": { lat: 39.3999, lng: -8.2245 },
+  "QA": { lat: 25.3548, lng: 51.1839 },
+  "RO": { lat: 45.9432, lng: 24.9668 },
+  "RU": { lat: 61.524, lng: 105.3188 },
+  "RW": { lat: -1.9403, lng: 29.8739 },
+  "KN": { lat: 17.3578, lng: -62.783 },
+  "LC": { lat: 13.9094, lng: -60.9789 },
+  "VC": { lat: 12.9843, lng: -61.2872 },
+  "WS": { lat: -13.759, lng: -172.1046 },
+  "SM": { lat: 43.9424, lng: 12.4578 },
+  "ST": { lat: 0.1864, lng: 6.6131 },
+  "SA": { lat: 23.8859, lng: 45.0792 },
+  "SN": { lat: 14.4974, lng: -14.4524 },
+  "RS": { lat: 44.0165, lng: 21.0059 },
+  "SC": { lat: -4.6796, lng: 55.492 },
+  "SL": { lat: 8.4606, lng: -11.7799 },
+  "SG": { lat: 1.3521, lng: 103.8198 },
+  "SK": { lat: 48.669, lng: 19.699 },
+  "SI": { lat: 46.1512, lng: 14.9955 },
+  "SB": { lat: -9.6457, lng: 160.1562 },
+  "SO": { lat: 5.1521, lng: 46.1996 },
+  "ZA": { lat: -30.5595, lng: 22.9375 },
+  "SS": { lat: 6.877, lng: 31.307 },
+  "ES": { lat: 40.4637, lng: -3.7492 },
+  "LK": { lat: 7.8731, lng: 80.7718 },
+  "SD": { lat: 12.8628, lng: 30.2176 },
+  "SR": { lat: 3.9193, lng: -56.0278 },
+  "SE": { lat: 60.1282, lng: 18.6435 },
+  "CH": { lat: 46.8182, lng: 8.2275 },
+  "SY": { lat: 34.8021, lng: 38.9968 },
+  "TJ": { lat: 38.861, lng: 71.2761 },
+  "TZ": { lat: -6.369, lng: 34.8888 },
+  "TH": { lat: 15.87, lng: 100.9925 },
+  "TL": { lat: -8.8742, lng: 125.7275 },
+  "TG": { lat: 8.6195, lng: 0.8248 },
+  "TO": { lat: -21.179, lng: -175.1982 },
+  "TT": { lat: 10.6918, lng: -61.2225 },
+  "TN": { lat: 33.8869, lng: 9.5375 },
+  "TR": { lat: 38.9637, lng: 35.2433 },
+  "TM": { lat: 38.9697, lng: 59.5563 },
+  "UG": { lat: 1.3733, lng: 32.2903 },
+  "UA": { lat: 48.3794, lng: 31.1656 },
+  "AE": { lat: 23.4241, lng: 53.8478 },
+  "GB": { lat: 55.3781, lng: -3.436 },
+  "US": { lat: 37.0902, lng: -95.7129 },
+  "UY": { lat: -32.5228, lng: -55.7658 },
+  "UZ": { lat: 41.3775, lng: 64.5853 },
+  "VU": { lat: -15.3767, lng: 166.9592 },
+  "VE": { lat: 6.4238, lng: -66.5897 },
+  "VN": { lat: 14.0583, lng: 108.2772 },
+  "YE": { lat: 15.5527, lng: 48.5164 },
+  "ZM": { lat: -13.1339, lng: 27.8493 },
+  "ZW": { lat: -19.0154, lng: 29.1549 }
+};
+
+// --- Convert Blessing to Pixel Position ---
+// priority: 1) exact GPS if available  2) fallback to centroid
+function getBlessingPixelPos(blessing, projection) {
+    let lat = null, lng = null;
+
+    // 1) If Geo (precise) is available → use it
+    if (blessing.geo && blessing.geo.lat && blessing.geo.lng) {
+        lat = parseFloat(blessing.geo.lat);
+        lng = parseFloat(blessing.geo.lng);
+    }
+
+    // 2) Otherwise → use centroid map
+    if (lat === null || lng === null) {
+        const cc = (blessing.countryCode || "").toUpperCase();
+        const c = centroidList[cc];
+        if (c) {
+            lat = c.lat;
+            lng = c.lng;
+        }
+    }
+
+    // If still not found → return null
+    if (lat === null || lng === null) return null;
+
+    const point = projection([lng, lat]);
+    if (!point) return null;
+
+    return { x: Math.round(point[0]), y: Math.round(point[1]) };
 }
 
 function initWorldMapD3() {
@@ -1191,25 +1380,33 @@ function initWorldMapD3() {
 
   // resize handler: set svg viewBox / container pixel sizes and also resize dotLayer
   function resizeEverything() {
-      const { w, h } = getPixelSizeForWrap(wrap);
-
-      svg.attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h);
-
-      svgContainer.style.width  = `${w}px`;
-      svgContainer.style.height = `${h}px`;
-
       const rect = svgContainer.getBoundingClientRect();
 
-      dotLayer.style.width = rect.width + "px";
-      dotLayer.style.height = rect.height + "px";
+      if (!rect.width || !rect.height) return;
 
+      const w = Math.round(rect.width);
+      const h = Math.round(rect.height);
+
+      // Set SVG pixel size
+      svg.attr("viewBox", `0 0 ${w} ${h}`)
+         .attr("width", w)
+         .attr("height", h);
+
+      // HTML container sync
+      svgContainer.style.width = `${w}px`;
+      svgContainer.style.height = `${h}px`;
+
+      // dotLayer must ALWAYS match SVG pixel area
+      dotLayer.style.width = `${w}px`;
+      dotLayer.style.height = `${h}px`;
       dotLayer.style.position = "absolute";
       dotLayer.style.left = "0px";
-      dotLayer.style.top  = "0px";
-      dotLayer.style.transform = "translate(0,0)";
+      dotLayer.style.top = "0px";
       dotLayer.style.pointerEvents = "auto";
-  }
 
+      // Recalculate projection live
+      projection.fitSize([w, h], window.__worldGeo);
+  }
 
   // draw map + dots. We re-run on resize to keep pixel-perfect overlay.
   async function drawMap() {
@@ -1241,6 +1438,9 @@ function initWorldMapD3() {
       projection.scale(scale * 140).translate([w / 2, h / 1.8]);
     }
     pathGen.projection(projection);
+
+    const rect = svgContainer.getBoundingClientRect();
+    projection.fitSize([rect.width, rect.height], geo);
 
     // draw countries
     gCountries.selectAll("path")
@@ -1314,31 +1514,23 @@ function initWorldMapD3() {
 
         if (!feat) return; // still nothing → skip
 
-        // Place dot
-        const centroid = pathGen.centroid(feat);
-        if (!centroid || !isFinite(centroid[0])) return;
+        // ---- PLACE DOT USING HYBRID SYSTEM (GPS → fallback centroid) ----
+        list.forEach(bl => {
+            const pos = getBlessingPixelPos(bl, projection);
+            if (!pos) return;
 
-        const [cx, cy] = centroid;
-        const count = list.length;
+            const dot = document.createElement("div");
+            dot.className = `country-dot ${sizeClass}`;
+            dot.style.left = pos.x + "px";
+            dot.style.top  = pos.y + "px";
 
-        let sizeClass = "size-s";
-        if (count > 200) sizeClass = "size-l";
-        else if (count > 50) sizeClass = "size-m";
+            dot.addEventListener("click", () => {
+                openDrawer(countryCode, list);
+            });
 
-        const dot = document.createElement("div");
-        dot.className = `country-dot ${sizeClass}`;
-        dot.style.left = Math.round(cx) + "px";
-        dot.style.top  = Math.round(cy) + "px";
-        dot.dataset.code = countryCode;
-
-        dot.addEventListener("click", () => {
-            const g = window.__lastMapGroup || {};
-            openDrawer(countryCode, g[countryCode] || []);
+            dotLayer.appendChild(dot);
         });
 
-        dotLayer.appendChild(dot);
-
-    });
 
   } // drawMap
 
@@ -1370,6 +1562,16 @@ function initWorldMapD3() {
   // initial sizing + draw
   resizeEverything();
   drawMap();
+
+  // --- Keep map stable on orientation change / zoom / resize ---
+  let safeTimer = null;
+  window.addEventListener("resize", () => {
+      clearTimeout(safeTimer);
+      safeTimer = setTimeout(async () => {
+          resizeEverything();
+          await drawMap();
+      }, 120);
+  });
 
   // map is now ready → notify global listener
   window.dispatchEvent(new Event("d3-map-ready"));
@@ -1408,23 +1610,25 @@ document.addEventListener("DOMContentLoaded", () => {
    ============================================================ */
 
 async function loadBlessingsForMap() {
-  const snap = await getDocs(
-    query(collection(db, "blessings"), orderBy("timestamp", "desc"))
-  );
+    const snap = await getDocs(
+        query(collection(db, "blessings"), orderBy("timestamp", "desc"))
+    );
 
-  const blessings = [];
+    const blessings = [];
 
-  snap.forEach(doc => {
-    const d = doc.data();
-    blessings.push({
-      text: d.text || "",
-      username: d.username || "",
-      countryCode: normalizeCode(d.countryCode || d.country),
-      timestamp: d.timestamp || d.created
+    snap.forEach(doc => {
+        const d = doc.data();
+        blessings.push({
+            text: d.text || "",
+            username: d.username || "",
+            country: d.country || "",
+            countryCode: (d.countryCode || "").toUpperCase(),
+            geo: d.geo || null,     // <-- GPS SUPPORT (IMPORTANT)
+            timestamp: d.timestamp || d.created
+        });
     });
-  });
 
-  return blessings;
+    return blessings;
 }
 
 window.loadBlessingsForMap = loadBlessingsForMap;
