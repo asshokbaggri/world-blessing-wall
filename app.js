@@ -1535,18 +1535,29 @@ function initWorldMapD3() {
         if (!feat) return; // still nothing → skip
 
         // ---- PLACE DOT USING HYBRID SYSTEM (GPS → fallback centroid) ----
-        list.forEach(bl => {
+        list.forEach((bl, i) => {
             const pos = getBlessingPixelPos(bl, projection);
             if (!pos) return;
+
+            // ⭐ MICRO-SPREAD (avoid dots stacking)
+            const angle = i * (Math.PI * 0.7);
+            const spread = Math.min(12, 4 + i * 0.6);
+            const ox = Math.cos(angle) * spread;
+            const oy = Math.sin(angle) * spread;
+
+            pos.x += ox;
+            pos.y += oy;
 
             const dot = document.createElement("div");
             dot.className = "country-dot";   // FIXED
             dot.style.left = pos.x + "px";
             dot.style.top  = pos.y + "px";
-
-            dot.addEventListener("click", () => {
-                openDrawer(countryCode, list);
-            });
+           
+            // ⭐ Safe click (mobile friendly)
+            dot.onclick = (ev) => {
+                ev.stopPropagation();
+                setTimeout(() => openDrawer(countryCode, list), 20);
+            };
 
             dotLayer.appendChild(dot);
         });
