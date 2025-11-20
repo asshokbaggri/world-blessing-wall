@@ -1248,53 +1248,44 @@ function initWorldMapD3() {
         const list = grouped[countryCode] || [];
         let fullCountryName = list[0]?.country || "";
 
-        // FIX: remove ISO code prefix, e.g.
-        // "IN India" → "India"
-        // "US United States" → "United States"
-        fullCountryName = fullCountryName.replace(/^[A-Z]{2}\s+/i, "");
-
-
+        // Standardize
+        fullCountryName = (fullCountryName || "").trim();
         const code = countryCode.toUpperCase();
 
-        // 1) Try match by ISO codes
+        // 1) Match by ISO
         let feat = geo.features.find(f => {
-            const p = f.properties || {};
-            return (
-                (p.iso_a2 && p.iso_a2.toUpperCase() === code) ||
-                (p.iso_a3 && p.iso_a3.toUpperCase() === code)
-            );
+          const p = f.properties || {};
+          return (
+            (p.iso_a2 && p.iso_a2.toUpperCase() === code) ||
+            (p.iso_a3 && p.iso_a3.toUpperCase() === code)
+          );
         });
 
-        // 2) Match by country name from blessing
+        // 2) Exact country name match
         if (!feat) {
-            feat = geo.features.find(f => {
-                const name = (f.properties?.name || "").toUpperCase();
-                const alt  = (f.properties?.name_long || "").toUpperCase();
-                return (
-                    name.includes(fullCountryName.toUpperCase()) ||
-                    alt.includes(fullCountryName.toUpperCase())
-                );
-            });
+          feat = geo.features.find(f => {
+            const p = f.properties || {};
+            return (
+              p.name?.toUpperCase() === fullCountryName.toUpperCase() ||
+              p.name_long?.toUpperCase() === fullCountryName.toUpperCase()
+            );
+          });
         }
 
-        // 3) Hard fallback
+        // 3) Partial match
         if (!feat) {
-            const target = (fullCountryName || "")
-                .replace(/[^a-z]/gi, "")
-                .toUpperCase();
-
-            feat = geo.features.find(f => {
-                const n = (f.properties?.name || "")
-                    .replace(/[^a-z]/gi, "")
-                    .toUpperCase();
-                return n === target;
-            });
+          feat = geo.features.find(f => {
+            const p = f.properties || {};
+            return (
+              p.name?.toUpperCase().includes(fullCountryName.toUpperCase()) ||
+              p.name_long?.toUpperCase().includes(fullCountryName.toUpperCase())
+            );
+          });
         }
 
-        // 4) Still no match → skip
-        if (!feat) return;
+        if (!feat) return; // still nothing → skip
 
-        // 5) Place dot
+        // Place dot
         const centroid = pathGen.centroid(feat);
         if (!centroid || !isFinite(centroid[0])) return;
 
