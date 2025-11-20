@@ -1267,10 +1267,14 @@ function initWorldMapD3() {
 
       // 4) Hard fallback: match by normalized text similarity
       if (!feat) {
-          const target = (list[0].country || "").replace(/[^a-z]/gi, "").toUpperCase();
+          const target = (list[0].country || "")
+              .replace(/[^a-z]/gi, "")
+              .toUpperCase();
 
           feat = geo.features.find(f => {
-              const n = (f.properties?.name || "").replace(/[^a-z]/gi, "").toUpperCase();
+              const n = (f.properties?.name || "")
+                  .replace(/[^a-z]/gi, "")
+                  .toUpperCase();
               return n === target;
           });
       }
@@ -1284,7 +1288,7 @@ function initWorldMapD3() {
 
       const [cx, cy] = centroid;
       const count = list.length;
- 
+
       let sizeClass = "size-s";
       if (count > 200) sizeClass = "size-l";
       else if (count > 50) sizeClass = "size-m";
@@ -1292,18 +1296,18 @@ function initWorldMapD3() {
       const dot = document.createElement("div");
       dot.className = `country-dot ${sizeClass}`;
       dot.style.left = Math.round(cx) + "px";
-      dot.style.top = Math.round(cy) + "px";
+      dot.style.top  = Math.round(cy) + "px";
       dot.dataset.code = countryCode;
 
-      // CLICK → open drawer with blessings
+      // CLICK drawer
       dot.addEventListener("click", () => {
           const g = window.__lastMapGroup || {};
           const list = g[countryCode] || [];
           openDrawer(countryCode, list);
       });
 
-
       dotLayer.appendChild(dot);
+
     });
 
   } // drawMap
