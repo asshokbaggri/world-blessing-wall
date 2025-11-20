@@ -1181,6 +1181,14 @@ function initWorldMapD3() {
   // groups in svg (for country paths)
   const gCountries = svg.append("g").attr("class", "countries");
 
+  // projection + path (will be reconfigured after geo load)
+  const projection = d3.geoMercator()
+    .scale(155)
+    .translate([wrap.clientWidth / 2, wrap.clientHeight / 2])
+    .center([0, 20]);
+
+  const pathGen = d3.geoPath().projection(projection);
+
   // resize handler: set svg viewBox / container pixel sizes and also resize dotLayer
   function resizeEverything() {
     const { w, h } = getPixelSizeForWrap(wrap);
