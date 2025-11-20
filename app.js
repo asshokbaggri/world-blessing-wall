@@ -1239,7 +1239,13 @@ function initWorldMapD3() {
     Object.keys(grouped).forEach(countryCode => {
 
         const list = grouped[countryCode] || [];
-        const fullCountryName = list[0]?.country || "";
+        let fullCountryName = list[0]?.country || "";
+
+        // FIX: remove ISO code prefix, e.g.
+        // "IN India" → "India"
+        // "US United States" → "United States"
+        fullCountryName = fullCountryName.replace(/^[A-Z]{2}\s+/i, "");
+
 
         const code = countryCode.toUpperCase();
 
