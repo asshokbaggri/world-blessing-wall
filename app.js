@@ -1182,7 +1182,11 @@ function initWorldMapD3() {
   const gCountries = svg.append("g").attr("class", "countries");
 
   // projection + path (will be configured after geo load)
-  const projection = d3.geoMercator();
+  const projection = d3.geoMercator()
+    .scale(155)             // perfect scale for your map container
+    .translate([wrap.clientWidth / 2, wrap.clientHeight / 2])  
+    .center([0, 20]);       // vertical alignment fix (very important)
+
   const pathGen = d3.geoPath().projection(projection);
 
   // resize handler: set svg viewBox / container pixel sizes and also resize dotLayer
