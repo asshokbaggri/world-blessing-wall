@@ -904,25 +904,44 @@ footer,
 /* ---- FINAL WORLD DOT SYSTEM ---- */
 
 .country-dot {
-  width: 14px;          /* default visible size */
-  height: 14px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 30%, #fff3c8, #ffd36a 40%, #f0a73b 60%, rgba(240,167,59,0.7) 100%);
-  box-shadow: 0 6px 18px rgba(255,205,120,0.16);
-  border: 1px solid rgba(255,255,255,0.06);
   position: absolute;
   transform: translate(-50%, -50%);
-  transition: transform .18s ease, box-shadow .18s ease;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  background: radial-gradient(circle at 40% 30%, #fff9d9, #ffd679 40%, #f0a73b 65%, rgba(240,167,59,0.65) 100%);
+  box-shadow:
+    0 0 8px rgba(255,210,110,0.45),
+    0 0 18px rgba(255,195,80,0.22),
+    0 4px 10px rgba(0,0,0,0.45);
+  border: 1px solid rgba(255,255,255,0.15);
   cursor: pointer;
-  z-index: 40 !important;
+  animation: dotPulse 3.8s ease-in-out infinite;
+  transition: transform .25s ease, box-shadow .25s ease;
 }
-
-/* size levels */
-.country-dot.size-s { width: 12px; height: 12px; }
-.country-dot.size-m { width: 18px; height: 18px; }
-.country-dot.size-l { width: 24px; height: 24px; }
 
 .country-dot:hover {
   transform: translate(-50%, -50%) scale(1.22);
-  box-shadow: 0 14px 36px rgba(255,200,80,0.28);
+  box-shadow:
+    0 0 14px rgba(255,225,150,0.75),
+    0 0 28px rgba(255,200,90,0.35),
+    0 6px 14px rgba(0,0,0,0.5);
 }
+
+@keyframes dotPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50%      { transform: translate(-50%, -50%) scale(1.08); }
+}
+
+#svgContainer path {
+  fill: #0d1117 !important;
+  stroke: rgba(255,255,255,0.08) !important;
+  stroke-width: 0.6px;
+  transition: fill 0.25s ease, stroke 0.25s ease;
+}
+
+#svgContainer path:hover {
+  fill: rgba(255,255,255,0.04) !important;
+  stroke: rgba(255,220,160,0.35) !important;
+}
+
