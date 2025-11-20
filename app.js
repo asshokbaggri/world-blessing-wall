@@ -1311,6 +1311,27 @@ const COUNTRY_CENTROIDS = {
   "ZW": { lat: -19.0154, lng: 29.1549 }
 };
 
+function resolveCountryCode(raw = "") {
+  if (!raw) return "";
+
+  raw = raw.trim().toUpperCase();
+  if (raw.length === 2) return raw;
+
+  const guesses = {
+    "INDIA": "IN",
+    "BHARAT": "IN",
+    "UNITED STATES": "US",
+    "AMERICA": "US",
+    "UAE": "AE",
+    "DUBAI": "AE",
+    "UK": "GB",
+    "ENGLAND": "GB",
+    "SINGAPORE": "SG"
+  };
+
+  return guesses[raw] || raw.slice(0,2);
+}
+
 // --- Convert Blessing to Pixel Position ---
 // priority: 1) exact GPS if available  2) fallback to centroid
 function getBlessingPixelPos(blessing, projection) {
