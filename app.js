@@ -1171,10 +1171,17 @@ function initWorldMapD3() {
     svgContainer.style.width  = `${w}px`;
     svgContainer.style.height = `${h}px`;
 
+    dotLayer.style.position = "absolute";
+    dotLayer.style.pointerEvents = "auto";
+
     dotLayer.style.width  = `${w}px`;
     dotLayer.style.height = `${h}px`;
-    dotLayer.style.top = "0px";
+
+    dotLayer.style.top  = "0px";
     dotLayer.style.left = "0px";
+
+    dotLayer.style.transform = "translate(0,0)";
+
   }
 
   // draw map + dots. We re-run on resize to keep pixel-perfect overlay.
