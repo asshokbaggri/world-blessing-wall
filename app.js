@@ -1416,7 +1416,7 @@ async function loadBlessingsForMap() {
     blessings.push({
       text: d.text || "",
       username: d.username || "",
-      countryCode: normalizeCode(d.countryCode),
+      countryCode: normalizeCode(d.countryCode || d.country),
       timestamp: d.timestamp || d.created
     });
   });
