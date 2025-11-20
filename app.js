@@ -1253,7 +1253,6 @@ function initWorldMapD3() {
             "US": "United States of America",
             "AE": "United Arab Emirates",
             "GB": "United Kingdom",
-            "UK": "United Kingdom",
             "CA": "Canada",
             "PK": "Pakistan",
             "IT": "Italy",
@@ -1264,8 +1263,16 @@ function initWorldMapD3() {
             "NP": "Nepal",
             "BD": "Bangladesh",
             "LK": "Sri Lanka",
-            "AU": "Australia"
+            "AU": "Australia",
+            "ID": "Indonesia",
+            "BR": "Brazil",
+            "MX": "Mexico",
+            "ES": "Spain",
+            "RU": "Russia",
+            "CN": "China",
+            "ZA": "South Africa"
           };
+
 
           const lookupName = isoToName[countryCode];
           if (lookupName) {
