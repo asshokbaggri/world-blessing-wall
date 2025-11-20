@@ -1540,7 +1540,7 @@ function initWorldMapD3() {
             if (!pos) return;
 
             const dot = document.createElement("div");
-            dot.className = `country-dot ${sizeClass}`;
+            dot.className = "country-dot";   // FIXED
             dot.style.left = pos.x + "px";
             dot.style.top  = pos.y + "px";
 
