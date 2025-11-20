@@ -792,24 +792,38 @@ footer,
   position: relative;
   width: 100%;
   overflow: visible !important;
-  background: linear-gradient(180deg, rgba(10,12,15,0.6), rgba(20,24,33,0.6));
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.04);
+
+  /* PREMIUM MAP BACKLIGHT */
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255, 235, 180, 0.18), transparent 70%),
+    radial-gradient(circle at 50% 90%, rgba(255, 200, 120, 0.10), transparent 75%),
+    linear-gradient(180deg, rgba(10,12,15,0.55), rgba(20,24,33,0.55));
+
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+  backdrop-filter: blur(6px);
+  z-index: 2;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2;
 }
 
 /* D3-inserted SVG: make sure SVG is block-level and visible */
 #svgContainer > svg {
-    display: block;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-    border-radius: 12px;
-    z-index: 2;
-    pointer-events: auto !important;   /* ✔ FINAL WORKING FIX */
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  border-radius: 14px;
+
+  /* MAP VISIBILITY BOOST */
+  filter: drop-shadow(0 0 10px rgba(255,255,255,0.12))
+          brightness(1.22);
+
+  pointer-events: auto !important;
+  z-index: 2;
 }
 
 #goldParticles {
@@ -945,3 +959,29 @@ footer,
   stroke: rgba(255,220,160,0.35) !important;
 }
 
+.country-dot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: auto !important;
+  cursor: pointer;
+
+  /* PREMIUM GOLD GRADIENT */
+  background: radial-gradient(circle at 40% 30%, #fff7d1, #ffd77a 40%, #f0a73b 65%, rgba(240,167,59,0.8) 100%);
+
+  /* 3D LIGHT GLOW */
+  box-shadow:
+      0 0 10px rgba(255, 210, 120, 0.45),
+      0 0 22px rgba(255, 200, 100, 0.25),
+      0 6px 18px rgba(0,0,0,0.25);
+
+  transition: transform .2s ease, box-shadow .2s ease, opacity .2s;
+  z-index: 20;
+}
+
+.country-dot:hover {
+  transform: translate(-50%, -50%) scale(1.22);
+  box-shadow:
+    0 0 14px rgba(255, 220, 130, 0.65),
+    0 0 30px rgba(255, 200, 100, 0.4);
+}
