@@ -809,7 +809,9 @@ footer,
   overflow: visible;
   border-radius: 12px;
   z-index: 2;
+  pointer-events: visiblePainted !important;   /* ⭐ MAGIC FIX */
 }
+
 
 #goldParticles {
   pointer-events: none !important;
