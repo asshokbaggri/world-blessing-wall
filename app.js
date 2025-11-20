@@ -1191,35 +1191,25 @@ function initWorldMapD3() {
 
   // resize handler: set svg viewBox / container pixel sizes and also resize dotLayer
   function resizeEverything() {
-    const { w, h } = getPixelSizeForWrap(wrap);
+      const { w, h } = getPixelSizeForWrap(wrap);
 
-    svg.attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h);
+      svg.attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h);
 
-    // force the html container to have exact pixel height so dotLayer aligns
-    svgContainer.style.width  = `${w}px`;
-    svgContainer.style.height = `${h}px`;
+      svgContainer.style.width  = `${w}px`;
+      svgContainer.style.height = `${h}px`;
 
-    // GET ACTUAL PIXEL BOUNDS OF SVG CONTAINER
-    const rect = svgContainer.getBoundingClientRect();
-     
-    // UPDATE PROJECTION WITH REAL PIXEL SIZE
-    projection
-      .scale(rect.width / 6.5)
-      .translate([rect.width / 2, rect.height / 2.12])
-      .center([0, 18]);
+      const rect = svgContainer.getBoundingClientRect();
 
-    pathGen.projection(projection);
+      dotLayer.style.width = rect.width + "px";
+      dotLayer.style.height = rect.height + "px";
 
-    dotLayer.style.width = rect.width + "px";
-    dotLayer.style.height = rect.height + "px";
-
-    dotLayer.style.position = "absolute";   // <-- MISSING IN YOUR FILE
-    dotLayer.style.top = "0px";
-    dotLayer.style.left = "0px";
-    dotLayer.style.transform = "translate(0,0)";
-    dotLayer.style.pointerEvents = "auto";
-
+      dotLayer.style.position = "absolute";
+      dotLayer.style.left = "0px";
+      dotLayer.style.top  = "0px";
+      dotLayer.style.transform = "translate(0,0)";
+      dotLayer.style.pointerEvents = "auto";
   }
+
 
   // draw map + dots. We re-run on resize to keep pixel-perfect overlay.
   async function drawMap() {
