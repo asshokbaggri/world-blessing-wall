@@ -1246,14 +1246,16 @@ function initWorldMapD3() {
     Object.keys(grouped).forEach(countryCode => {
 
         const list = grouped[countryCode] || [];
-        let fullCountryName = list[0]?.country || "";
-
-        // Standardize
-        fullCountryName = (fullCountryName || "").trim();
+        let fullCountryName = (list[0]?.country || "").trim();
         const code = countryCode.toUpperCase();
 
-        // 1) Match by ISO
-        let feat = geo.features.find(f => {
+        // 🔥 HARD STOP: if no name in DB, skip — prevents empty-match bug
+        if (!fullCountryName) return;
+
+        let feat = null;
+
+        // 1) Match by ISO code (correct + safest)
+        feat = geo.features.find(f => {
           const p = f.properties || {};
           return (
             (p.iso_a2 && p.iso_a2.toUpperCase() === code) ||
@@ -1261,7 +1263,7 @@ function initWorldMapD3() {
           );
         });
 
-        // 2) Exact country name match
+        // 2) Exact name match
         if (!feat) {
           feat = geo.features.find(f => {
             const p = f.properties || {};
@@ -1272,7 +1274,7 @@ function initWorldMapD3() {
           });
         }
 
-        // 3) Partial match
+        // 3) Partial contains match
         if (!feat) {
           feat = geo.features.find(f => {
             const p = f.properties || {};
@@ -1283,9 +1285,10 @@ function initWorldMapD3() {
           });
         }
 
-        if (!feat) return; // still nothing → skip
+        // ❌ Still nothing → SKIP this country (no wrong match allowed)
+        if (!feat) return;
 
-        // Place dot
+        // 4) Final: get centroid
         const centroid = pathGen.centroid(feat);
         if (!centroid || !isFinite(centroid[0])) return;
 
