@@ -1128,6 +1128,36 @@ function getPixelSizeForWrap(wrap) {
   return { w, h };
 }
 
+function normalizeCode(cc, countryName) {
+  cc = (cc || "").trim().toUpperCase();
+
+  const map = {
+    "INDIA": "IN",
+    "UNITED STATES": "US",
+    "USA": "US",
+    "UAE": "AE",
+    "UNITED KINGDOM": "GB",
+    "ENGLAND": "GB",
+    "PAKISTAN": "PK",
+    "NEPAL": "NP",
+    "BANGLADESH": "BD",
+    "SRI LANKA": "LK",
+    "CHINA": "CN",
+    "JAPAN": "JP",
+    "CANADA": "CA",
+    "AUSTRALIA": "AU",
+    "SINGAPORE": "SG",
+    "INDONESIA": "ID",
+    "GERMANY": "DE",
+    "FRANCE": "FR"
+  };
+
+  if (cc) return cc;
+  const key = (countryName || "").trim().toUpperCase();
+  return map[key] || "";
+}
+
+
 function initWorldMapD3() {
   const wrap = document.getElementById("mapWrap");
   if (!wrap) return;
@@ -1390,7 +1420,7 @@ async function loadBlessingsForMap() {
     blessings.push({
       text: d.text || "",
       username: d.username || "",
-      countryCode: (d.countryCode || "").toUpperCase(),
+      countryCode: normalizeCode(d.countryCode, d.country),
       timestamp: d.timestamp || d.created
     });
   });
