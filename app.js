@@ -1198,17 +1198,10 @@ function initWorldMapD3() {
     // GET ACTUAL PIXEL BOUNDS OF SVG CONTAINER
     const rect = svgContainer.getBoundingClientRect();
 
-    // dotLayer must match EXACT pixel position + size of SVG
-    dotLayer.style.position = "absolute";
-    dotLayer.style.pointerEvents = "auto";
-
-    dotLayer.style.width  = rect.width + "px";
+    dotLayer.style.width = rect.width + "px";
     dotLayer.style.height = rect.height + "px";
-
+    dotLayer.style.top = rect.top + "px";
     dotLayer.style.left = rect.left + "px";
-    dotLayer.style.top  = rect.top + "px";
-
-    dotLayer.style.transform = "translate(0,0)";
 
   }
 
