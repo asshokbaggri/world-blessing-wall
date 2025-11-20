@@ -1205,9 +1205,11 @@ function initWorldMapD3() {
     dotLayer.style.width = rect.width + "px";
     dotLayer.style.height = rect.height + "px";
 
-    // FIX: dotLayer must start exactly at (0,0) of SVG pixel space
+    dotLayer.style.position = "absolute";   // <-- MISSING IN YOUR FILE
     dotLayer.style.top = "0px";
     dotLayer.style.left = "0px";
+    dotLayer.style.transform = "translate(0,0)";
+    dotLayer.style.pointerEvents = "auto";
 
   }
 
