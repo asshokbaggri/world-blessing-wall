@@ -1183,11 +1183,11 @@ function initWorldMapD3() {
 
   // projection + path (will be configured after geo load)
   const projection = d3.geoMercator()
-    .scale(155)             // perfect scale for your map container
-    .translate([wrap.clientWidth / 2, wrap.clientHeight / 2])  
-    .center([0, 20]);       // vertical alignment fix (very important)
-
-  const pathGen = d3.geoPath().projection(projection);
+    .scale(rect.width / 6.5)
+    .translate([rect.width / 2, rect.height / 2.12])
+    .center([0, 18]);
+   
+  pathGen = d3.geoPath().projection(projection);
 
   // resize handler: set svg viewBox / container pixel sizes and also resize dotLayer
   function resizeEverything() {
