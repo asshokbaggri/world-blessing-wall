@@ -985,3 +985,49 @@ footer,
     0 0 14px rgba(255, 220, 130, 0.65),
     0 0 30px rgba(255, 200, 100, 0.4);
 }
+
+/* ==========================
+   WORLD MAP — DOT AUTO SCALE
+   (Patch 3 — Add Only)
+   ========================== */
+
+.country-dot.size-s {
+  width: 10px;
+  height: 10px;
+}
+
+.country-dot.size-m {
+  width: 16px;
+  height: 16px;
+}
+
+.country-dot.size-l {
+  width: 22px;
+  height: 22px;
+}
+
+.country-dot.size-xl {
+  width: 34px;
+  height: 34px;
+  animation: pulseDot 2.4s infinite ease-in-out;
+}
+
+/* soft breathing effect for mega countries */
+@keyframes pulseDot {
+  0%   { transform: translate(-50%, -50%) scale(1); }
+  50%  { transform: translate(-50%, -50%) scale(1.18); }
+ 100%  { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* COUNTRY HOVER SHINE — Premium Glow */
+.country-hover {
+  fill: #ffffff12 !important;
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.35));
+  transition: 0.25s ease;
+}
+
+/* Smooth fill transition for all countries */
+#svgContainer svg path {
+  transition: fill 0.25s ease, filter 0.25s ease;
+}
+
