@@ -1200,8 +1200,10 @@ function initWorldMapD3() {
 
     dotLayer.style.width = rect.width + "px";
     dotLayer.style.height = rect.height + "px";
-    dotLayer.style.top = rect.top + "px";
-    dotLayer.style.left = rect.left + "px";
+
+    // FIX: dotLayer must start exactly at (0,0) of SVG pixel space
+    dotLayer.style.top = "0px";
+    dotLayer.style.left = "0px";
 
   }
 
