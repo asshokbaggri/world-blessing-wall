@@ -1241,48 +1241,43 @@ function initWorldMapD3() {
       const list = grouped[countryCode] || [];
       const fullCountryName = list[0]?.country || "";
 
-      // 1) Try match by NAME
-      let feat = geo.features.find(f =>
-        (f.properties?.name || "").trim().toUpperCase() === fullCountryName.trim().toUpperCase()
-      );
+      // 1) Standardize countryCode
+      const code = countryCode.toUpperCase();
 
-      // 2) If blessing only has code → convert code → full name
+      // 2) Try direct match with geojson ISO code if available
+      let feat = geo.features.find(f => {
+          const p = f.properties || {};
+          return (
+              (p.iso_a2 && p.iso_a2.toUpperCase() === code) ||
+              (p.iso_a3 && p.iso_a3.toUpperCase() === code)
+          );
+      });
+
+      // 3) If still not found → convert ISO → common name using built-in GeoJSON names
       if (!feat) {
-          const isoToName = {
-            "IN": "India",
-            "US": "United States of America",
-            "AE": "United Arab Emirates",
-            "GB": "United Kingdom",
-            "CA": "Canada",
-            "PK": "Pakistan",
-            "IT": "Italy",
-            "SG": "Singapore",
-            "JP": "Japan",
-            "FR": "France",
-            "DE": "Germany",
-            "NP": "Nepal",
-            "BD": "Bangladesh",
-            "LK": "Sri Lanka",
-            "AU": "Australia",
-            "ID": "Indonesia",
-            "BR": "Brazil",
-            "MX": "Mexico",
-            "ES": "Spain",
-            "RU": "Russia",
-            "CN": "China",
-            "ZA": "South Africa"
-          };
-
-
-          const lookupName = isoToName[countryCode];
-          if (lookupName) {
-            feat = geo.features.find(f =>
-              (f.properties?.name || "").trim().toUpperCase() === lookupName.trim().toUpperCase()
-            );
-          }
+          feat = geo.features.find(f => {
+              const name = (f.properties?.name || "").toUpperCase();
+              const alt = (f.properties?.name_long || "").toUpperCase();
+              return (
+                  name.includes(list[0].country.toUpperCase()) ||
+                  alt.includes(list[0].country.toUpperCase())
+              );
+          });
       }
 
-      // 3) Still no match → skip
+      // 4) Hard fallback: match by normalized text similarity
+      if (!feat) {
+          const target = (list[0].country || "").replace(/[^a-z]/gi, "").toUpperCase();
+
+          feat = geo.features.find(f => {
+              const n = (f.properties?.name || "").replace(/[^a-z]/gi, "").toUpperCase();
+              return n === target;
+          });
+      }
+
+      }
+
+      // 5) Still no match → skip
       if (!feat) return;
 
       // place centroids…
