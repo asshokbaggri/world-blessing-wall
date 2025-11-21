@@ -1652,6 +1652,20 @@ document.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("mapWrap")) initWorldMapD3();
 });
 
+function groupByCountryFixed(list = [], geo) {
+    const out = {};
+
+    list.forEach(b => {
+        const cc = (b.countryCode || "").toUpperCase().trim();
+        if (!cc) return;
+
+        if (!out[cc]) out[cc] = [];
+        out[cc].push(b);
+    });
+
+    return out;
+}
+
 /* ============================================================
    WORLD MAP — CONNECT FIREBASE → D3 (placeDots)
    ============================================================ */
