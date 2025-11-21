@@ -1021,7 +1021,7 @@ footer,
 
 /* COUNTRY HOVER SHINE — Premium Glow */
 .country-hover {
-  fill: #ffffff12 !important;
+  fill: #fffff2 !important;
   filter: drop-shadow(0 0 6px rgba(255,255,255,0.35));
   transition: 0.25s ease;
 }
@@ -1031,3 +1031,10 @@ footer,
   transition: fill 0.25s ease, filter 0.25s ease;
 }
 
+/* COUNTRY HOVER GLOW */
+.country-hover {
+  fill: #fffff2 !important;
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.25))
+          drop-shadow(0 0 12px rgba(255,240,180,0.45));
+  transition: 0.25s ease;
+}
