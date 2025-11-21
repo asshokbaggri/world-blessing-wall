@@ -1041,73 +1041,50 @@ footer,
   background-blend-mode: lighten !important;
 }
 
-/* -------------------------------------------------------
-   AURA PULSE + FIREFLY GLOW (Blessing Dots — FINAL)
-------------------------------------------------------- */
+/* ============================================
+   LUXURY GOLD DOT — CLEAN, SMALL, PREMIUM
+   ============================================ */
 
 .country-dot {
   position: absolute;
-  width: 16px;
-  height: 16px;
+  transform: translate(-50%, -50%);
+  pointer-events: auto !important;
   border-radius: 50%;
-  background: radial-gradient(circle, #ffd27b 0%, #ffb638 40%, #e5a425 70%, transparent 90%);
+  cursor: pointer;
+
+  /* SMALLER + CLEANER */
+  width: 12px;
+  height: 12px;
+
+  /* SOFT LUXURY GOLD */
+  background: radial-gradient(circle at 40% 30%,
+        #fff9dd,
+        #f7d88c 45%,
+        #e8a84c 70%,
+        rgba(200,150,60,0.55) 100%);
+
+  /* SOFT SHADOW (No harsh glow) */
   box-shadow:
-    0 0 12px rgba(255, 190, 120, 0.70),
-    0 0 24px rgba(255, 180, 90, 0.50);
+    0 0 6px rgba(255, 220, 150, 0.35),
+    0 2px 6px rgba(0,0,0,0.35);
 
-  pointer-events: auto;
-  transform: translate(-50%, -50%);
-  animation: auraPulse 3.6s ease-in-out infinite;
+  transition: transform .25s ease, box-shadow .25s ease;
+  z-index: 25;
 }
 
-/* SIZE SCALE */
-.country-dot.size-s { width: 14px; height: 14px; }
-.country-dot.size-m { width: 20px; height: 20px; }
-.country-dot.size-l { width: 28px; height: 28px; }
-.country-dot.size-xl { width: 40px; height: 40px; }
-
-/* AURA PULSE */
-@keyframes auraPulse {
-  0% {
-    transform: translate(-50%, -50%) scale(1);
-    box-shadow:
-      0 0 10px rgba(255, 204, 140, 0.6),
-      0 0 22px rgba(255, 190, 120, 0.4),
-      0 0 38px rgba(255, 170, 70, 0.25);
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.25);
-    box-shadow:
-      0 0 16px rgba(255, 214, 160, 0.8),
-      0 0 36px rgba(255, 200, 120, 0.55),
-      0 0 52px rgba(255, 180, 80, 0.35);
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-    box-shadow:
-      0 0 10px rgba(255, 204, 140, 0.6),
-      0 0 22px rgba(255, 190, 120, 0.4),
-      0 0 38px rgba(255, 170, 70, 0.25);
-  }
+.country-dot:hover {
+  transform: translate(-50%, -50%) scale(1.20);
+  box-shadow:
+    0 0 12px rgba(255, 235, 180, 0.55),
+    0 4px 12px rgba(0,0,0,0.45);
 }
 
-/* FIREFLY GLOW AROUND DOTS */
-.country-dot::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 90px;
-  height: 90px;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  background: radial-gradient(circle, rgba(255, 222, 150, 0.12) 0%, transparent 70%);
-  animation: firefly 2.4s infinite ease-in-out alternate;
-  opacity: 0.4;
+/* Premium breathing pulse */
+@keyframes goldPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50%      { transform: translate(-50%, -50%) scale(1.07); }
 }
 
-@keyframes firefly {
-  0% { opacity: 0.15; transform: translate(-50%, -50%) scale(0.85); }
-  50% { opacity: 0.35; transform: translate(-50%, -50%) scale(1); }
-  100% { opacity: 0.10; transform: translate(-50%, -50%) scale(0.9); }
+.country-dot {
+  animation: goldPulse 4.2s infinite ease-in-out;
 }
