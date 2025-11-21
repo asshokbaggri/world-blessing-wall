@@ -1681,10 +1681,12 @@ async function loadBlessingsForMap() {
 window.loadBlessingsForMap = loadBlessingsForMap;
 
 /* =====================================
-   MAP NIGHT SKY — Stars + Constellation
+   MAP NIGHT SKY — FIXED VERSION
+   (Uses mapWrap for correct size)
    ===================================== */
 
 (function () {
+    const wrap = document.getElementById("mapWrap");
     const stars = document.getElementById("mapStarsCanvas");
     const constel = document.getElementById("mapConstellationCanvas");
 
@@ -1692,24 +1694,36 @@ window.loadBlessingsForMap = loadBlessingsForMap;
     const cCtx = constel.getContext("2d");
 
     function resize() {
-        stars.width = stars.offsetWidth;
-        stars.height = stars.offsetHeight;
-        constel.width = constel.offsetWidth;
-        constel.height = constel.offsetHeight;
+        const rect = wrap.getBoundingClientRect();
+
+        stars.width = rect.width;
+        stars.height = rect.height;
+
+        constel.width = rect.width;
+        constel.height = rect.height;
     }
+
     resize();
     window.addEventListener("resize", resize);
+    window.addEventListener("d3-map-ready", resize);
 
     // Create stars
     let starArray = [];
-    for (let i = 0; i < 75; i++) {
-        starArray.push({
-            x: Math.random() * stars.width,
-            y: Math.random() * stars.height,
-            r: Math.random() * 1.4 + 0.4,
-            drift: Math.random() * 0.3 + 0.05
-        });
+    function initStars() {
+        starArray = [];
+        for (let i = 0; i < 75; i++) {
+            starArray.push({
+                x: Math.random() * stars.width,
+                y: Math.random() * stars.height,
+                r: Math.random() * 1.4 + 0.4,
+                drift: Math.random() * 0.3 + 0.05
+            });
+        }
     }
+
+    initStars();
+    window.addEventListener("resize", initStars);
+    window.addEventListener("d3-map-ready", initStars);
 
     function drawStars() {
         sCtx.clearRect(0, 0, stars.width, stars.height);
@@ -1727,8 +1741,8 @@ window.loadBlessingsForMap = loadBlessingsForMap;
         cCtx.clearRect(0, 0, constel.width, constel.height);
         cCtx.strokeStyle = "rgba(255,220,160,0.12)";
         cCtx.lineWidth = 1;
-
         cCtx.beginPath();
+
         for (let i = 0; i < starArray.length - 1; i += 7) {
             cCtx.moveTo(starArray[i].x, starArray[i].y);
             cCtx.lineTo(starArray[i + 1].x, starArray[i + 1].y);
