@@ -1694,90 +1694,115 @@ async function loadBlessingsForMap() {
 
 window.loadBlessingsForMap = loadBlessingsForMap;
 
-/* ------------------------------
-   REAL STARFIELD ANIMATION
---------------------------------*/
+/* ============================================================
+   REAL GALAXY MODE — TWINKLE + FLOAT + CONSTELLATION LINES
+   ============================================================ */
 
-const starCanvas = document.getElementById("mapStarsCanvas");
-const starCtx = starCanvas.getContext("2d");
+(function () {
+  const starCanvas = document.getElementById("mapStarsCanvas");
+  const constelCanvas = document.getElementById("mapConstellationCanvas");
 
-let stars = [];
-let w, h;
+  if (!starCanvas || !constelCanvas) return;
 
-function initStars() {
-  w = starCanvas.width = starCanvas.offsetWidth;
-  h = starCanvas.height = starCanvas.offsetHeight;
+  const sCtx = starCanvas.getContext("2d");
+  const cCtx = constelCanvas.getContext("2d");
 
-  stars = [];
+  let stars = [];
+  let W = 0, H = 0;
 
-  for (let i = 0; i < 140; i++) {
-    stars.push({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      size: Math.random() * 1.8 + 0.4,
-      speed: Math.random() * 0.2 + 0.05,
-      alpha: Math.random() * 0.8 + 0.2
-    });
-  }
-}
+  function resize() {
+    W = starCanvas.parentElement.clientWidth;
+    H = starCanvas.parentElement.clientHeight;
 
-function animateStars() {
-  starCtx.clearRect(0, 0, w, h);
+    starCanvas.width = W;
+    starCanvas.height = H;
 
-  for (let s of stars) {
-    s.y += s.speed;
-    if (s.y > h) s.y = 0;
+    constelCanvas.width = W;
+    constelCanvas.height = H;
 
-    starCtx.beginPath();
-    starCtx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-    starCtx.fillStyle = `rgba(255, 240, 200, ${s.alpha})`;
-    starCtx.fill();
+    initStars();
   }
 
-  requestAnimationFrame(animateStars);
-}
+  function initStars() {
+    stars = [];
+    const total = Math.floor((W * H) / 4200);
 
-initStars();
-animateStars();
-
-window.addEventListener("resize", () => {
-  initStars();
-});
-
-/* --------------------------------
-   MOVING CONSTELLATION LINES
-----------------------------------*/
-
-const constCanvas = document.getElementById("mapConstellationCanvas");
-const constCtx = constCanvas.getContext("2d");
-
-function resizeConst() {
-  constCanvas.width = constCanvas.offsetWidth;
-  constCanvas.height = constCanvas.offsetHeight;
-}
-resizeConst();
-
-function animateConstellations() {
-  constCtx.clearRect(0, 0, constCanvas.width, constCanvas.height);
-
-  constCtx.strokeStyle = "rgba(255,255,255,0.10)";
-  constCtx.lineWidth = 1;
-
-  const lines = 6;
-  for (let i = 0; i < lines; i++) {
-    const x1 = (Date.now() / 40 + i * 120) % constCanvas.width;
-    const x2 = (x1 + 180) % constCanvas.width;
-    const y1 = (i * 120) % constCanvas.height;
-    const y2 = (y1 + 160) % constCanvas.height;
-
-    constCtx.beginPath();
-    constCtx.moveTo(x1, y1);
-    constCtx.lineTo(x2, y2);
-    constCtx.stroke();
+    for (let i = 0; i < total; i++) {
+      stars.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.3 + 0.4,   // star radius
+        tw: Math.random() * Math.PI * 2, // twinkle phase
+        ts: Math.random() * 0.07 + 0.02, // twinkle speed
+        vx: Math.random() * 0.15 - 0.07, // x drift
+        vy: Math.random() * 0.15 - 0.07  // y drift
+      });
+    }
   }
 
-  requestAnimationFrame(animateConstellations);
-}
+  /* ⭐ REAL TWINKLE + FLOAT */
+  function drawStars() {
+    sCtx.clearRect(0, 0, W, H);
 
-animateConstellations();
-window.addEventListener("resize", resizeConst);
+    for (const s of stars) {
+      s.tw += s.ts;
+      const glow = 0.55 + 0.45 * Math.sin(s.tw);
+
+      s.x += s.vx;
+      s.y += s.vy;
+
+      if (s.x < 0) s.x = W;
+      if (s.x > W) s.x = 0;
+      if (s.y < 0) s.y = H;
+      if (s.y > H) s.y = 0;
+
+      const g = sCtx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 6);
+      g.addColorStop(0, `rgba(255,255,210,${glow})`);
+      g.addColorStop(1, `rgba(255,255,210,0)`);
+
+      sCtx.fillStyle = g;
+      sCtx.beginPath();
+      sCtx.arc(s.x, s.y, s.r * 6, 0, Math.PI * 2);
+      sCtx.fill();
+    }
+  }
+
+  /* ⭐ TRUE GALAXY CONSTELLATION LINES (soft motion) */
+  let lineOffset = 0;
+
+  function drawConstellations() {
+    cCtx.clearRect(0, 0, W, H);
+    cCtx.lineWidth = 0.8;
+    cCtx.strokeStyle = "rgba(255,230,180,0.15)";
+
+    cCtx.beginPath();
+
+    for (let i = 0; i < stars.length - 1; i += 5) {
+      const a = stars[i];
+      const b = stars[(i + 3) % stars.length];
+
+      const ax = a.x + Math.sin(lineOffset + i * 0.05) * 4;
+      const ay = a.y + Math.cos(lineOffset + i * 0.05) * 4;
+      const bx = b.x + Math.sin(lineOffset + i * 0.06) * 4;
+      const by = b.y + Math.cos(lineOffset + i * 0.06) * 4;
+
+      cCtx.moveTo(ax, ay);
+      cCtx.lineTo(bx, by);
+    }
+
+    cCtx.stroke();
+
+    lineOffset += 0.008;
+  }
+
+  function animate() {
+    drawStars();
+    drawConstellations();
+    requestAnimationFrame(animate);
+  }
+
+  window.addEventListener("resize", resize);
+
+  resize();
+  animate();
+})();
