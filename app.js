@@ -1771,3 +1771,8 @@ window.loadBlessingsForMap = loadBlessingsForMap;
     }
     animate();
 })();
+
+window.addEventListener("d3-map-ready", () => {
+    resize();
+    initStars();
+});
