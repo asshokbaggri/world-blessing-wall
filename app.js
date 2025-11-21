@@ -1711,8 +1711,8 @@ window.loadBlessingsForMap = loadBlessingsForMap;
   let W = 0, H = 0;
 
   function resize() {
-    W = starCanvas.offsetWidth;
-    H = starCanvas.offsetHeight;
+    W = starCanvas.parentElement.clientWidth;
+    H = starCanvas.parentElement.clientHeight;
 
     starCanvas.width = W;
     starCanvas.height = H;
