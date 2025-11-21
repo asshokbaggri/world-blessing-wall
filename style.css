@@ -954,11 +954,6 @@ footer,
   transition: fill 0.25s ease, stroke 0.25s ease;
 }
 
-#svgContainer path:hover {
-  fill: rgba(255,255,255,0.04) !important;
-  stroke: rgba(255,220,160,0.35) !important;
-}
-
 .country-dot {
   position: absolute;
   transform: translate(-50%, -50%);
@@ -1037,4 +1032,24 @@ footer,
   filter: drop-shadow(0 0 6px rgba(255,255,255,0.25))
           drop-shadow(0 0 12px rgba(255,240,180,0.45));
   transition: 0.25s ease;
+}
+
+/* ============================
+   FINAL COUNTRY HOVER GLOW
+   ============================*/
+
+/* Transition for map */
+#svgContainer svg path {
+  transition: fill 0.28s ease, filter 0.28s ease, stroke 0.28s ease;
+}
+
+/* Real premium golden glow (blessing-card style) */
+#svgContainer svg path.country-hover {
+  fill: #fff7d1 !important;
+  stroke: rgba(255,215,150,0.65) !important;
+
+  filter:
+      drop-shadow(0 0 6px rgba(255,230,160,0.40))
+      drop-shadow(0 0 12px rgba(255,210,120,0.32))
+      drop-shadow(0 0 22px rgba(255,190,90,0.20));
 }
