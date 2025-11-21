@@ -1104,3 +1104,19 @@ footer,
     z-index: 2; /* above stars but below country glow */
     opacity: 0.35;
 }
+
+/* FIX: Ensure the map area has real height for star background */
+.map-wrap {
+    position: relative;
+    width: min(1100px, 92vw);
+    margin: 18px auto 60px;
+
+    /* THIS IS THE MISSING FIX: */
+    min-height: 520px !important;
+    height: auto;
+}
+
+.svg-container {
+    min-height: 520px !important;
+    height: auto !important;
+}
