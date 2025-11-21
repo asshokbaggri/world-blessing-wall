@@ -1033,3 +1033,12 @@ footer,
       drop-shadow(0 0 12px rgba(255,210,120,0.32))
       drop-shadow(0 0 22px rgba(255,190,90,0.20));
 }
+
+/* --- FIX: allow country hover under dot layer --- */
+#dotLayer {
+    pointer-events: none !important;
+}
+
+.country-dot {
+    pointer-events: auto !important;
+}
