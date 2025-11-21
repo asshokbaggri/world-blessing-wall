@@ -915,103 +915,11 @@ footer,
   pointer-events: auto;
 }
 
-/* ---- FINAL WORLD DOT SYSTEM ---- */
-
-.country-dot {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  width: 16px;
-  height: 16px;
-  background: radial-gradient(circle at 40% 30%, #fff9d9, #ffd679 40%, #f0a73b 65%, rgba(240,167,59,0.65) 100%);
-  box-shadow:
-    0 0 8px rgba(255,210,110,0.45),
-    0 0 18px rgba(255,195,80,0.22),
-    0 4px 10px rgba(0,0,0,0.45);
-  border: 1px solid rgba(255,255,255,0.15);
-  cursor: pointer;
-  animation: dotPulse 3.8s ease-in-out infinite;
-  transition: transform .25s ease, box-shadow .25s ease;
-}
-
-.country-dot:hover {
-  transform: translate(-50%, -50%) scale(1.22);
-  box-shadow:
-    0 0 14px rgba(255,225,150,0.75),
-    0 0 28px rgba(255,200,90,0.35),
-    0 6px 14px rgba(0,0,0,0.5);
-}
-
-@keyframes dotPulse {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); }
-  50%      { transform: translate(-50%, -50%) scale(1.08); }
-}
-
 #svgContainer path {
   fill: #0d1117 !important;
   stroke: rgba(255,255,255,0.08) !important;
   stroke-width: 0.6px;
   transition: fill 0.25s ease, stroke 0.25s ease;
-}
-
-.country-dot {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  pointer-events: auto !important;
-  cursor: pointer;
-
-  /* PREMIUM GOLD GRADIENT */
-  background: radial-gradient(circle at 40% 30%, #fff7d1, #ffd77a 40%, #f0a73b 65%, rgba(240,167,59,0.8) 100%);
-
-  /* 3D LIGHT GLOW */
-  box-shadow:
-      0 0 10px rgba(255, 210, 120, 0.45),
-      0 0 22px rgba(255, 200, 100, 0.25),
-      0 6px 18px rgba(0,0,0,0.25);
-
-  transition: transform .2s ease, box-shadow .2s ease, opacity .2s;
-  z-index: 20;
-}
-
-.country-dot:hover {
-  transform: translate(-50%, -50%) scale(1.22);
-  box-shadow:
-    0 0 14px rgba(255, 220, 130, 0.65),
-    0 0 30px rgba(255, 200, 100, 0.4);
-}
-
-/* ==========================
-   WORLD MAP — DOT AUTO SCALE
-   (Patch 3 — Add Only)
-   ========================== */
-
-.country-dot.size-s {
-  width: 10px;
-  height: 10px;
-}
-
-.country-dot.size-m {
-  width: 16px;
-  height: 16px;
-}
-
-.country-dot.size-l {
-  width: 22px;
-  height: 22px;
-}
-
-.country-dot.size-xl {
-  width: 34px;
-  height: 34px;
-  animation: pulseDot 2.4s infinite ease-in-out;
-}
-
-/* soft breathing effect for mega countries */
-@keyframes pulseDot {
-  0%   { transform: translate(-50%, -50%) scale(1); }
-  50%  { transform: translate(-50%, -50%) scale(1.18); }
- 100%  { transform: translate(-50%, -50%) scale(1); }
 }
 
 /* ============================
@@ -1131,4 +1039,75 @@ footer,
 
 .svg-container {
   background-blend-mode: lighten !important;
+}
+
+/* -------------------------------------------------------
+   AURA PULSE + FIREFLY GLOW (Blessing Dots — FINAL)
+------------------------------------------------------- */
+
+.country-dot {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffd27b 0%, #ffb638 40%, #e5a425 70%, transparent 90%);
+  box-shadow:
+    0 0 12px rgba(255, 190, 120, 0.70),
+    0 0 24px rgba(255, 180, 90, 0.50);
+
+  pointer-events: auto;
+  transform: translate(-50%, -50%);
+  animation: auraPulse 3.6s ease-in-out infinite;
+}
+
+/* SIZE SCALE */
+.country-dot.size-s { width: 14px; height: 14px; }
+.country-dot.size-m { width: 20px; height: 20px; }
+.country-dot.size-l { width: 28px; height: 28px; }
+.country-dot.size-xl { width: 40px; height: 40px; }
+
+/* AURA PULSE */
+@keyframes auraPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow:
+      0 0 10px rgba(255, 204, 140, 0.6),
+      0 0 22px rgba(255, 190, 120, 0.4),
+      0 0 38px rgba(255, 170, 70, 0.25);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.25);
+    box-shadow:
+      0 0 16px rgba(255, 214, 160, 0.8),
+      0 0 36px rgba(255, 200, 120, 0.55),
+      0 0 52px rgba(255, 180, 80, 0.35);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow:
+      0 0 10px rgba(255, 204, 140, 0.6),
+      0 0 22px rgba(255, 190, 120, 0.4),
+      0 0 38px rgba(255, 170, 70, 0.25);
+  }
+}
+
+/* FIREFLY GLOW AROUND DOTS */
+.country-dot::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 90px;
+  height: 90px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 222, 150, 0.12) 0%, transparent 70%);
+  animation: firefly 2.4s infinite ease-in-out alternate;
+  opacity: 0.4;
+}
+
+@keyframes firefly {
+  0% { opacity: 0.15; transform: translate(-50%, -50%) scale(0.85); }
+  50% { opacity: 0.35; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0.10; transform: translate(-50%, -50%) scale(0.9); }
 }
