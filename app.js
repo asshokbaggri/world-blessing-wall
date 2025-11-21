@@ -1694,18 +1694,15 @@ async function loadBlessingsForMap() {
 
 window.loadBlessingsForMap = loadBlessingsForMap;
 
-/* ============================================================
-   REAL GALAXY MODE — TWINKLE + FLOAT + CONSTELLATION LINES
-   ============================================================ */
+/* ================================
+   NIGHT SKY BACKGROUND — GALAXY STARFIELD (NO LINES)
+================================ */
 
 (function () {
   const starCanvas = document.getElementById("mapStarsCanvas");
-  const constelCanvas = document.getElementById("mapConstellationCanvas");
+  if (!starCanvas) return;
 
-  if (!starCanvas || !constelCanvas) return;
-
-  const sCtx = starCanvas.getContext("2d");
-  const cCtx = constelCanvas.getContext("2d");
+  const ctx = starCanvas.getContext("2d");
 
   let stars = [];
   let W = 0, H = 0;
@@ -1717,80 +1714,69 @@ window.loadBlessingsForMap = loadBlessingsForMap;
     starCanvas.width = W;
     starCanvas.height = H;
 
-    constelCanvas.width = W;
-    constelCanvas.height = H;
-
     initStars();
   }
 
   function initStars() {
     stars = [];
-    const total = Math.floor((W * H) / 4800);
+    const total = Math.floor((W * H) / 5500); // density
 
     for (let i = 0; i < total; i++) {
       stars.push({
         x: Math.random() * W,
         y: Math.random() * H,
-        r: Math.random() * 1.6 + 0.4,
-        base: Math.random() * 0.5 + 0.3,       
-        pulse: Math.random() * 0.15 + 0.05,
-        t: Math.random() * Math.PI * 2
+        r: Math.random() * 1.3 + 0.4,       // radius
+        driftX: (Math.random() * 0.3 - 0.15), // horizontal drift
+        driftY: (Math.random() * 0.25 - 0.12), // vertical drift
+        tw: Math.random() * Math.PI * 2,     // twinkle phase
+        twSpeed: 0.005 + Math.random() * 0.01 // twinkle rate
       });
     }
   }
 
   function drawStars() {
-    sCtx.clearRect(0, 0, W, H);
+    ctx.clearRect(0, 0, W, H);
 
     for (let s of stars) {
-      s.t += s.pulse;
-      const glow = s.base + Math.sin(s.t) * 0.25;   // ⭐ twinkling
+      // movement
+      s.x += s.driftX;
+      s.y += s.driftY;
 
-      const g = sCtx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 6);
-      g.addColorStop(0, `rgba(255,240,200,${glow})`);
+      // wrap edges
+      if (s.x < -5) s.x = W + 5;
+      if (s.x > W + 5) s.x = -5;
+      if (s.y < -5) s.y = H + 5;
+      if (s.y > H + 5) s.y = -5;
+
+      // twinkle glow
+      s.tw += s.twSpeed;
+      const glow = 0.4 + Math.sin(s.tw) * 0.35; // smooth twinkle
+
+      // glow gradient
+      const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 5);
+      g.addColorStop(0, `rgba(255,240,200,${0.9 * glow})`);
       g.addColorStop(1, `rgba(255,240,200,0)`);
 
-      sCtx.beginPath();
-      sCtx.fillStyle = g;
-      sCtx.arc(s.x, s.y, s.r * 6, 0, Math.PI * 2);
-      sCtx.fill();
+      // glow
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r * 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // core star
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,220,${0.9 * glow})`;
+      ctx.fill();
     }
-  }
-
-  function drawConstellations() {
-    cCtx.clearRect(0, 0, W, H);
-    cCtx.lineWidth = 0.8;
-    cCtx.strokeStyle = "rgba(255,220,170,0.15)";
-    
-    cCtx.beginPath();
-
-    for (let i = 0; i < stars.length - 1; i += 6) {
-      const s1 = stars[i];
-      const s2 = stars[i + 1];
-
-      cCtx.moveTo(s1.x, s1.y);
-      cCtx.lineTo(s2.x, s2.y);
-    }
-
-    cCtx.stroke();
-  }
-
-  function fadeConstellations() {
-    cCtx.globalCompositeOperation = "destination-out";
-    cCtx.fillStyle = "rgba(0,0,0,0.02)";
-    cCtx.fillRect(0, 0, W, H);
-    cCtx.globalCompositeOperation = "lighter";
   }
 
   function animate() {
     drawStars();
-    drawConstellations();
-    fadeConstellations(); // ⭐ smooth galaxy line fade
     requestAnimationFrame(animate);
   }
 
   window.addEventListener("resize", resize);
-
   resize();
   animate();
 })();
