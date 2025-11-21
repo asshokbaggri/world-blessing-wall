@@ -1725,79 +1725,67 @@ window.loadBlessingsForMap = loadBlessingsForMap;
 
   function initStars() {
     stars = [];
-    const total = Math.floor((W * H) / 4200);
+    const total = Math.floor((W * H) / 4800);
 
     for (let i = 0; i < total; i++) {
       stars.push({
         x: Math.random() * W,
         y: Math.random() * H,
-        r: Math.random() * 1.3 + 0.4,   // star radius
-        tw: Math.random() * Math.PI * 2, // twinkle phase
-        ts: Math.random() * 0.07 + 0.02, // twinkle speed
-        vx: Math.random() * 0.15 - 0.07, // x drift
-        vy: Math.random() * 0.15 - 0.07  // y drift
+        r: Math.random() * 1.6 + 0.4,
+        base: Math.random() * 0.5 + 0.3,       
+        pulse: Math.random() * 0.15 + 0.05,
+        t: Math.random() * Math.PI * 2
       });
     }
   }
 
-  /* ⭐ REAL TWINKLE + FLOAT */
   function drawStars() {
     sCtx.clearRect(0, 0, W, H);
 
-    for (const s of stars) {
-      s.tw += s.ts;
-      const glow = 0.55 + 0.45 * Math.sin(s.tw);
-
-      s.x += s.vx;
-      s.y += s.vy;
-
-      if (s.x < 0) s.x = W;
-      if (s.x > W) s.x = 0;
-      if (s.y < 0) s.y = H;
-      if (s.y > H) s.y = 0;
+    for (let s of stars) {
+      s.t += s.pulse;
+      const glow = s.base + Math.sin(s.t) * 0.25;   // ⭐ twinkling
 
       const g = sCtx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 6);
-      g.addColorStop(0, `rgba(255,255,210,${glow})`);
-      g.addColorStop(1, `rgba(255,255,210,0)`);
+      g.addColorStop(0, `rgba(255,240,200,${glow})`);
+      g.addColorStop(1, `rgba(255,240,200,0)`);
 
-      sCtx.fillStyle = g;
       sCtx.beginPath();
+      sCtx.fillStyle = g;
       sCtx.arc(s.x, s.y, s.r * 6, 0, Math.PI * 2);
       sCtx.fill();
     }
   }
 
-  /* ⭐ TRUE GALAXY CONSTELLATION LINES (soft motion) */
-  let lineOffset = 0;
-
   function drawConstellations() {
     cCtx.clearRect(0, 0, W, H);
     cCtx.lineWidth = 0.8;
-    cCtx.strokeStyle = "rgba(255,230,180,0.15)";
-
+    cCtx.strokeStyle = "rgba(255,220,170,0.15)";
+    
     cCtx.beginPath();
 
-    for (let i = 0; i < stars.length - 1; i += 5) {
-      const a = stars[i];
-      const b = stars[(i + 3) % stars.length];
+    for (let i = 0; i < stars.length - 1; i += 6) {
+      const s1 = stars[i];
+      const s2 = stars[i + 1];
 
-      const ax = a.x + Math.sin(lineOffset + i * 0.05) * 4;
-      const ay = a.y + Math.cos(lineOffset + i * 0.05) * 4;
-      const bx = b.x + Math.sin(lineOffset + i * 0.06) * 4;
-      const by = b.y + Math.cos(lineOffset + i * 0.06) * 4;
-
-      cCtx.moveTo(ax, ay);
-      cCtx.lineTo(bx, by);
+      cCtx.moveTo(s1.x, s1.y);
+      cCtx.lineTo(s2.x, s2.y);
     }
 
     cCtx.stroke();
+  }
 
-    lineOffset += 0.008;
+  function fadeConstellations() {
+    cCtx.globalCompositeOperation = "destination-out";
+    cCtx.fillStyle = "rgba(0,0,0,0.02)";
+    cCtx.fillRect(0, 0, W, H);
+    cCtx.globalCompositeOperation = "lighter";
   }
 
   function animate() {
     drawStars();
     drawConstellations();
+    fadeConstellations(); // ⭐ smooth galaxy line fade
     requestAnimationFrame(animate);
   }
 
