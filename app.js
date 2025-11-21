@@ -1679,3 +1679,67 @@ async function loadBlessingsForMap() {
 }
 
 window.loadBlessingsForMap = loadBlessingsForMap;
+
+/* =====================================
+   MAP NIGHT SKY — Stars + Constellation
+   ===================================== */
+
+(function () {
+    const stars = document.getElementById("mapStarsCanvas");
+    const constel = document.getElementById("mapConstellationCanvas");
+
+    const sCtx = stars.getContext("2d");
+    const cCtx = constel.getContext("2d");
+
+    function resize() {
+        stars.width = stars.offsetWidth;
+        stars.height = stars.offsetHeight;
+        constel.width = constel.offsetWidth;
+        constel.height = constel.offsetHeight;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    // Create stars
+    let starArray = [];
+    for (let i = 0; i < 75; i++) {
+        starArray.push({
+            x: Math.random() * stars.width,
+            y: Math.random() * stars.height,
+            r: Math.random() * 1.4 + 0.4,
+            drift: Math.random() * 0.3 + 0.05
+        });
+    }
+
+    function drawStars() {
+        sCtx.clearRect(0, 0, stars.width, stars.height);
+        sCtx.fillStyle = "rgba(255,240,200,0.7)";
+        starArray.forEach(s => {
+            sCtx.beginPath();
+            sCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+            sCtx.fill();
+            s.x += s.drift;
+            if (s.x > stars.width + 10) s.x = -10;
+        });
+    }
+
+    function drawConstellation() {
+        cCtx.clearRect(0, 0, constel.width, constel.height);
+        cCtx.strokeStyle = "rgba(255,220,160,0.12)";
+        cCtx.lineWidth = 1;
+
+        cCtx.beginPath();
+        for (let i = 0; i < starArray.length - 1; i += 7) {
+            cCtx.moveTo(starArray[i].x, starArray[i].y);
+            cCtx.lineTo(starArray[i + 1].x, starArray[i + 1].y);
+        }
+        cCtx.stroke();
+    }
+
+    function animate() {
+        drawStars();
+        drawConstellation();
+        requestAnimationFrame(animate);
+    }
+    animate();
+})();
