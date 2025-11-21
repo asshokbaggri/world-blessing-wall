@@ -1725,7 +1725,7 @@ window.loadBlessingsForMap = loadBlessingsForMap;
 
   function initStars() {
     starArray = [];
-    const total = Math.floor((W * H) / 5000); // star density
+    const total = Math.floor((W * H) / 5000);
 
     for (let i = 0; i < total; i++) {
       starArray.push({
@@ -1767,6 +1767,7 @@ window.loadBlessingsForMap = loadBlessingsForMap;
   }
 
   window.addEventListener("resize", resize);
+
   resize();
   animate();
 })();
