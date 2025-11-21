@@ -1120,3 +1120,15 @@ footer,
     min-height: 520px !important;
     height: auto !important;
 }
+
+#mapStarsCanvas {
+  mix-blend-mode: screen !important;
+}
+
+#mapConstellationCanvas {
+  mix-blend-mode: screen !important;
+}
+
+.svg-container {
+  background-blend-mode: lighten !important;
+}
