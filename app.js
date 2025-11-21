@@ -1694,80 +1694,90 @@ async function loadBlessingsForMap() {
 
 window.loadBlessingsForMap = loadBlessingsForMap;
 
-/* ================================
-   NIGHT SKY BACKGROUND (for MAP)
-================================ */
+/* ------------------------------
+   REAL STARFIELD ANIMATION
+--------------------------------*/
 
-(function () {
-  const starCanvas = document.getElementById("mapStarsCanvas");
-  const constelCanvas = document.getElementById("mapConstellationCanvas");
+const starCanvas = document.getElementById("mapStarsCanvas");
+const starCtx = starCanvas.getContext("2d");
 
-  if (!starCanvas || !constelCanvas) return;
+let stars = [];
+let w, h;
 
-  const sCtx = starCanvas.getContext("2d");
-  const cCtx = constelCanvas.getContext("2d");
+function initStars() {
+  w = starCanvas.width = starCanvas.offsetWidth;
+  h = starCanvas.height = starCanvas.offsetHeight;
 
-  let starArray = [];
-  let W = 0, H = 0;
+  stars = [];
 
-  function resize() {
-    W = starCanvas.parentElement.clientWidth;
-    H = starCanvas.parentElement.clientHeight;
+  for (let i = 0; i < 140; i++) {
+    stars.push({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      size: Math.random() * 1.8 + 0.4,
+      speed: Math.random() * 0.2 + 0.05,
+      alpha: Math.random() * 0.8 + 0.2
+    });
+  }
+}
 
-    starCanvas.width = W;
-    starCanvas.height = H;
+function animateStars() {
+  starCtx.clearRect(0, 0, w, h);
 
-    constelCanvas.width = W;
-    constelCanvas.height = H;
+  for (let s of stars) {
+    s.y += s.speed;
+    if (s.y > h) s.y = 0;
 
-    initStars();
+    starCtx.beginPath();
+    starCtx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+    starCtx.fillStyle = `rgba(255, 240, 200, ${s.alpha})`;
+    starCtx.fill();
   }
 
-  function initStars() {
-    starArray = [];
-    const total = Math.floor((W * H) / 5000);
+  requestAnimationFrame(animateStars);
+}
 
-    for (let i = 0; i < total; i++) {
-      starArray.push({
-        x: Math.random() * W,
-        y: Math.random() * H,
-        r: Math.random() * 1.2 + 0.2,
-        o: Math.random() * 0.6 + 0.2
-      });
-    }
+initStars();
+animateStars();
+
+window.addEventListener("resize", () => {
+  initStars();
+});
+
+/* --------------------------------
+   MOVING CONSTELLATION LINES
+----------------------------------*/
+
+const constCanvas = document.getElementById("mapConstellationCanvas");
+const constCtx = constCanvas.getContext("2d");
+
+function resizeConst() {
+  constCanvas.width = constCanvas.offsetWidth;
+  constCanvas.height = constCanvas.offsetHeight;
+}
+resizeConst();
+
+function animateConstellations() {
+  constCtx.clearRect(0, 0, constCanvas.width, constCanvas.height);
+
+  constCtx.strokeStyle = "rgba(255,255,255,0.10)";
+  constCtx.lineWidth = 1;
+
+  const lines = 6;
+  for (let i = 0; i < lines; i++) {
+    const x1 = (Date.now() / 40 + i * 120) % constCanvas.width;
+    const x2 = (x1 + 180) % constCanvas.width;
+    const y1 = (i * 120) % constCanvas.height;
+    const y2 = (y1 + 160) % constCanvas.height;
+
+    constCtx.beginPath();
+    constCtx.moveTo(x1, y1);
+    constCtx.lineTo(x2, y2);
+    constCtx.stroke();
   }
 
-  function drawStars() {
-    sCtx.clearRect(0, 0, W, H);
-    for (let s of starArray) {
-      sCtx.beginPath();
-      sCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      sCtx.fillStyle = `rgba(255,255,210,${s.o})`;
-      sCtx.fill();
-    }
-  }
+  requestAnimationFrame(animateConstellations);
+}
 
-  function drawConstellation() {
-    cCtx.clearRect(0, 0, W, H);
-    cCtx.strokeStyle = "rgba(255,220,160,0.12)";
-    cCtx.lineWidth = 1;
-    cCtx.beginPath();
-
-    for (let i = 0; i < starArray.length - 1; i += 7) {
-      cCtx.moveTo(starArray[i].x, starArray[i].y);
-      cCtx.lineTo(starArray[i + 1].x, starArray[i + 1].y);
-    }
-    cCtx.stroke();
-  }
-
-  function animate() {
-    drawStars();
-    drawConstellation();
-    requestAnimationFrame(animate);
-  }
-
-  window.addEventListener("resize", resize);
-
-  resize();
-  animate();
-})();
+animateConstellations();
+window.addEventListener("resize", resizeConst);
