@@ -1047,3 +1047,27 @@ footer,
 .country-dot {
     pointer-events: auto !important;
 }
+
+/* ============================================
+   ULTRA PREMIUM MAP SOFT GLOW (Final Patch)
+   ============================================ */
+
+/* Base transition (smooth) */
+#svgContainer svg path {
+    transition: fill 0.35s ease, 
+                filter 0.35s ease, 
+                stroke 0.35s ease;
+}
+
+/* Soft Gold + Grey Luxury Glow */
+#svgContainer svg path.country-hover {
+    fill: #2e323a !important;            /* soft grey highlight */
+    stroke: rgba(255, 220, 150, 0.45) !important;
+
+    /* layered soft glow */
+    filter:
+        drop-shadow(0 0 6px rgba(255, 225, 165, 0.22))
+        drop-shadow(0 0 12px rgba(255, 205, 120, 0.15))
+        drop-shadow(0 0 24px rgba(255, 200, 110, 0.08))
+        brightness(1.08);
+}
