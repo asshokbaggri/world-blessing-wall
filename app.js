@@ -177,39 +177,6 @@ function detectLang(txt = ""){
   return "en";
 }
 
-// normalize country input -> { country, countryCode }
-function normalizeCountry(input = ""){
-  const raw = (input || "").trim();
-  if (!raw) return { country:"", countryCode:"" };
-
-  const map = {
-    "india": ["IN","India"], "in": ["IN","India"], "bharat": ["IN","India"],
-    "usa": ["US","United States"], "us": ["US","United States"], "united states": ["US","United States"],
-    "uae": ["AE","United Arab Emirates"], "dubai": ["AE","United Arab Emirates"],
-    "uk": ["GB","United Kingdom"], "england": ["GB","United Kingdom"], "london": ["GB","United Kingdom"],
-    "nepal": ["NP","Nepal"], "pakistan": ["PK","Pakistan"], "bangladesh": ["BD","Bangladesh"],
-    "sri lanka": ["LK","Sri Lanka"], "china": ["CN","China"], "japan": ["JP","Japan"],
-    "germany": ["DE","Germany"], "france": ["FR","France"], "canada": ["CA","Canada"],
-    "australia": ["AU","Australia"], "singapore": ["SG","Singapore"], "indonesia": ["ID","Indonesia"]
-  };
-
-  const parts = raw.split(/\s+/);
-  if (parts[0].length === 2) {
-    const cc = parts[0].toUpperCase();
-    const rest = parts.slice(1).join(" ").trim();
-    if (rest) return { country: rest, countryCode: cc };
-    const byCode = Object.values(map).find(([code]) => code === cc);
-    return { country: byCode ? byCode[1] : cc, countryCode: cc };
-  }
-
-  const key = raw.toLowerCase();
-  if (map[key]) return { country: map[key][1], countryCode: map[key][0] };
-
-  const guess = raw.slice(0,2).toUpperCase().replace(/[^A-Z]/g,"");
-  const cc = guess.length === 2 ? guess : "";
-  return { country: raw, countryCode: cc };
-}
-
 // generate emoji flag from ISO code (two letters)
 function flagFromCode(cc = ""){
   if (!cc || cc.length !== 2) return "🌍";
