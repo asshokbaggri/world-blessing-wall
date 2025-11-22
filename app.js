@@ -1546,6 +1546,9 @@ function initWorldMapD3() {
     }
     pathGen.projection(projection);
 
+    const rect = svgContainer.getBoundingClientRect();
+    projection.fitSize([rect.width, rect.height], geo);
+
     // draw countries
     gCountries.selectAll("path")
       .data(geo.features)
@@ -1628,29 +1631,10 @@ function initWorldMapD3() {
 
         if (!feat) return; // still nothing → skip
 
-        // ---- SINGLE CLUSTER DOT PER COUNTRY (REAL CENTROID) ----
-        let pos = null;
-
-        // 1) Try D3 geographic centroid (accurate for multipolygons)
-        try {
-            const centroid = d3.geoCentroid(feat);
-            if (centroid && centroid.length === 2) {
-                const pt = projection(centroid);
-                if (pt) pos = { x: Math.round(pt[0]), y: Math.round(pt[1]) };
-            }
-        } catch {}
-
-        // 2) Fallback to exact DB centroid
-        if (!pos) {
-            const cc = countryCode.toUpperCase();
-            const c = COUNTRY_CENTROIDS[cc];
-            if (c) {
-                const p = projection([c.lng, c.lat]);
-                if (p) pos = { x: Math.round(p[0]), y: Math.round(p[1]) };
-            }
-        }
-
-        if (!pos) return; // still nothing → skip
+        // ---- SINGLE CLUSTER DOT PER COUNTRY ----
+        const total = list.length;
+        const pos = getBlessingPixelPos(list[0], projection);
+        if (!pos) return;
 
         // auto scale dot
         let cls = "size-s";
