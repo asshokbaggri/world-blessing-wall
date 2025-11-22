@@ -8,6 +8,8 @@ import { enhanceBlessing } from "./ai/enhance.js";
 import { detectLanguage } from "./ai/language.js";
 import { generateSuggestions } from "./ai/suggestions.js";
 
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
 admin.initializeApp();
 const db = admin.firestore();
 
