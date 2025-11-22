@@ -1631,9 +1631,29 @@ function initWorldMapD3() {
 
         if (!feat) return; // still nothing → skip
 
-        // ---- SINGLE CLUSTER DOT PER COUNTRY ----
+        // ---- SINGLE CLUSTER DOT PER COUNTRY (SAFE + REAL CENTROID) ----
         const total = list.length;
-        const pos = getBlessingPixelPos(list[0], projection);
+        let pos = null;
+
+        // 1) Try D3 geographic centroid (MOST ACCURATE)
+        try {
+            const centroid = d3.geoCentroid(feat);
+            if (centroid && centroid.length === 2) {
+                const pt = projection(centroid);
+                if (pt) pos = { x: Math.round(pt[0]), y: Math.round(pt[1]) };
+            }
+        } catch (e) {}
+
+        // 2) Fallback to Country DB centroid
+        if (!pos) {
+            const cc = countryCode.toUpperCase();
+            const c = COUNTRY_CENTROIDS[cc];
+            if (c) {
+                const pt = projection([c.lng, c.lat]);
+                if (pt) pos = { x: Math.round(pt[0]), y: Math.round(pt[1]) };
+            }
+        }
+
         if (!pos) return;
 
         // auto scale dot
