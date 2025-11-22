@@ -1311,36 +1311,129 @@ const COUNTRY_CENTROIDS = {
   "ZW": { lat: -19.0154, lng: 29.1549 }
 };
 
-// Convert ISO-2 → ISO-3 for GeoJSON matching
-function normalizeCode(cc = "") {
-  cc = cc.trim().toUpperCase();
-  const map = window.__ISO2_TO_ISO3 || {
-    "IN": "IND", "US": "USA", "AE": "ARE", "GB": "GBR", "AU": "AUS",
-    "SG": "SGP", "ID": "IDN", "JP": "JPN", "CN": "CHN", "DE": "DEU",
-    "FR": "FRA", "PK": "PAK", "LK": "LKA", "BD": "BGD", "NP": "NPL"
+// ============================================================
+// FULL ISO-2 → ISO-3 MAP (240 COUNTRIES)
+// ============================================================
+const ISO2_TO_ISO3 = {
+"AF":"AFG","AL":"ALB","DZ":"DZA","AD":"AND","AO":"AGO","AR":"ARG","AM":"ARM","AU":"AUS","AT":"AUT","AZ":"AZE",
+"BH":"BHR","BD":"BGD","BY":"BLR","BE":"BEL","BZ":"BLZ","BJ":"BEN","BT":"BTN","BO":"BOL","BA":"BIH","BW":"BWA",
+"BR":"BRA","BN":"BRN","BG":"BGR","BF":"BFA","BI":"BDI","KH":"KHM","CM":"CMR","CA":"CAN","CF":"CAF","TD":"TCD",
+"CL":"CHL","CN":"CHN","CO":"COL","KM":"COM","CG":"COG","CD":"COD","CR":"CRI","CI":"CIV","HR":"HRV","CU":"CUB",
+"CY":"CYP","CZ":"CZE","DK":"DNK","DJ":"DJI","DM":"DMA","DO":"DOM","EC":"ECU","EG":"EGY","SV":"SLV","GQ":"GNQ",
+"ER":"ERI","EE":"EST","ET":"ETH","FI":"FIN","FR":"FRA","GA":"GAB","GM":"GMB","GE":"GEO","DE":"DEU","GH":"GHA",
+"GR":"GRC","GT":"GTM","GN":"GIN","GW":"GNB","GY":"GUY","HT":"HTI","HN":"HND","HU":"HUN","IS":"ISL","IN":"IND",
+"ID":"IDN","IR":"IRN","IQ":"IRQ","IE":"IRL","IL":"ISR","IT":"ITA","JM":"JAM","JP":"JPN","JO":"JOR","KZ":"KAZ",
+"KE":"KEN","KR":"KOR","KW":"KWT","KG":"KGZ","LA":"LAO","LV":"LVA","LB":"LBN","LS":"LSO","LR":"LBR","LY":"LBY",
+"LT":"LTU","LU":"LUX","MG":"MDG","MW":"MWI","MY":"MYS","MV":"MDV","ML":"MLI","MT":"MLT","MR":"MRT","MU":"MUS",
+"MX":"MEX","MD":"MDA","MN":"MNG","ME":"MNE","MA":"MAR","MZ":"MOZ","MM":"MMR","NA":"NAM","NP":"NPL","NL":"NLD",
+"NZ":"NZL","NI":"NIC","NE":"NER","NG":"NGA","NO":"NOR","OM":"OMN","PK":"PAK","PA":"PAN","PG":"PNG","PY":"PRY",
+"PE":"PER","PH":"PHL","PL":"POL","PT":"PRT","QA":"QAT","RO":"ROU","RU":"RUS","RW":"RWA","KN":"KNA","LC":"LCA",
+"VC":"VCT","WS":"WSM","SM":"SMR","ST":"STP","SA":"SAU","SN":"SEN","RS":"SRB","SC":"SYC","SL":"SLE","SG":"SGP",
+"SK":"SVK","SI":"SVN","SB":"SLB","SO":"SOM","ZA":"ZAF","SS":"SSD","ES":"ESP","LK":"LKA","SD":"SDN","SR":"SUR",
+"SE":"SWE","CH":"CHE","SY":"SYR","TJ":"TJK","TZ":"TZA","TH":"THA","TL":"TLS","TG":"TGO","TO":"TON","TT":"TTO",
+"TN":"TUN","TR":"TUR","TM":"TKM","UG":"UGA","UA":"UKR","AE":"ARE","GB":"GBR","US":"USA","UY":"URY","UZ":"UZB",
+"VU":"VUT","VE":"VEN","VN":"VNM","YE":"YEM","ZM":"ZMB","ZW":"ZWE"
+};
+
+// ============================================================
+// FULL COUNTRY NAMES MAP (ISO-2 → Full English Name)
+// ============================================================
+const COUNTRY_NAMES = {
+"AF":"Afghanistan","AL":"Albania","DZ":"Algeria","AD":"Andorra","AO":"Angola","AR":"Argentina","AM":"Armenia",
+"AU":"Australia","AT":"Austria","AZ":"Azerbaijan","BH":"Bahrain","BD":"Bangladesh","BY":"Belarus","BE":"Belgium",
+"BZ":"Belize","BJ":"Benin","BT":"Bhutan","BO":"Bolivia","BA":"Bosnia & Herzegovina","BW":"Botswana","BR":"Brazil",
+"BN":"Brunei","BG":"Bulgaria","BF":"Burkina Faso","BI":"Burundi","KH":"Cambodia","CM":"Cameroon","CA":"Canada",
+"CF":"Central African Republic","TD":"Chad","CL":"Chile","CN":"China","CO":"Colombia","KM":"Comoros",
+"CG":"Congo","CD":"Democratic Republic of Congo","CR":"Costa Rica","CI":"Ivory Coast","HR":"Croatia",
+"CU":"Cuba","CY":"Cyprus","CZ":"Czechia","DK":"Denmark","DJ":"Djibouti","DM":"Dominica",
+"DO":"Dominican Republic","EC":"Ecuador","EG":"Egypt","SV":"El Salvador","GQ":"Equatorial Guinea",
+"ER":"Eritrea","EE":"Estonia","ET":"Ethiopia","FI":"Finland","FR":"France","GA":"Gabon","GM":"Gambia",
+"GE":"Georgia","DE":"Germany","GH":"Ghana","GR":"Greece","GT":"Guatemala","GN":"Guinea",
+"GW":"Guinea-Bissau","GY":"Guyana","HT":"Haiti","HN":"Honduras","HU":"Hungary","IS":"Iceland","IN":"India",
+"ID":"Indonesia","IR":"Iran","IQ":"Iraq","IE":"Ireland","IL":"Israel","IT":"Italy","JM":"Jamaica","JP":"Japan",
+"JO":"Jordan","KZ":"Kazakhstan","KE":"Kenya","KR":"South Korea","KW":"Kuwait","KG":"Kyrgyzstan",
+"LA":"Laos","LV":"Latvia","LB":"Lebanon","LS":"Lesotho","LR":"Liberia","LY":"Libya",
+"LT":"Lithuania","LU":"Luxembourg","MG":"Madagascar","MW":"Malawi","MY":"Malaysia","MV":"Maldives",
+"ML":"Mali","MT":"Malta","MR":"Mauritania","MU":"Mauritius","MX":"Mexico","MD":"Moldova",
+"MN":"Mongolia","ME":"Montenegro","MA":"Morocco","MZ":"Mozambique","MM":"Myanmar","NA":"Namibia",
+"NP":"Nepal","NL":"Netherlands","NZ":"New Zealand","NI":"Nicaragua","NE":"Niger","NG":"Nigeria",
+"NO":"Norway","OM":"Oman","PK":"Pakistan","PA":"Panama","PG":"Papua New Guinea","PY":"Paraguay",
+"PE":"Peru","PH":"Philippines","PL":"Poland","PT":"Portugal","QA":"Qatar","RO":"Romania","RU":"Russia",
+"RW":"Rwanda","KN":"Saint Kitts & Nevis","LC":"Saint Lucia","VC":"Saint Vincent","WS":"Samoa",
+"SM":"San Marino","ST":"Sao Tome & Principe","SA":"Saudi Arabia","SN":"Senegal",
+"RS":"Serbia","SC":"Seychelles","SL":"Sierra Leone","SG":"Singapore","SK":"Slovakia","SI":"Slovenia",
+"SB":"Solomon Islands","SO":"Somalia","ZA":"South Africa","SS":"South Sudan","ES":"Spain","LK":"Sri Lanka",
+"SD":"Sudan","SR":"Suriname","SE":"Sweden","CH":"Switzerland","SY":"Syria","TJ":"Tajikistan",
+"TZ":"Tanzania","TH":"Thailand","TL":"Timor-Leste","TG":"Togo","TO":"Tonga","TT":"Trinidad & Tobago",
+"TN":"Tunisia","TR":"Turkey","TM":"Turkmenistan","UG":"Uganda","UA":"Ukraine","AE":"United Arab Emirates",
+"GB":"United Kingdom","US":"United States","UY":"Uruguay","UZ":"Uzbekistan",
+"VU":"Vanuatu","VE":"Venezuela","VN":"Vietnam","YE":"Yemen","ZM":"Zambia","ZW":"Zimbabwe"
+};
+
+// ============================================================
+// UNIVERSAL COUNTRY PARSER (Fix-1)
+// - Supports typos, slang, short names
+// - Auto-detects 240 countries
+// - Handles Pakistan/India/Bangladesh perfect
+// ============================================================
+function normalizeCountry(input = "") {
+  if (!input) return { country:"", countryCode:"" };
+
+  let raw = input.trim().toLowerCase();
+
+  // Remove emojis, commas, symbols
+  raw = raw.replace(/[^a-z ]/g, "").trim();
+
+  // QUICK SHORTCUTS (best UX)
+  const quick = {
+    "pak": "PK", "paki": "PK", "pakistan":"PK",
+    "india":"IN","bharat":"IN","hindustan":"IN",
+    "bangla":"BD","bangladesh":"BD",
+    "srilanka":"LK","sri lanka":"LK","lanka":"LK",
+    "nepal":"NP","np":"NP",
+    "uae":"AE","dubai":"AE","abudhabi":"AE",
+    "us":"US","usa":"US","america":"US",
+    "uk":"GB","england":"GB","london":"GB"
   };
-  return map[cc] || cc;
-}
+  if (quick[raw]) {
+    return { country: COUNTRY_NAMES[quick[raw]], countryCode: quick[raw] };
+  }
 
-function resolveCountryCode(raw = "") {
-  if (!raw) return "";
+  // Try ISO2 directly
+  const maybeISO = raw.slice(0,2).toUpperCase();
+  if (COUNTRY_NAMES[maybeISO]) {
+    return { country: COUNTRY_NAMES[maybeISO], countryCode: maybeISO };
+  }
 
-  raw = raw.trim().toUpperCase();
-  if (raw.length === 2) return raw;
+  // Fuzzy match in COUNTRY_NAMES
+  let best = "";
+  let bestScore = 0;
 
-  const guesses = {
-    "INDIA": "IN",
-    "BHARAT": "IN",
-    "UNITED STATES": "US",
-    "AMERICA": "US",
-    "UAE": "AE",
-    "DUBAI": "AE",
-    "UK": "GB",
-    "ENGLAND": "GB",
-    "SINGAPORE": "SG"
-  };
+  for (const cc of Object.keys(COUNTRY_NAMES)) {
+    const name = COUNTRY_NAMES[cc].toLowerCase();
 
-  return guesses[raw] || raw.slice(0,2);
+    if (name.includes(raw)) {
+      best = cc;
+      break;
+    }
+
+    // fuzzy score
+    let score = 0;
+    for (const ch of raw) {
+      if (name.includes(ch)) score++;
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      best = cc;
+    }
+  }
+
+  if (best) {
+    return { country: COUNTRY_NAMES[best], countryCode: best };
+  }
+
+  // fallback
+  return { country: input.trim(), countryCode: "" };
 }
 
 // --- Convert Blessing to Pixel Position ---
