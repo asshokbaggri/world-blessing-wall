@@ -1403,6 +1403,22 @@ function normalizeCountry(input = "") {
   return { country: input.trim(), countryCode: "" };
 }
 
+// ============================================================
+// FIX-3 — Normalize ISO Code (ISO-2 → ISO-3 clean convert)
+// ============================================================
+function normalizeCode(code = "") {
+  if (!code) return "";
+  code = code.trim().toUpperCase();
+
+  // If already ISO-3 → return
+  if (code.length === 3) return code;
+
+  // Lookup from full ISO2 → ISO3 map
+  if (ISO2_TO_ISO3[code]) return ISO2_TO_ISO3[code];
+
+  return code;
+}
+
 // --- Convert Blessing to Pixel Position ---
 // priority: 1) exact GPS if available  2) fallback to centroid
 function getBlessingPixelPos(blessing, projection) {
