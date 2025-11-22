@@ -1546,9 +1546,6 @@ function initWorldMapD3() {
     }
     pathGen.projection(projection);
 
-    const rect = svgContainer.getBoundingClientRect();
-    projection.fitSize([rect.width, rect.height], geo);
-
     // draw countries
     gCountries.selectAll("path")
       .data(geo.features)
