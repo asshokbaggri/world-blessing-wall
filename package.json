@@ -1,0 +1,11 @@
+{
+  "name": "world-blessing-ai-engine",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "firebase-functions": "^6.0.0",
+    "openai": "^4.0.0"
+  }
+}
