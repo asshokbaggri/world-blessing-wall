@@ -22,3 +22,4 @@ export async function generateSuggestions(country, apiKey) {
     return [];
   }
 }
+
