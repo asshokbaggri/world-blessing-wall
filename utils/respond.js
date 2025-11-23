@@ -1,3 +1,3 @@
-export function respond(ok, msg, data={}) {
-  return { ok, message: msg, data };
+export function respond(success, message, data = {}) {
+  return { success, message, ...data };
 }
