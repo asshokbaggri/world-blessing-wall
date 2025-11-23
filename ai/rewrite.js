@@ -1,5 +1,8 @@
 import OpenAI from "openai";
-const client = new OpenAI({ apiKey: process.env.OPENAI_KEY });
+
+export function createClient(apiKey) {
+  return new OpenAI({ apiKey });
+}
 export async function rewriteBlessing(raw) {
   const prompt = `Rewrite this message into a clean, spiritual blessing. No religion, no god names, no negativity. "${raw}"`;
   const res = await client.chat.completions.create({
