@@ -1,19 +1,22 @@
 import OpenAI from "openai";
 
-export function createClient(apiKey) {
+export function client(apiKey) {
   return new OpenAI({ apiKey });
 }
 
 export async function detectLanguage(text, apiKey) {
-  const client = createClient(apiKey);
+  const c = client(apiKey);
 
-  const prompt = `Detect language code (hi, en, ar, es, etc) for: "${text}"`;
-
-  const res = await client.chat.completions.create({
-    model: "gpt-4.1-mini",
-    messages: [{ role: "user", content: prompt }],
-    max_tokens: 10,
+  const res = await c.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      {
+        role: "system",
+        content: "Detect input language. Respond with only the language code like: en, hi, ta, te, es, id, fr, ar, bn, ur, etc."
+      },
+      { role: "user", content: text }
+    ]
   });
 
-  return res.choices[0].message.content.trim().toLowerCase();
+  return (res.choices[0].message.content || "unknown").trim();
 }
