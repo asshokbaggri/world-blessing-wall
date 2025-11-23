@@ -807,13 +807,18 @@ async function submitBlessing(){
 
     // ---- AI Enhancement through Firebase Function v2 ----
     let enhanced = rawText;
+
     try {
         const resp = await processBlessingAI({ text: rawText });
-        if (resp.data?.success && resp.data?.data?.text) {
+
+        if (resp?.data?.success && resp?.data?.data?.text) {
             enhanced = resp.data.data.text;
+            console.log("AI Enhanced:", enhanced);
+        } else {
+            console.warn("AI enhance failed → using raw text");
         }
     } catch (e) {
-        console.warn("AI enhance failed, using raw text", e);
+        console.warn("AI enhance crashed → using raw text", e);
     }
 
     // Now store enhanced blessing
