@@ -1,5 +1,8 @@
 import OpenAI from "openai";
-const client = new OpenAI({ apiKey: process.env.OPENAI_KEY });
+
+export function createClient(apiKey) {
+  return new OpenAI({ apiKey });
+}
 export async function moderateText(text) {
   const res = await client.moderations.create({
     model: "omni-moderation-latest",
