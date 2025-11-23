@@ -1,5 +1,8 @@
 import OpenAI from "openai";
-const client = new OpenAI({ apiKey: process.env.OPENAI_KEY });
+
+export function createClient(apiKey) {
+  return new OpenAI({ apiKey });
+}
 export async function detectLanguage(text) {
   const prompt = `Detect language code (hi, en, ar, es, etc) for: "${text}"`;
   const res = await client.chat.completions.create({
