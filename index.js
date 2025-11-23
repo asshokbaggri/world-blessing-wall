@@ -1,42 +1,55 @@
-import functions from "firebase-functions";
+import { onCall, runWith } from "firebase-functions/v2/https";
+import { defineSecret } from "firebase-functions/params";
 import admin from "firebase-admin";
-import { respond } from "./utils/respond.js";
 
+import { respond } from "./utils/respond.js";
 import { moderateText } from "./ai/moderation.js";
 import { rewriteBlessing } from "./ai/rewrite.js";
 import { enhanceBlessing } from "./ai/enhance.js";
 import { detectLanguage } from "./ai/language.js";
 import { generateSuggestions } from "./ai/suggestions.js";
 
+// ---------- SECRET (THIS IS THE REAL FIX) ----------
+const OPENAI_API_KEY = defineSecret("OPENAI_API_KEY");
+// ---------------------------------------------------
+
 admin.initializeApp();
 const db = admin.firestore();
 
-// Only ONE correct key
-const OPENAI_KEY = process.env.OPENAI_KEY;
+// ---------- MAIN FUNCTION ----------
+export const processBlessing = runWith({
+    secrets: ["OPENAI_API_KEY"]
+}).onCall(async (data) => {
+    try {
+        const apiKey = OPENAI_API_KEY.value();  // REQUIRED
+        if (!apiKey) return respond(false, "Missing OpenAI Key");
 
-export const processBlessing = functions.https.onCall(async (data) => {
-  try {
-    if (!OPENAI_KEY) {
-      return respond(false, "Missing OpenAI Key");
+        const input = String(data.text || "").trim();
+        if (!input) return respond(false, "Empty blessing");
+
+        const mod = await moderateText(input, apiKey);
+        if (!mod.allowed) return respond(false, "Blocked content", { flags: mod.flags });
+
+        const clean = await rewriteBlessing(input, apiKey);
+        const enhanced = await enhanceBlessing(clean, apiKey);
+        const lang = await detectLanguage(enhanced, apiKey);
+
+        return respond(true, "ok", {
+            text: enhanced,
+            language: lang
+        });
+    } catch (err) {
+        return respond(false, "AI engine error");
     }
-
-    const input = String(data.text || "").trim();
-    if (!input) return respond(false, "Empty blessing");
-
-    const mod = await moderateText(input);
-    if (!mod.allowed) return respond(false, "Blocked content", { flags: mod.flags });
-
-    const clean = await rewriteBlessing(input);
-    const enhanced = await enhanceBlessing(clean);
-    const lang = await detectLanguage(enhanced);
-
-    return respond(true, "ok", { text: enhanced, language: lang });
-  } catch (err) {
-    return respond(false, "AI engine error");
-  }
 });
 
-export const blessingSuggestions = functions.https.onCall(async (data) => {
-  const list = await generateSuggestions(String(data.country || "World"));
-  return respond(true, "ok", list);
+// ---------- SUGGESTIONS FUNCTION ----------
+export const blessingSuggestions = runWith({
+    secrets: ["OPENAI_API_KEY"]
+}).onCall(async (data) => {
+    const apiKey = OPENAI_API_KEY.value();
+    const country = String(data.country || "World");
+    const list = await generateSuggestions(country, apiKey);
+
+    return respond(true, "ok", list);
 });
