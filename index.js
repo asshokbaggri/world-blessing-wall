@@ -1,4 +1,5 @@
-import { onCall, runWith } from "firebase-functions/v2/https";
+import { onCall } from "firebase-functions/v2/https";
+import { runWith } from "firebase-functions/v2";
 import { defineSecret } from "firebase-functions/params";
 import admin from "firebase-admin";
 
