@@ -3,7 +3,6 @@ import OpenAI from "openai";
 export function createClient(apiKey) {
   return new OpenAI({ apiKey });
 }
-
 export async function generateSuggestions(country) {
   const prompt = `Generate 3 short blessings. No religion. Country: ${country}. Return ["", "", ""].`;
   const res = await client.chat.completions.create({
