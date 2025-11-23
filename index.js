@@ -3,53 +3,48 @@ import { defineSecret } from "firebase-functions/params";
 import admin from "firebase-admin";
 
 import { respond } from "./utils/respond.js";
+
 import { moderateText } from "./ai/moderation.js";
 import { rewriteBlessing } from "./ai/rewrite.js";
 import { enhanceBlessing } from "./ai/enhance.js";
 import { detectLanguage } from "./ai/language.js";
 import { generateSuggestions } from "./ai/suggestions.js";
 
-// ---------- SECRET (THIS IS THE REAL FIX) ----------
-const OPENAI_API_KEY = defineSecret("OPENAI_API_KEY");
-// ---------------------------------------------------
+// SECRET
+const OPENAI_KEY = defineSecret("OPENAI_KEY");
 
 admin.initializeApp();
 const db = admin.firestore();
 
-// ---------- MAIN FUNCTION ----------
-export const processBlessing = runWith({
-    secrets: ["OPENAI_API_KEY"]
-}).onCall(async (data) => {
+export const processBlessing = runWith({ secrets: ["OPENAI_KEY"] }).onCall(
+  async (data) => {
     try {
-        const apiKey = OPENAI_API_KEY.value();  // REQUIRED
-        if (!apiKey) return respond(false, "Missing OpenAI Key");
+      const apiKey = OPENAI_KEY.value();
+      if (!apiKey) return respond(false, "Missing OpenAI Key");
 
-        const input = String(data.text || "").trim();
-        if (!input) return respond(false, "Empty blessing");
+      const input = String(data.text || "").trim();
+      if (!input) return respond(false, "Empty blessing");
 
-        const mod = await moderateText(input, apiKey);
-        if (!mod.allowed) return respond(false, "Blocked content", { flags: mod.flags });
+      const mod = await moderateText(input, apiKey);
+      if (!mod.allowed)
+        return respond(false, "Blocked content", { flags: mod.flags });
 
-        const clean = await rewriteBlessing(input, apiKey);
-        const enhanced = await enhanceBlessing(clean, apiKey);
-        const lang = await detectLanguage(enhanced, apiKey);
+      const clean = await rewriteBlessing(input, apiKey);
+      const enhanced = await enhanceBlessing(clean, apiKey);
+      const lang = await detectLanguage(enhanced, apiKey);
 
-        return respond(true, "ok", {
-            text: enhanced,
-            language: lang
-        });
+      return respond(true, "ok", { text: enhanced, language: lang });
     } catch (err) {
-        return respond(false, "AI engine error");
+      return respond(false, "AI engine error");
     }
-});
+  }
+);
 
-// ---------- SUGGESTIONS FUNCTION ----------
 export const blessingSuggestions = runWith({
-    secrets: ["OPENAI_API_KEY"]
+  secrets: ["OPENAI_KEY"],
 }).onCall(async (data) => {
-    const apiKey = OPENAI_API_KEY.value();
-    const country = String(data.country || "World");
-    const list = await generateSuggestions(country, apiKey);
-
-    return respond(true, "ok", list);
+  const apiKey = OPENAI_KEY.value();
+  const country = String(data.country || "World");
+  const list = await generateSuggestions(country, apiKey);
+  return respond(true, "ok", list);
 });
