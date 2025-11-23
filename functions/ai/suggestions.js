@@ -1,19 +1,26 @@
 import OpenAI from "openai";
 
-export function createClient(apiKey) {
+export function client(apiKey) {
   return new OpenAI({ apiKey });
 }
 
-export async function generateSuggestions(country, apiKey) {
-  const client = createClient(apiKey);
+export async function generateSuggestions(text, lang, apiKey) {
+  const c = client(apiKey);
 
-  const prompt = `Generate 3 short blessings. No religion. Country: ${country}. Return ["","",""].`;
-
-  const res = await client.chat.completions.create({
-    model: "gpt-4.1-mini",
-    messages: [{ role: "user", content: prompt }],
-    max_tokens: 80,
-    temperature: 0.7,
+  const res = await c.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      {
+        role: "system",
+        content: `
+Generate 5 short alternative blessings.
+SAME language as user.
+Keep tone warm, simple, positive.
+Do NOT translate.
+Return as JSON array: ["..","..",..]`
+      },
+      { role: "user", content: `Lang: ${lang}\nText: ${text}` }
+    ]
   });
 
   try {
@@ -22,4 +29,3 @@ export async function generateSuggestions(country, apiKey) {
     return [];
   }
 }
-
