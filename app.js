@@ -8,6 +8,7 @@
 
 // ---------- Firebase ----------
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import {
   getFirestore,
   collection,
@@ -36,6 +37,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
+const functions = getFunctions(app, "asia-south1");
+const processBlessingAI = httpsCallable(functions, "processBlessing");
 
 // ---------- DOM ----------
 const blessingInput = document.getElementById("blessingInput");
@@ -802,8 +805,20 @@ async function submitBlessing(){
     const { country, countryCode } = normalizeCountry(rawCountry);
     const ipHash = await makeIpHash();
 
+    // ---- AI Enhancement through Firebase Function v2 ----
+    let enhanced = rawText;
+    try {
+        const resp = await processBlessingAI({ text: rawText });
+        if (resp.data?.success && resp.data?.data?.text) {
+            enhanced = resp.data.data.text;
+        }
+    } catch (e) {
+        console.warn("AI enhance failed, using raw text", e);
+    }
+
+    // Now store enhanced blessing
     const base = {
-      text: rawText,
+      text: enhanced,
       country,
       countryCode,
       timestamp: serverTimestamp(),
