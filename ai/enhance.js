@@ -1,5 +1,8 @@
 import OpenAI from "openai";
-const client = new OpenAI({ apiKey: process.env.OPENAI_KEY });
+
+export function createClient(apiKey) {
+  return new OpenAI({ apiKey });
+}
 export async function enhanceBlessing(text) {
   const prompt = `Enhance this blessing with universal spiritual emotion but keep it short: "${text}"`;
   const res = await client.chat.completions.create({
