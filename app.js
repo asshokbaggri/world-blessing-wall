@@ -811,12 +811,16 @@ async function submitBlessing(){
     try {
         const resp = await processBlessingAI({ text: rawText });
 
-        if (resp?.data?.success && resp?.data?.data?.text) {
-            enhanced = resp.data.data.text;
+        const ok = resp?.data?.data?.success;
+        const aiText = resp?.data?.data?.data?.text;
+
+        if (ok && aiText) {
+            enhanced = aiText;
             console.log("AI Enhanced:", enhanced);
         } else {
             console.warn("AI enhance failed → using raw text");
         }
+
     } catch (e) {
         console.warn("AI enhance crashed → using raw text", e);
     }
