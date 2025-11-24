@@ -54,6 +54,11 @@ const waShare   = document.getElementById("waShare");
 const twShare   = document.getElementById("twShare");
 const copyShare = document.getElementById("copyShare");
 
+// AI suggestion DOM
+const suggBar   = document.getElementById("suggestionBar");
+const suggChips = document.getElementById("suggestionChips");
+const suggLabel = document.getElementById("suggestionLabel");
+
 // my-blessings DOM
 const myList = document.getElementById("myBlessingsList");
 const myEmpty = document.getElementById("myEmpty");
@@ -201,6 +206,102 @@ function escapeHTML(s = ""){
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+// ---------- AI SUGGESTION UI (chips) ----------
+
+function renderSuggestions(list = [], lang = "en") {
+  if (!suggBar || !suggChips) return;
+
+  suggChips.innerHTML = "";
+
+  if (!list || !list.length) {
+    suggBar.style.display = "none";
+    return;
+  }
+
+  suggBar.style.display = "block";
+
+  // Label language
+  if (suggLabel) {
+    if (lang === "hi" || lang === "hi-Latn") {
+      suggLabel.textContent = "AI ke sujhav (tap karke use karo):";
+    } else {
+      suggLabel.textContent = "AI suggestions (tap to use):";
+    }
+  }
+
+  list.slice(0, 3).forEach(txt => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "sugg-chip";
+    chip.textContent = txt;
+
+    chip.addEventListener("click", () => {
+      if (!blessingInput) return;
+      blessingInput.value = txt;
+      blessingInput.focus();
+    });
+
+    suggChips.appendChild(chip);
+  });
+}
+
+// ---------- Debounced AI suggestions (hybrid V2) ----------
+
+let suggestTimer = null;
+let suggestBusy = false;
+let lastSuggestText = "";
+
+function scheduleSuggestions() {
+  if (!blessingInput) return;
+  const txt = (blessingInput.value || "").trim();
+
+  // very short / empty → hide
+  if (!txt || txt.length < 8) {
+    lastSuggestText = "";
+    renderSuggestions([], "en");
+    return;
+  }
+
+  if (txt === lastSuggestText) return;
+  lastSuggestText = txt;
+
+  if (suggestTimer) clearTimeout(suggestTimer);
+  suggestTimer = setTimeout(runSuggestionCall, 700); // 0.7s pause
+}
+
+async function runSuggestionCall() {
+  const text = lastSuggestText;
+  if (!text || suggestBusy) return;
+
+  suggestBusy = true;
+  try {
+    const lang = detectLang(text);
+
+    const resp = await processBlessingAI({
+      text,
+      mode: "suggest",
+      langHint: lang
+    });
+
+    const ok = resp?.data?.data?.success;
+    const payload = resp?.data?.data?.data || {};
+    const suggestions = payload.suggestions || [];
+    const outLang = payload.lang || lang;
+
+    if (ok && suggestions.length) {
+      renderSuggestions(suggestions, outLang);
+    } else {
+      renderSuggestions([], lang);
+    }
+  } catch (e) {
+    console.warn("AI suggestions failed", e);
+    // silent fail, just hide
+    renderSuggestions([], "en");
+  } finally {
+    suggestBusy = false;
+  }
 }
 
 // ---- GLOBAL REALTIME UNSUB MAP ----
@@ -772,6 +873,10 @@ if (blessingInput) {
   blessingInput.addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === "Enter") submitBlessing();
   });
+
+  // 🔮 on typing, schedule AI suggestions
+  blessingInput.addEventListener("input", scheduleSuggestions);
+  blessingInput.addEventListener("focus", scheduleSuggestions);
 }
 
 async function submitBlessing(){
@@ -809,7 +914,10 @@ async function submitBlessing(){
     let enhanced = rawText;
 
     try {
-        const resp = await processBlessingAI({ text: rawText });
+        const resp = await processBlessingAI({
+          text: rawText,
+          mode: "enhance"
+        });
 
         const ok = resp?.data?.data?.success;
         const aiText = resp?.data?.data?.data?.text;
@@ -932,6 +1040,7 @@ async function submitBlessing(){
 
     // clear input but keep country
     if (blessingInput) blessingInput.value = "";
+    renderSuggestions([], "en"); // 🔮 hide suggestion bar after submit
     await sleep(1100);
     if (statusBox) {
       statusBox.textContent = "";
