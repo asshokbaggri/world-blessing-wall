@@ -1088,43 +1088,50 @@ footer,
   50%      { transform: translate(-50%, -50%) scale(1.07); }
 }
 
-/* ---------- AI Suggestions UI ---------- */
-
-.suggestions-box {
+/* 🔮 AI Suggestions bar */
+.suggestion-bar {
   margin-top: 10px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  padding: 12px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
   border-radius: 14px;
-  backdrop-filter: blur(12px);
-  animation: fadeIn 0.25s ease-out;
+  background: radial-gradient(circle at top left, rgba(255,255,255,0.08), rgba(0,0,0,0.4));
+  border: 1px solid rgba(255,255,255,0.06);
+  display: none; /* default hidden */
 }
 
-.suggestions-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #ffd78a;
+.suggestion-label {
+  font-size: 12px;
+  color: var(--text-dim, #c7c7d4);
   margin-bottom: 6px;
 }
 
-.suggestions-list {
+.suggestion-chips {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
-.suggestion-item {
-  padding: 10px 12px;
-  background: rgba(0,0,0,0.22);
-  border: 1px solid rgba(255,255,255,0.05);
-  border-radius: 10px;
+.sugg-chip {
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 13px;
+  background: rgba(0,0,0,0.55);
+  color: #f6f0ff;
   cursor: pointer;
-  transition: 0.15s;
-  font-size: 14px;
-  color: #eee;
+  backdrop-filter: blur(8px);
+  white-space: nowrap;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  transition: transform 0.12s ease, background 0.12s ease;
 }
 
-.suggestion-item:hover {
-  background: rgba(255,255,255,0.15);
-  transform: scale(1.02);
+.sugg-chip:hover {
+  transform: translateY(-1px) scale(1.02);
+  background: rgba(255, 214, 150, 0.18);
+}
+
+.sugg-chip:active {
+  transform: scale(0.97);
 }
