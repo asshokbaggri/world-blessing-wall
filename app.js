@@ -916,7 +916,8 @@ async function submitBlessing(){
     try {
         const resp = await processBlessingAI({
           text: rawText,
-          mode: "enhance"
+          mode: "enhance",
+          langHint: detectLang(rawText)
         });
 
         const ok = resp?.data?.data?.success;
