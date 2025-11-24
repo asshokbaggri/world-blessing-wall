@@ -46,6 +46,12 @@
       <label class="lbl" for="blessingInput">Your Blessing</label>
 
       <textarea id="blessingInput" rows="4" placeholder="Duniya ke liye ek dua likho…"></textarea>
+      
+      <!-- 🌟 AI Suggestions (appears when user types) -->
+      <div id="suggestionsBox" class="suggestions-box" style="display:none;">
+        <div class="suggestions-title">✨ Suggested Blessings</div>
+        <div id="suggestionsList" class="suggestions-list"></div>
+      </div>
 
       <div class="row">
         <input id="countryInput" type="text" value="IN India" aria-label="Country" />
