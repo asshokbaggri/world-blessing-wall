@@ -1,0 +1,38 @@
+# Firebase
+.firebase/
+.firebaserc
+firebase-debug.log
+firebase-debug.*.log
+
+# Node modules (VERY IMPORTANT)
+functions/node_modules/
+node_modules/
+
+# Build cache
+functions/lib/
+functions/.cache/
+functions/.firebase/
+functions/.eslintcache
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+
+# Optional – if any environment file exists
+.env
+.env.local
+.env.*.local
+
+# GitHub pages cache (safety)
+public/
+dist/
