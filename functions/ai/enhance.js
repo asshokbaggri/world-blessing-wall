@@ -13,14 +13,20 @@ export async function enhanceBlessing(text, lang, apiKey) {
       {
         role: "system",
         content: `
-You are a blessing enhancer.  
-Enhance emotion but remain natural.  
-Keep SAME language, SAME feel.  
-Never add religious bias or translation.`
+You are a blessing enhancer.
+Enhance the emotional tone but keep it natural.
+Keep SAME language, SAME tone.
+Do NOT translate or change the language.
+Do NOT add religious bias.
+Keep it short, clean, natural.`
       },
-      { role: "user", content: `Language: ${lang}\nOriginal: ${text}` }
+      {
+        role: "user",
+        content: `Language: ${lang}\nOriginal: ${text}`
+      }
     ]
   });
 
-  return res.choices[0].message.content.trim();
+  const output = res.choices?.[0]?.message?.content || "";
+  return output.trim();
 }
