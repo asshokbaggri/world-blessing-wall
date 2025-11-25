@@ -914,22 +914,24 @@ async function submitBlessing(){
     let enhanced = rawText;
 
     try {
-        const resp = await processBlessingAI({
-          text: rawText
-        });
+      const resp = await processBlessingAI({
+        text: rawText
+      });
 
-        const ok = resp?.data?.data?.success;
-        const aiText = resp?.data?.data?.data?.text;
+      console.log("RAW RESP:", resp);
 
-        if (ok && aiText) {
-            enhanced = aiText;
-            console.log("AI Enhanced:", enhanced);
-        } else {
-            console.warn("AI enhance failed → using raw text");
-        }
+      const ok = resp?.data?.success;
+      const aiText = resp?.data?.data?.enhanced;
+
+      if (ok && aiText) {
+        enhanced = aiText;
+        console.log("AI Enhanced:", enhanced);
+      } else {
+        console.warn("AI enhance failed → using raw text");
+      }
 
     } catch (e) {
-        console.warn("AI enhance crashed → using raw text", e);
+      console.warn("AI enhance crashed → using raw text", e);
     }
 
     // Now store enhanced blessing
