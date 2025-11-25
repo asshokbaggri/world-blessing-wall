@@ -1,9 +1,7 @@
 export function respond(success, message, data = {}) {
   return {
-    data: {
-      success,
-      message,
-      data
-    }
+    success,
+    message,
+    ...data     // direct flatten
   };
 }
