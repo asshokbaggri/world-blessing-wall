@@ -22,11 +22,13 @@ export const processBlessing = onCall(
     secrets: [OPENAI_KEY]
   },
   async (req) => {
+    console.log("FUNCTION RECEIVED:", req.data);   // 🔥 ADD THIS
+
     try {
       const apiKey = OPENAI_KEY.value();
       if (!apiKey) return respond(false, "Missing API key");
 
-      const input = String(req.data.text || "").trim();
+      const input = String(req.data?.text || "").trim();
       if (!input) return respond(false, "Empty blessing");
 
       // 1) moderation
