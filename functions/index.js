@@ -14,7 +14,7 @@ const OPENAI_KEY = defineSecret("OPENAI_KEY");
 
 admin.initializeApp();
 
-export const processBlessing = onCall(
+export const processBlessing = onRequest(
   {
     region: "asia-south1",
     timeoutSeconds: 540,
