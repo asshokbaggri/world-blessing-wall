@@ -1,4 +1,4 @@
-import { onRequest } from "firebase-functions/v2/https";
+import { onCall } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 import admin from "firebase-admin";
 
@@ -13,7 +13,7 @@ const OPENAI_KEY = defineSecret("OPENAI_KEY");
 
 admin.initializeApp();
 
-export const processBlessing = onRequest(
+export const processBlessing = onCall(
   {
     region: "asia-south1",
     timeoutSeconds: 540,
