@@ -285,8 +285,8 @@ async function runSuggestionCall() {
       langHint: lang
     });
 
-    const ok = resp?.data?.data?.success;
-    const payload = resp?.data?.data?.data || {};
+    const ok = resp?.data?.success;
+    const payload = resp?.data?.data || {};
     const suggestions = payload.suggestions || [];
     const outLang = payload.lang || lang;
 
@@ -920,8 +920,8 @@ async function submitBlessing(){
           langHint: detectLang(rawText)
         });
 
-        const ok = resp?.data?.data?.success;
-        const aiText = resp?.data?.data?.data?.text;
+        const ok = resp?.data?.success;
+        const aiText = resp?.data?.data?.enhanced;
 
         if (ok && aiText) {
             enhanced = aiText;
