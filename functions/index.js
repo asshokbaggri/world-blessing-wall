@@ -48,9 +48,9 @@ export const processBlessing = onCall(
       const suggestions = await generateSuggestions(input, lang, apiKey);
 
       return respond(true, "ok", {
+        language: lang,
         enhanced,
-        suggestions,
-        language: lang
+        suggestions
       });
 
     } catch (err) {
