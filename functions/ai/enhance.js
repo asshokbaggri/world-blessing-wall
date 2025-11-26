@@ -1,3 +1,5 @@
+// ai/enhance.js
+
 import OpenAI from "openai";
 
 export function client(apiKey) {
@@ -9,23 +11,17 @@ export async function enhanceBlessing(text, lang, apiKey) {
 
   try {
     const res = await c.chat.completions.create({
-      model: "gpt-4o",
-      temperature: 0.8,
+      model: "gpt-4o-2024-11-20",   // YE WAALA EXACT NAAM USE KAR
+      temperature: 0.9,
+      max_tokens: 200,
       messages: [
         {
           role: "system",
-          content: `
-You are a blessing enhancer.
-
-Rules:
-- Keep SAME language (${lang})
-- Keep SAME tone, same vibe
-- Do NOT translate
-- Do NOT remove slang, Hinglish, emotions
-- Do NOT remove adult words if user used them
-- Do NOT add religious bias
-- Make it more emotional, smoother, more heartfelt
-- Output ONLY the enhanced blessing`
+          content: `Tu duniya ka sabse best spiritual blessing enhancer hai.
+Jo bhi user likhe — Hindi, Hinglish, Tamil, Bengali, gaali, adult, funny, emotional — sabko 10x zyada sundar, dil ko chhune wala, addictive bana de.
+Same language mein hi rakho, bilkul translate mat karna.
+Slang/gaali ho to usko bhi poetic bana do.
+Sirf enhanced blessing output karo, kuch extra mat likhna.`
         },
         {
           role: "user",
@@ -34,10 +30,15 @@ Rules:
       ]
     });
 
-    return (res.choices?.[0]?.message?.content || text).trim();
+    const result = res.choices?.[0]?.message?.content?.trim();
+    if (result) {
+      console.log("ENHANCED:", result);
+      return result;
+    }
+    return text;
 
   } catch (err) {
-    console.error("Enhance failed:", err);
-    return text;  // fallback, kabhi fail nahi karega
+    console.error("ENHANCE FAILED:", err.message, err.status || err.code);
+    return text;
   }
 }
