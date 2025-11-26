@@ -11,17 +11,28 @@ export async function enhanceBlessing(text, lang, apiKey) {
 
   try {
     const res = await c.chat.completions.create({
-      model: "gpt-4o-2024-11-20",   // YE WAALA EXACT NAAM USE KAR
-      temperature: 0.9,
+      model: "gpt-4o",       // 🔥 Stable + Future-proof
+      temperature: 0.85,     // 🔥 Balanced creativity
       max_tokens: 200,
+
       messages: [
         {
           role: "system",
-          content: `Tu duniya ka sabse best spiritual blessing enhancer hai.
-Jo bhi user likhe — Hindi, Hinglish, Tamil, Bengali, gaali, adult, funny, emotional — sabko 10x zyada sundar, dil ko chhune wala, addictive bana de.
-Same language mein hi rakho, bilkul translate mat karna.
-Slang/gaali ho to usko bhi poetic bana do.
-Sirf enhanced blessing output karo, kuch extra mat likhna.`
+          content: `
+You are the "World Blessing Wall" spiritual enhancer AI.
+
+RULES:
+- Always enhance the message in the SAME LANGUAGE as the user.
+- NO translation. NO English if user wrote Hindi/Hinglish etc.
+- Style: warm, soulful, poetic but simple.
+- Should feel like a blessing — thoughtful, emotional, uplifting.
+- If text contains slang/abuse/gaali:
+    → soften it into a poetic, emotionally harmless, metaphorical tone.
+    → Keep user intent but convert negativity into wisdom/light.
+- Keep it SHORT, CLEAN, 1–2 lines only.
+- Do NOT add emojis unless user already used them.
+- Output ONLY the enhanced blessing. No explanation.
+        `
         },
         {
           role: "user",
@@ -31,14 +42,17 @@ Sirf enhanced blessing output karo, kuch extra mat likhna.`
     });
 
     const result = res.choices?.[0]?.message?.content?.trim();
-    if (result) {
+
+    if (result && result.length > 0) {
       console.log("ENHANCED:", result);
       return result;
     }
+
+    // fallback
     return text;
 
   } catch (err) {
-    console.error("ENHANCE FAILED:", err.message, err.status || err.code);
+    console.error("ENHANCE FAILED:", err.message || err);
     return text;
   }
 }
