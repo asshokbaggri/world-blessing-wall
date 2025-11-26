@@ -21,30 +21,41 @@ export const processBlessing = onCall(
     cpu: 2,
     secrets: [OPENAI_KEY]
   },
+
   async (req) => {
-    console.log("FUNCTION RECEIVED:", req.data);   // 🔥 ADD THIS
+    console.log("FUNCTION RECEIVED:", req.data);
+
+    let input = "";
+    let lang = "hi";
 
     try {
       const apiKey = OPENAI_KEY.value();
       if (!apiKey) return respond(false, "Missing API key");
 
-      const input = String(req.data?.text || "").trim();
+      input = String(req.data?.text || "").trim();
       if (!input) return respond(false, "Empty blessing");
+
+      const mode = req.data?.mode || "enhance";
 
       // 1) moderation
       const mod = await moderateText(input, apiKey);
       if (!mod.allowed) return respond(false, "Blocked", { flags: mod.flags });
 
-      // 2) detect language
-      const lang = await detectLanguage(input, apiKey);
+      // 2) detect lang
+      lang = await detectLanguage(input, apiKey);
 
-      // 3) rewrite
+      // MODE: suggest → only suggestions return karo
+      if (mode === "suggest") {
+        const suggestions = await generateSuggestions(input, lang, apiKey);
+        return respond(true, "ok", {
+          suggestions,
+          language: lang
+        });
+      }
+
+      // MODE: enhance → full pipeline chalayenge
       const cleaned = await rewriteBlessing(input, lang, apiKey);
-
-      // 4) enhance same language
       const enhanced = await enhanceBlessing(cleaned, lang, apiKey);
-
-      // 5) suggestions same language
       const suggestions = await generateSuggestions(input, lang, apiKey);
 
       return respond(true, "ok", {
@@ -54,13 +65,13 @@ export const processBlessing = onCall(
       });
 
     } catch (err) {
-      console.error("Full pipeline failed:", err.message || err);
+      console.error("Pipeline crash:", err);
 
-      // User ko kabhi error nahi dikhna chahiye, raw text hi de denge
+      // Don't break UX
       return respond(true, "ok", {
-        enhanced: input.trim(),
+        enhanced: input || "",
         suggestions: [],
-        language: lang || "hi"
+        language: lang
       });
     }
   }
