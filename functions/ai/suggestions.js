@@ -7,25 +7,46 @@ export function client(apiKey) {
 export async function generateSuggestions(text, lang, apiKey) {
   const c = client(apiKey);
 
-  const res = await c.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: `
-Generate 5 short alternative blessings.
-SAME language as user.
-Keep tone warm, simple, positive.
-Do NOT translate.
-Return as JSON array: ["..","..",..]`
-      },
-      { role: "user", content: `Lang: ${lang}\nText: ${text}` }
-    ]
-  });
-
   try {
-    return JSON.parse(res.choices[0].message.content);
-  } catch {
+    const res = await c.chat.completions.create({
+      model: "gpt-4o",
+      temperature: 0.7,
+      messages: [
+        {
+          role: "system",
+          content: `
+You generate 5 short blessing suggestions.
+RULES:
+- SAME language as user (${lang})
+- Keep tone emotional, warm and positive
+- Very short (1 line)
+- No translation
+- No religion bias
+- No lecture
+- Keep human + natural
+- Output ONLY pure JSON array like:
+["...", "...", "...", "...", "..."]`
+        },
+        {
+          role: "user",
+          content: text
+        }
+      ]
+    });
+
+    // Parse JSON safely
+    const raw = res.choices?.[0]?.message?.content || "[]";
+
+    try {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) return arr;
+      return [];
+    } catch {
+      console.error("Suggestion JSON parse failed, raw:", raw);
+      return [];
+    }
+  } catch (err) {
+    console.error("Suggestion generation failed:", err);
     return [];
   }
 }
