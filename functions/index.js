@@ -54,8 +54,14 @@ export const processBlessing = onCall(
       });
 
     } catch (err) {
-      console.log("AI error", err);
-      return respond(false, "AI engine error");
+      console.error("Full pipeline failed:", err.message || err);
+
+      // User ko kabhi error nahi dikhna chahiye, raw text hi de denge
+      return respond(true, "ok", {
+        enhanced: input.trim(),
+        suggestions: [],
+        language: lang || "hi"
+      });
     }
   }
 );
