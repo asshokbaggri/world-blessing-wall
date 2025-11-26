@@ -280,9 +280,11 @@ async function runSuggestionCall() {
     const lang = detectLang(text);
 
     const resp = await processBlessingAI({
-      text,
-      mode: "suggest",
-      langHint: lang
+      data: {
+        text,
+        mode: "suggest",
+        langHint: lang
+      }
     });
 
     const ok = resp?.data?.data?.success;
@@ -915,9 +917,11 @@ async function submitBlessing(){
 
     try {
       const resp = await processBlessingAI({
+        data: {
           text: rawText,
           mode: "enhance",
           langHint: detectLang(rawText)
+        }
       });
 
       console.log("RAW RESP:", resp);
