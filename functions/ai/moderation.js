@@ -7,22 +7,52 @@ export function client(apiKey) {
 export async function moderateText(text, apiKey) {
   const c = client(apiKey);
 
-  const res = await c.moderations.create({
-    model: "omni-moderation-latest",
-    input: text,
-  });
+  try {
+    const res = await c.chat.completions.create({
+      model: "gpt-4o",
+      temperature: 0,
+      messages: [
+        {
+          role: "system",
+          content: `
+You are a strict content moderation engine for a public blessing wall.
+ONLY block if the text contains:
+- Child sexual content
+- Extreme hate / genocide promotion
+- Serious violence threats
+- Terrorism / extremist praise
 
-  const r = res.results?.[0];
-  if (!r) return { allowed: true };
+Do NOT block:
+- Normal adult language (gaali)
+- Hinglish slang
+- Funny weird lines
+- Emotional strong words
 
-  const bad =
-    r.categories.sexual ||
-    r.categories.hate ||
-    r.categories.violence ||
-    r.categories.harassment ||
-    r.categories.self_harm ||
-    r.categories.sexual_minors ||
-    r.categories.extremism;
+Return JSON only:
+{ "allowed": true/false, "reason": "text" }
+`
+        },
+        {
+          role: "user",
+          content: text
+        }
+      ]
+    });
 
-  return { allowed: !bad, flags: r.categories };
+    let parsed = {};
+    try {
+      parsed = JSON.parse(res.choices?.[0]?.message?.content || "{}");
+    } catch {
+      parsed = { allowed: true };
+    }
+
+    return {
+      allowed: parsed.allowed !== false,
+      reason: parsed.reason || null
+    };
+
+  } catch (err) {
+    console.error("Moderation failed → allowing by default:", err);
+    return { allowed: true };
+  }
 }
