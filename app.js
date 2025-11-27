@@ -919,8 +919,6 @@ async function submitBlessing(){
         mode: "enhance",
         langHint: detectLang(rawText)
       });
-
-      debugger;
        
       console.log("RAW RESP:", resp);
 
@@ -937,6 +935,8 @@ async function submitBlessing(){
     } catch (e) {
       console.warn("AI enhance crashed → using raw text", e);
     }
+
+    debugger;
 
     // Now store enhanced blessing
     const base = {
