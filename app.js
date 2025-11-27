@@ -920,6 +920,8 @@ async function submitBlessing(){
         langHint: detectLang(rawText)
       });
 
+      debugger;
+       
       console.log("RAW RESP:", resp);
 
       const aiText = resp?.data?.enhanced || "";
