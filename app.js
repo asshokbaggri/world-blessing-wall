@@ -922,10 +922,12 @@ async function submitBlessing(){
 
       console.log("RAW RESP:", resp);
 
-      const aiText = resp?.data?.enhanced?.trim?.() || "";
-      const ok = aiText.length > 0 && aiText !== rawText;
+      const ok = resp?.data?.success === true;
+      const aiText = resp?.data?.enhanced
+        ? String(resp.data.enhanced).trim()
+        : "";
 
-      if (ok && aiText) {
+      if (ok && aiText && aiText !== rawText) {
         enhanced = aiText;
         console.log("AI Enhanced:", enhanced);
       } else {
