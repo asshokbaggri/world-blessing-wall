@@ -910,33 +910,43 @@ async function submitBlessing(){
     const { country, countryCode } = normalizeCountry(rawCountry);
     const ipHash = await makeIpHash();
 
-    // ---- AI Enhancement through Firebase Function v2 ----
-    let enhanced = rawText;
+    // --- AI Enhancement through Firebase Function v2 ---
+    let resp = null;   // Global scope for inspection
+    let aiText = "";   // Global scope for inspection
+    let enhanced = rawText; 
 
     try {
-      const resp = await processBlessingAI({
+      // 1. 'const' removed for global assignment
+      resp = await processBlessingAI({ 
         text: rawText,
         mode: "enhance",
         langHint: detectLang(rawText)
       });
-       
+
       console.log("RAW RESP:", resp);
 
-      const aiText = resp?.data?.enhanced || "";
-      const ok = aiText.length > 0 && aiText.trim() !== rawText.trim();
+      // 2. 'const' removed for global assignment
+      aiText = resp?.data?.enhanced || "";
+  
+      console.log("AI TEXT (Extracted):", aiText); 
+  
+      const ok = aiText.length > 0 && aiText.trim() !== rawText.trim(); 
 
       if (ok && aiText) {
         enhanced = aiText.trim();
-        console.log("AI Enhanced:", enhanced);
+        console.log("AI Enhanced (SUCCESS):", enhanced);
       } else {
         console.warn("AI enhance failed → using raw text");
+        enhanced = rawText; // Fallback
       }
 
     } catch (e) {
       console.warn("AI enhance crashed → using raw text", e);
+      enhanced = rawText; // Fallback
     }
 
-    debugger;
+    debugger; // Code यहां रुकेगा
+    // ...
 
     // Now store enhanced blessing
     const base = {
