@@ -915,15 +915,15 @@ async function submitBlessing(){
 
     try {
       const resp = await processBlessingAI({
-          text: rawText,
-          mode: "enhance",
-          langHint: detectLang(rawText)
+        text: rawText,
+        mode: "enhance",
+        langHint: detectLang(rawText)
       });
 
       console.log("RAW RESP:", resp);
 
-      const aiText = resp?.data?.data?.enhanced || resp?.data?.enhanced || resp?.enhanced;
-      const ok = !!aiText && aiText !== rawText;
+      const ok = resp?.data?.success;
+      const aiText = resp?.data?.enhanced;
 
       if (ok && aiText) {
         enhanced = aiText;
