@@ -922,8 +922,8 @@ async function submitBlessing(){
 
       console.log("RAW RESP:", resp);
 
-      const ok = resp?.data?.success;
-      const aiText = resp?.data?.enhanced;
+      const aiText = resp?.data?.enhanced?.trim?.() || "";
+      const ok = aiText.length > 0 && aiText !== rawText;
 
       if (ok && aiText) {
         enhanced = aiText;
