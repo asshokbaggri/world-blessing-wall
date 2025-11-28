@@ -916,34 +916,37 @@ async function submitBlessing(){
     const ipHash = await makeIpHash();
      
     // --- AI Enhancement through Firebase Function v2 ---
+    // ⭐ If user clicked suggestion → skip enhance
     let enhanced = rawText;
 
-    try {
-        const resp = await processBlessingAI({
-            text: rawText,
-            mode: "enhance",
-            langHint: detectLang(rawText)
-        });
+    if (!usedSuggestion) {
+        try {
+            const resp = await processBlessingAI({
+                text: rawText,
+                mode: "enhance",
+                langHint: detectLang(rawText)
+            });
 
-        console.log("RESP.data.data =", resp?.data?.data);
+            console.log("RESP.data.data =", resp?.data?.data);
 
-        // ⭐ FINAL FIX → deepest correct path
-        const aiText = resp?.data?.data?.data?.enhanced || "";
+            const aiText = resp?.data?.data?.data?.enhanced || "";
 
-        // simple ok check
-        const ok = aiText && aiText !== rawText;
+            const ok = aiText && aiText !== rawText;
 
-        if (ok) {
-            enhanced = aiText;   // NO TRIM
-            console.log("AI Enhanced:", enhanced);
-        } else {
-            console.warn("AI enhance failed → using raw text");
+            if (ok) {
+                enhanced = aiText;   // NO TRIM
+                console.log("AI Enhanced:", enhanced);
+            } else {
+                console.warn("AI enhance failed → using raw text");
+                enhanced = rawText;
+            }
+
+        } catch (e) {
+            console.warn("AI enhance crashed → using raw text", e);
             enhanced = rawText;
         }
-
-    } catch (e) {
-        console.warn("AI enhance crashed → using raw text", e);
-        enhanced = rawText;
+    } else {
+        console.log("💡 Suggestion chosen → Enhance skipped");
     }
 
     // Now store enhanced blessing
