@@ -286,7 +286,7 @@ async function runSuggestionCall() {
     });
 
     const ok = resp?.data?.data?.success;
-    const payload = resp?.data?.data?.data || {};
+    const payload = resp?.data?.data || {};
     const suggestions = payload.suggestions || [];
     const outLang = payload.lang || lang;
 
