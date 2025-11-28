@@ -925,12 +925,8 @@ async function submitBlessing(){
 
       console.log("RAW RESP:", resp);
 
-      // 2. 'const' removed for global assignment
-      aiText = resp?.data?.['0'] || "";
-  
-      console.log("AI TEXT (Extracted):", aiText); 
-  
-      const ok = aiText.length > 0 && aiText.trim() !== rawText.trim(); 
+      const aiText = resp?.data?.data?.enhanced || "";                    // ← YE SAHI HAI
+      const ok = aiText && aiText.trim() !== rawText.trim();              // ← YE SAHI HAI
 
       if (ok && aiText) {
         enhanced = aiText.trim();
