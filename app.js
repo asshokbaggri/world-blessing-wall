@@ -242,6 +242,8 @@ function renderSuggestions(list = [], lang = "en") {
       if (!blessingInput) return;
       blessingInput.value = txt;
       blessingInput.focus();
+
+      usedSuggestion = true;   // ⭐ flag ON
     });
 
     suggChips.appendChild(chip);
