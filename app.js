@@ -911,34 +911,30 @@ async function submitBlessing(){
     const ipHash = await makeIpHash();
 
     // --- AI Enhancement through Firebase Function v2 ---
-    let resp = null;   // Global scope for inspection
-    let aiText = "";   // Global scope for inspection
-    let enhanced = rawText; 
+    let enhanced = rawText;
 
     try {
-      // 1. 'const' removed for global assignment
-      resp = await processBlessingAI({ 
+      const resp = await processBlessingAI({
         text: rawText,
         mode: "enhance",
         langHint: detectLang(rawText)
       });
 
-      console.log("RAW RESP:", resp);
+      console.log("AI RAW RESP:", resp);
 
-      const aiText = resp?.data?.enhanced?.trim() || "";
-      const ok = aiText.length > 0 && aiText !== rawText.trim();             // ← YE SAHI HAI
+      const ok = resp?.data?.success === true;
+      const aiText = resp?.data?.enhanced || "";
 
-      if (ok && aiText) {
+      if (ok && aiText.trim()) {
         enhanced = aiText.trim();
-        console.log("AI Enhanced (SUCCESS):", enhanced);
+        console.log("AI Enhanced:", enhanced);
       } else {
         console.warn("AI enhance failed → using raw text");
-        enhanced = rawText; // Fallback
       }
 
     } catch (e) {
       console.warn("AI enhance crashed → using raw text", e);
-      enhanced = rawText; // Fallback
+      enhanced = rawText;
     }
 
     // Now store enhanced blessing
