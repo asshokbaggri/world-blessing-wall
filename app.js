@@ -909,41 +909,36 @@ async function submitBlessing(){
     const lang = detectLang(rawText);
     const { country, countryCode } = normalizeCountry(rawCountry);
     const ipHash = await makeIpHash();
-
+     
     // --- AI Enhancement through Firebase Function v2 ---
     let enhanced = rawText;
 
     try {
-      const resp = await processBlessingAI({
-        text: rawText,
-        mode: "enhance",
-        langHint: detectLang(rawText)
-      });
+        const resp = await processBlessingAI({
+            text: rawText,
+            mode: "enhance",
+            langHint: detectLang(rawText)
+        });
 
-      console.log("RAW RESP:", resp);
+        console.log("RESP.data.data =", resp?.data?.data);
 
-      console.log("RESP / root =", resp);
-      console.log("RESP.data =", resp?.data);
-      console.log("RESP.data.data =", resp?.data?.data);
-      console.log("RESP.data.data.enhanced =", resp?.data?.data?.enhanced);
-      console.log("RESP.enhanced =", resp?.enhanced);
+        // ⭐ FINAL FIX → deepest correct path
+        const aiText = resp?.data?.data?.data?.enhanced || "";
 
-      debugger;   // 👈 freeze execution here
+        // simple ok check
+        const ok = aiText && aiText !== rawText;
 
-      const aiText = resp?.data?.enhanced || "";
-      const ok = aiText && aiText !== rawText;   // ← bilkul simple
-
-      if (ok) {
-          enhanced = aiText;     // NO TRIM
-          console.log("AI Enhanced:", enhanced);
-      } else {
-          console.warn("AI enhance failed → using raw text");
-          enhanced = rawText;
-      }
+        if (ok) {
+            enhanced = aiText;   // NO TRIM
+            console.log("AI Enhanced:", enhanced);
+        } else {
+            console.warn("AI enhance failed → using raw text");
+            enhanced = rawText;
+        }
 
     } catch (e) {
-      console.warn("AI enhance crashed → using raw text", e);
-      enhanced = rawText;
+        console.warn("AI enhance crashed → using raw text", e);
+        enhanced = rawText;
     }
 
     // Now store enhanced blessing
