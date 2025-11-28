@@ -920,7 +920,15 @@ async function submitBlessing(){
         langHint: detectLang(rawText)
       });
 
-      console.log("AI RAW RESP:", resp);
+      console.log("RAW RESP:", resp);
+
+      console.log("RESP / root =", resp);
+      console.log("RESP.data =", resp?.data);
+      console.log("RESP.data.data =", resp?.data?.data);
+      console.log("RESP.data.data.enhanced =", resp?.data?.data?.enhanced);
+      console.log("RESP.enhanced =", resp?.enhanced);
+
+      debugger;   // 👈 freeze execution here
 
       const aiText = resp?.data?.enhanced || "";
       const ok = aiText && aiText !== rawText;   // ← bilkul simple
