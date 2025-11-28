@@ -945,9 +945,6 @@ async function submitBlessing(){
       enhanced = rawText; // Fallback
     }
 
-    debugger; // Code यहां रुकेगा
-    // ...
-
     // Now store enhanced blessing
     const base = {
       text: enhanced,
