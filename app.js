@@ -85,6 +85,7 @@ let lastDoc = null;
 let initialLoaded = false;
 let loadingMore = false; // guard pagination
 const PAGE_LIMIT = 12;
+let usedSuggestion = false;   // ⭐ user ne suggestion chip tap kiya ya nahi
 
 // --------- CLIENT ID (persistent) & ipHash strategy ---------
 function getClientId(){
