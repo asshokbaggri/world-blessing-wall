@@ -1,3 +1,4 @@
+// FORCE REBUILD 2025-11-28 13:00
 /* ============================================================
    WORLD BLESSING WALL — APP.JS v1.2 (My-Blessings + username)
    - one-time username popup (stored in localStorage)
