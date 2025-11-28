@@ -925,7 +925,7 @@ async function submitBlessing(){
 
       console.log("RAW RESP:", resp);
 
-      const aiText = resp?.data?.data?.enhanced?.trim?.() || "";
+      const aiText = resp?.data?.enhanced?.trim() || "";
       const ok = aiText.length > 0 && aiText !== rawText.trim();             // ← YE SAHI HAI
 
       if (ok && aiText) {
