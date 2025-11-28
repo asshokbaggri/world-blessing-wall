@@ -1,4 +1,3 @@
-// FORCE REBUILD 2025-11-28 13:00
 /* ============================================================
    WORLD BLESSING WALL — APP.JS v1.2 (My-Blessings + username)
    - one-time username popup (stored in localStorage)
@@ -926,8 +925,8 @@ async function submitBlessing(){
 
       console.log("RAW RESP:", resp);
 
-      const aiText = resp?.data?.data?.enhanced || "";                    // ← YE SAHI HAI
-      const ok = aiText && aiText.trim() !== rawText.trim();              // ← YE SAHI HAI
+      const aiText = resp?.data?.data?.enhanced?.trim?.() || "";
+      const ok = aiText.length > 0 && aiText !== rawText.trim();             // ← YE SAHI HAI
 
       if (ok && aiText) {
         enhanced = aiText.trim();
