@@ -286,8 +286,10 @@ async function runSuggestionCall() {
     });
 
     const ok = resp?.data?.data?.success;
-    const payload = resp?.data?.data || {};
-    const suggestions = payload.suggestions || [];
+    const payload = resp?.data?.data?.data || {};
+    const suggestions = Array.isArray(payload.suggestions) 
+      ? payload.suggestions.slice(0, 3)
+      : [];
     const outLang = payload.lang || lang;
 
     if (ok && suggestions.length) {
