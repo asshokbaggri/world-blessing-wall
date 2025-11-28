@@ -912,7 +912,6 @@ async function submitBlessing(){
 
     // --- AI Enhancement through Firebase Function v2 ---
     let enhanced = rawText;
-    let resp = null;
 
     try {
       const resp = await processBlessingAI({
@@ -923,15 +922,15 @@ async function submitBlessing(){
 
       console.log("AI RAW RESP:", resp);
 
-      // v1 STRUCTURE PORT → ALWAYS SAFE
-      const ok = resp?.data?.success === true;  
       const aiText = resp?.data?.enhanced || "";
+      const ok = aiText && aiText !== rawText;   // ← bilkul simple
 
-      if (ok && aiText) {
-        enhanced = aiText;
-        console.log("AI Enhanced:", enhanced);
+      if (ok) {
+          enhanced = aiText;     // NO TRIM
+          console.log("AI Enhanced:", enhanced);
       } else {
-        console.warn("AI enhance failed → using raw text");
+          console.warn("AI enhance failed → using raw text");
+          enhanced = rawText;
       }
 
     } catch (e) {
