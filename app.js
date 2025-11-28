@@ -922,11 +922,11 @@ async function submitBlessing(){
 
       console.log("AI RAW RESP:", resp);
 
-      const ok = resp?.data?.success === true;
-      const aiText = resp?.data?.enhanced || "";
+      const ok = resp?.data?.success;
+      const aiText = resp?.data?.enhanced;
 
-      if (ok && aiText && aiText.trim()) {
-        enhanced = aiText.trim();
+      if (ok && aiText) {
+        enhanced = aiText;
         console.log("AI Enhanced:", enhanced);
       } else {
         console.warn("AI enhance failed → using raw text");
