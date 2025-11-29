@@ -28,25 +28,33 @@ RULES:
 - Output ONLY valid JSON array of 5 strings
 `
         },
-        {
-          role: "user",
-          content: text
-        }
+        { role: "user", content: text }
       ]
     });
 
     const raw = res.choices?.[0]?.message?.content || "[]";
 
+    let arr = [];
     try {
-      const arr = JSON.parse(raw);
-      return Array.isArray(arr) ? arr : [];
+      arr = JSON.parse(raw);
+      if (!Array.isArray(arr)) arr = [];
     } catch {
       console.error("fastSuggestions JSON parse failed:", raw);
-      return [];
+      arr = [];
     }
+
+    // ⭐ RETURN OBJECT (IMPORTANT)
+    return { 
+      suggestions: arr,
+      language: lang
+    };
 
   } catch (err) {
     console.error("fastSuggestions AI error:", err);
-    return [];
+
+    return { 
+      suggestions: [],
+      language: lang
+    };
   }
 }
