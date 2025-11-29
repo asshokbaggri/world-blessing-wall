@@ -272,50 +272,39 @@ function scheduleSuggestions() {
   lastSuggestText = txt;
 
   if (suggestTimer) clearTimeout(suggestTimer);
-  suggestTimer = setTimeout(runSuggestionCall, 250); // faster suggestions
+  suggestTimer = setTimeout(runSuggestionCall, 150);
 }
 
 async function runSuggestionCall() {
-  const text = lastSuggestText;
-  if (!text || suggestBusy) return;
+    const text = lastSuggestText;
+    if (!text) return;
 
-  suggestBusy = true;
-  try {
-    const lang = detectLang(text);
+    try {
+        const lang = detectLang(text);
 
-    const resp = await processBlessingAI({
-      text,
-      mode: "suggest",
-      langHint: lang
-    });
+        const resp = await processBlessingAI({
+            text,
+            mode: "suggest",
+            langHint: lang
+        });
 
-    // ⭐ HARD FAIL-SAFE FOR SUGGESTIONS
-    if (!resp?.data?.data?.success) {
-        console.warn("Suggestion JSON fail → hiding suggestions");
-        renderSuggestions([], lang);
-        suggestBusy = false;
-        return;
+        const payload = resp?.data?.data?.data || {};
+        const suggestions = Array.isArray(payload.suggestions)
+            ? payload.suggestions.slice(0, 3)
+            : [];
+
+        const outLang = payload.lang || lang;
+
+        if (suggestions.length) {
+            renderSuggestions(suggestions, outLang);
+        } else {
+            renderSuggestions([], outLang);
+        }
+
+    } catch (e) {
+        console.warn("AI suggestions failed", e);
+        renderSuggestions([], "en");
     }
-
-    const ok = resp?.data?.data?.success;
-    const payload = resp?.data?.data?.data || {};
-    const suggestions = Array.isArray(payload.suggestions) 
-      ? payload.suggestions.slice(0, 3)
-      : [];
-    const outLang = payload.lang || lang;
-
-    if (ok && suggestions.length) {
-      renderSuggestions(suggestions, outLang);
-    } else {
-      renderSuggestions([], lang);
-    }
-  } catch (e) {
-    console.warn("AI suggestions failed", e);
-    // silent fail, just hide
-    renderSuggestions([], "en");
-  } finally {
-    suggestBusy = false;
-  }
 }
 
 // ---- GLOBAL REALTIME UNSUB MAP ----
