@@ -288,14 +288,14 @@ async function runSuggestionCall() {
             langHint: lang
         });
 
-        // NEW ultra-fast response structure
-        const fast = resp?.data?.data || {};
+        // NEW ultra-fast response structure (FINAL)
+        const data = resp?.data?.data || {};
 
-        const suggestions = Array.isArray(fast.suggestions)
-            ? fast.suggestions.slice(0, 3)
+        const suggestions = Array.isArray(data.suggestions)
+            ? data.suggestions.slice(0, 3)
             : [];
 
-        const outLang = fast.lang || lang;
+        const outLang = data.lang || lang;
 
         if (suggestions.length) {
             renderSuggestions(suggestions, outLang);
