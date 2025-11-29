@@ -285,9 +285,17 @@ async function runSuggestionCall() {
 
     const resp = await processBlessingAI({
       text,
-      mode: "suggest_fast",
+      mode: "suggest",
       langHint: lang
     });
+
+    // ⭐ HARD FAIL-SAFE FOR SUGGESTIONS
+    if (!resp?.data?.data?.success) {
+        console.warn("Suggestion JSON fail → hiding suggestions");
+        renderSuggestions([], lang);
+        suggestBusy = false;
+        return;
+    }
 
     const ok = resp?.data?.data?.success;
     const payload = resp?.data?.data?.data || {};
