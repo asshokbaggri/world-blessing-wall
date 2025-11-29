@@ -291,11 +291,14 @@ async function runSuggestionCall() {
         // NEW ultra-fast response structure (FINAL)
         const data = resp?.data?.data || {};
 
-        const suggestions = Array.isArray(data.suggestions)
-            ? data.suggestions.slice(0, 3)
+        // backend returns: { suggestions: { suggestions:[...], language:"xx" } }
+        const sugObj = data.suggestions || {};
+
+        const suggestions = Array.isArray(sugObj.suggestions)
+            ? sugObj.suggestions.slice(0, 3)
             : [];
 
-        const outLang = data.lang || lang;
+        const outLang = sugObj.language || data.language || lang;
 
         if (suggestions.length) {
             renderSuggestions(suggestions, outLang);
