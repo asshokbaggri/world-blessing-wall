@@ -7,7 +7,7 @@ import { moderateText } from "./ai/moderation.js";
 import { detectLanguage } from "./ai/language.js";
 import { rewriteBlessing } from "./ai/rewrite.js";
 import { enhanceBlessing } from "./ai/enhance.js";
-import { fastSuggestions } from "./ai/suggestionsFast.js";  // ⚡ ultra-fast 0.2s suggestions
+import { fastSuggestions } from "./ai/suggestionsFast.js";
 
 const OPENAI_KEY = defineSecret("OPENAI_KEY");
 
@@ -19,7 +19,7 @@ export const processBlessing = onCall(
     timeoutSeconds: 540,
     memory: "2GiB",
     cpu: 2,
-    secrets: [OPENAI_KEY]
+    secrets: [OPENAI_KEY],
   },
 
   async (req) => {
@@ -37,42 +37,41 @@ export const processBlessing = onCall(
 
       const mode = req.data?.mode || "enhance";
 
-      // 1) moderation
+      // 1. Moderation
       const mod = await moderateText(input, apiKey);
       if (!mod.allowed) return respond(false, "Blocked", { flags: mod.flags });
 
-      // 2) detect lang
+      // 2. Detect language
       lang = await detectLanguage(input, apiKey);
 
-      // MODE: suggest → only suggestions return karo
+      // MODE = suggest → only suggestions
       if (mode === "suggest") {
-        const suggestions = await fastSuggestions(input); // ⚡ 0.15s response
+        const suggestions = await fastSuggestions(input, lang);
+
         return respond(true, "ok", {
-          data: { suggestions, lang },
+          suggestions,
+          language: lang,
         });
       }
 
-      // MODE: enhance → full pipeline chalayenge
+      // MODE = enhance → full pipeline
       const cleaned = await rewriteBlessing(input, lang, apiKey);
       const enhanced = await enhanceBlessing(cleaned, lang, apiKey);
-      const suggestions = await fastSuggestions(input);
+      const suggestions = await fastSuggestions(input, lang);
 
       return respond(true, "ok", {
-        data: {
-          enhanced,
-          suggestions,
-          lang,
-        }
+        enhanced,
+        suggestions,
+        language: lang,
       });
 
     } catch (err) {
       console.error("Pipeline crash:", err);
 
-      // Don't break UX
       return respond(true, "ok", {
         enhanced: input || "",
         suggestions: [],
-        language: lang
+        language: lang,
       });
     }
   }
