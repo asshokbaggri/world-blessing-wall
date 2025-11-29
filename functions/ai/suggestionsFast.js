@@ -4,33 +4,34 @@ export function client(apiKey) {
   return new OpenAI({ apiKey });
 }
 
-export async function generateSuggestionsFast(text, lang, apiKey) {
+export async function fastSuggestions(text, lang, apiKey) {
   const c = client(apiKey);
 
   try {
     const res = await c.chat.completions.create({
-      model: "gpt-4o-mini",    // SUPER FAST
-      temperature: 0.6,
-      max_tokens: 120,
+      model: "gpt-4o-mini",      // ⚡ super cheap + blazing fast
+      temperature: 0.55,
       messages: [
         {
           role: "system",
           content: `
-You generate 3 SHORT, HUMAN, NATURAL blessing suggestions.
+You generate 5 SHORT, HUMAN, NATURAL blessing suggestions.
 
 RULES:
 - SAME language as user (${lang})
-- No translation
-- No god names
-- No religious bias
-- No rewriting the user's main input
-- Tone: emotional, warm, peaceful
-- 1 line each
-- Based on user's intent
-- Output EXACT JSON array: ["...","...","..."]
+- NO translation
+- NO rewriting user input
+- NO religion / no god names
+- Very natural, warm, emotional
+- 1 short line only
+- Based on user's intention
+- Output ONLY valid JSON array of 5 strings
 `
         },
-        { role: "user", content: text }
+        {
+          role: "user",
+          content: text
+        }
       ]
     });
 
@@ -40,12 +41,12 @@ RULES:
       const arr = JSON.parse(raw);
       return Array.isArray(arr) ? arr : [];
     } catch {
-      console.log("JSON parse failed:", raw);
+      console.error("fastSuggestions JSON parse failed:", raw);
       return [];
     }
 
   } catch (err) {
-    console.error("Suggestion error:", err);
+    console.error("fastSuggestions AI error:", err);
     return [];
   }
 }
