@@ -276,32 +276,24 @@ function scheduleSuggestions() {
 }
 
 async function runSuggestionCall() {
-    if (suggestBusy) return;  
-    suggestBusy = true;
-
     const text = lastSuggestText;
-    if (!text) {
-        suggestBusy = false;
-        return;
-    }
+    if (!text) return;
 
     try {
         const lang = detectLang(text);
 
-        // ⚡ FAST MODE → only suggestions (no rewrite/no enhance)
         const resp = await processBlessingAI({
             text,
             mode: "suggest",
             langHint: lang
         });
 
-        // 🔥 Safe extraction (FAST MODE returns data.data.data)
         const payload = resp?.data?.data?.data || {};
         const suggestions = Array.isArray(payload.suggestions)
             ? payload.suggestions.slice(0, 3)
             : [];
 
-        const outLang = payload.language || lang;
+        const outLang = payload.lang || lang;
 
         if (suggestions.length) {
             renderSuggestions(suggestions, outLang);
@@ -313,8 +305,6 @@ async function runSuggestionCall() {
         console.warn("AI suggestions failed", e);
         renderSuggestions([], "en");
     }
-
-    suggestBusy = false;
 }
 
 // ---- GLOBAL REALTIME UNSUB MAP ----
