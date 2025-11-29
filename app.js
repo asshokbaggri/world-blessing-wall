@@ -887,6 +887,7 @@ if (blessingInput) {
   // ⭐ Manual typing = always fresh enhance
   blessingInput.addEventListener("input", () => {
       lastSuggestText = "";
+      usedSuggestion = false;   // ⭐ FIX: Reset after successful submit
   });
 }
 
@@ -1062,6 +1063,8 @@ async function submitBlessing(){
     pulseSendBtn();
     triggerSparkle(14);
     showLiveToast("✨ Your blessing is live!");
+
+    usedSuggestion = false;   // ⭐ FIX: Reset after successful submit
 
     // clear input but keep country
     if (blessingInput) blessingInput.value = "";
