@@ -48,7 +48,7 @@ export const processBlessing = onCall(
 
       // MODE: suggest → only suggestions
       if (mode === "suggest") {
-        const suggestions = await fastSuggestions(input);
+        const suggestions = await fastSuggestions(input, lang, apiKey);
         return respond(true, "ok", {
           suggestions,
           language: lang
@@ -60,7 +60,7 @@ export const processBlessing = onCall(
       const enhanced = await enhanceBlessing(cleaned, lang, apiKey);
 
       // Fast local suggestions
-      const suggestions = await fastSuggestions(input);
+      const suggestions = await fastSuggestions(input, lang, apiKey);
 
       return respond(true, "ok", {
         enhanced,
