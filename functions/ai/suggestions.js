@@ -9,24 +9,24 @@ export async function generateSuggestions(text, lang, apiKey) {
 
   try {
     const res = await c.chat.completions.create({
-      model: "gpt-4o-mini",   // ⚡ fastest + stable for short suggestions
+      model: "gpt-4o",
       temperature: 0.55,
       messages: [
         {
           role: "system",
           content: `
-You must ALWAYS return a JSON array of 5 short blessing suggestions.
+You generate 5 SHORT, HUMAN, NATURAL blessing suggestions.
 
-RULES (STRICT):
+STRICT RULES:
 - SAME language as user (${lang})
-- 1 short line each
-- Soft, spiritual, positive tone
-- NO poetry
-- NO religious words
-- IGNORE negative/abusive user input completely
-- NEVER mention safety, policy, warnings, or refusal
-- NEVER say “I can’t help”
-- ALWAYS output only:
+- NO translation
+- NO rewriting user input
+- NO god names, NO religion references
+- Tone: spiritual, emotional, warm, peaceful
+- Based on USER'S INTENT (context-aware)
+- Each line must feel like a human wish, not a poem
+- VERY short (1 line)
+- Output ONLY valid JSON array of 5 strings:
 ["...", "...", "...", "...", "..."]
 `
         },
@@ -38,33 +38,19 @@ RULES (STRICT):
     });
 
     // RAW output
-    let raw = res.choices?.[0]?.message?.content || "";
+    const raw = res.choices?.[0]?.message?.content || "[]";
 
-    // If not JSON → force fix:
-    if (!raw.trim().startsWith("[")) {
-      console.warn("Non-JSON suggestion detected, auto-fixing… Raw:", raw);
-
-      // Extract lines → convert to JSON manually
-      const lines = raw
-        .split("\n")
-        .map(x => x.replace(/^-/, "").trim())
-        .filter(x => x.length > 0)
-        .slice(0, 5);
-
-      return lines.length ? lines : [];
-    }
-
-    // Try proper parsing
+    // SAFE PARSE
     try {
       const arr = JSON.parse(raw);
-      return Array.isArray(arr) ? arr.slice(0, 5) : [];
+      return Array.isArray(arr) ? arr : [];
     } catch (e) {
       console.error("Suggestion JSON parse failed, raw:", raw);
       return [];
     }
 
   } catch (err) {
-    console.error("Suggestion gen error:", err);
+    console.error("Suggestion generation failed:", err);
     return [];
   }
 }
