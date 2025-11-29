@@ -7,6 +7,8 @@ import { moderateText } from "./ai/moderation.js";
 import { detectLanguage } from "./ai/language.js";
 import { rewriteBlessing } from "./ai/rewrite.js";
 import { enhanceBlessing } from "./ai/enhance.js";
+
+// ⚡ Fast suggestions (local, zero-latency)
 import { fastSuggestions } from "./ai/suggestionsFast.js";
 
 const OPENAI_KEY = defineSecret("OPENAI_KEY");
@@ -19,7 +21,7 @@ export const processBlessing = onCall(
     timeoutSeconds: 540,
     memory: "2GiB",
     cpu: 2,
-    secrets: [OPENAI_KEY],
+    secrets: [OPENAI_KEY]
   },
 
   async (req) => {
@@ -37,32 +39,33 @@ export const processBlessing = onCall(
 
       const mode = req.data?.mode || "enhance";
 
-      // 1. Moderation
+      // 1) Moderation
       const mod = await moderateText(input, apiKey);
       if (!mod.allowed) return respond(false, "Blocked", { flags: mod.flags });
 
-      // 2. Detect language
+      // 2) Language detect
       lang = await detectLanguage(input, apiKey);
 
-      // MODE = suggest → only suggestions
+      // MODE: suggest → only suggestions
       if (mode === "suggest") {
-        const suggestions = await fastSuggestions(input, lang);
-
+        const suggestions = await fastSuggestions(input);
         return respond(true, "ok", {
           suggestions,
-          language: lang,
+          language: lang
         });
       }
 
-      // MODE = enhance → full pipeline
+      // MODE: enhance → full pipeline
       const cleaned = await rewriteBlessing(input, lang, apiKey);
       const enhanced = await enhanceBlessing(cleaned, lang, apiKey);
-      const suggestions = await fastSuggestions(input, lang);
+
+      // Fast local suggestions
+      const suggestions = await fastSuggestions(input);
 
       return respond(true, "ok", {
         enhanced,
         suggestions,
-        language: lang,
+        language: lang
       });
 
     } catch (err) {
@@ -71,7 +74,7 @@ export const processBlessing = onCall(
       return respond(true, "ok", {
         enhanced: input || "",
         suggestions: [],
-        language: lang,
+        language: lang
       });
     }
   }
