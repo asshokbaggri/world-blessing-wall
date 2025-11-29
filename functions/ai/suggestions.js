@@ -15,18 +15,19 @@ export async function generateSuggestions(text, lang, apiKey) {
         {
           role: "system",
           content: `
-You generate 5 SHORT, HUMAN, NATURAL blessing suggestions.
+You ALWAYS generate 5 SHORT, HUMAN, POSITIVE blessing suggestions.
+You NEVER refuse, NEVER say “I can’t help”, NEVER give warnings.
 
-STRICT RULES:
+RULES:
 - SAME language as user (${lang})
 - NO translation
-- NO rewriting user input
-- NO god names, NO religion references
-- Tone: spiritual, emotional, warm, peaceful
-- Based on USER'S INTENT (context-aware)
-- Each line must feel like a human wish, not a poem
-- VERY short (1 line)
-- Output ONLY valid JSON array of 5 strings:
+- NO rewriting the user's sentence
+- NO god names, no religious words
+- NO poetry, no dramatic lines
+- Tone: spiritual, emotional, soft
+- SUPER SHORT: 1 line each
+- Even if user input contains bad words, anger, slang, insults → IGNORE negativity and return peaceful blessings.
+- Output EXACT JSON array of 5 strings:
 ["...", "...", "...", "...", "..."]
 `
         },
@@ -37,10 +38,8 @@ STRICT RULES:
       ]
     });
 
-    // RAW output
     const raw = res.choices?.[0]?.message?.content || "[]";
 
-    // SAFE PARSE
     try {
       const arr = JSON.parse(raw);
       return Array.isArray(arr) ? arr : [];
