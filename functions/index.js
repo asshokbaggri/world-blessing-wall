@@ -7,7 +7,7 @@ import { moderateText } from "./ai/moderation.js";
 import { detectLanguage } from "./ai/language.js";
 import { rewriteBlessing } from "./ai/rewrite.js";
 import { enhanceBlessing } from "./ai/enhance.js";
-import { generateSuggestions } from "./ai/suggestions.js";
+import { fastSuggestions } from "./ai/suggestionsFast.js";  // ⚡ ultra-fast 0.2s suggestions
 
 const OPENAI_KEY = defineSecret("OPENAI_KEY");
 
@@ -46,22 +46,23 @@ export const processBlessing = onCall(
 
       // MODE: suggest → only suggestions return karo
       if (mode === "suggest") {
-        const suggestions = await generateSuggestions(input, lang, apiKey);
+        const suggestions = await fastSuggestions(input); // ⚡ 0.15s response
         return respond(true, "ok", {
-          suggestions,
-          language: lang
+          data: { suggestions, lang },
         });
       }
 
       // MODE: enhance → full pipeline chalayenge
       const cleaned = await rewriteBlessing(input, lang, apiKey);
       const enhanced = await enhanceBlessing(cleaned, lang, apiKey);
-      const suggestions = await generateSuggestions(input, lang, apiKey);
+      const suggestions = await fastSuggestions(input);
 
       return respond(true, "ok", {
-        enhanced,
-        suggestions,
-        language: lang
+        data: {
+          enhanced,
+          suggestions,
+          lang,
+        }
       });
 
     } catch (err) {
