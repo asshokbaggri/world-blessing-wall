@@ -7,9 +7,7 @@ import { moderateText } from "./ai/moderation.js";
 import { detectLanguage } from "./ai/language.js";
 import { rewriteBlessing } from "./ai/rewrite.js";
 import { enhanceBlessing } from "./ai/enhance.js";
-
-// ⚡ Fast suggestions (local, zero-latency)
-import { fastSuggestions } from "./ai/suggestionsFast.js";
+import { generateSuggestions } from "./ai/suggestions.js";
 
 const OPENAI_KEY = defineSecret("OPENAI_KEY");
 
@@ -39,28 +37,26 @@ export const processBlessing = onCall(
 
       const mode = req.data?.mode || "enhance";
 
-      // 1) Moderation
+      // 1) moderation
       const mod = await moderateText(input, apiKey);
       if (!mod.allowed) return respond(false, "Blocked", { flags: mod.flags });
 
-      // 2) Language detect
+      // 2) detect lang
       lang = await detectLanguage(input, apiKey);
 
-      // MODE: suggest → only suggestions
+      // MODE: suggest → only suggestions return karo
       if (mode === "suggest") {
-        const suggestions = await fastSuggestions(input, lang, apiKey);
+        const suggestions = await generateSuggestions(input, lang, apiKey);
         return respond(true, "ok", {
           suggestions,
           language: lang
         });
       }
 
-      // MODE: enhance → full pipeline
+      // MODE: enhance → full pipeline chalayenge
       const cleaned = await rewriteBlessing(input, lang, apiKey);
       const enhanced = await enhanceBlessing(cleaned, lang, apiKey);
-
-      // Fast local suggestions
-      const suggestions = await fastSuggestions(input, lang, apiKey);
+      const suggestions = await generateSuggestions(input, lang, apiKey);
 
       return respond(true, "ok", {
         enhanced,
@@ -71,6 +67,7 @@ export const processBlessing = onCall(
     } catch (err) {
       console.error("Pipeline crash:", err);
 
+      // Don't break UX
       return respond(true, "ok", {
         enhanced: input || "",
         suggestions: [],
