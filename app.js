@@ -272,7 +272,7 @@ function scheduleSuggestions() {
   lastSuggestText = txt;
 
   if (suggestTimer) clearTimeout(suggestTimer);
-  suggestTimer = setTimeout(runSuggestionCall, 700); // 0.7s pause
+  suggestTimer = setTimeout(runSuggestionCall, 250); // faster suggestions
 }
 
 async function runSuggestionCall() {
@@ -285,7 +285,7 @@ async function runSuggestionCall() {
 
     const resp = await processBlessingAI({
       text,
-      mode: "suggest",
+      mode: "suggest_fast",
       langHint: lang
     });
 
