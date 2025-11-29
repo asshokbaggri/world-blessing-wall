@@ -244,6 +244,7 @@ function renderSuggestions(list = [], lang = "en") {
       blessingInput.focus();
 
       usedSuggestion = true;   // ⭐ flag ON
+      lastSuggestText = "";    // ⭐ Ensure fresh enhance
     });
 
     suggChips.appendChild(chip);
@@ -882,11 +883,19 @@ if (blessingInput) {
   // 🔮 on typing, schedule AI suggestions
   blessingInput.addEventListener("input", scheduleSuggestions);
   blessingInput.addEventListener("focus", scheduleSuggestions);
+   
+  // ⭐ Manual typing = always fresh enhance
+  blessingInput.addEventListener("input", () => {
+      lastSuggestText = "";
+  });
 }
 
 async function submitBlessing(){
   const rawText = (blessingInput?.value || "").trim();
   const rawCountry = (countryInput?.value || "").trim();
+   
+  // ⭐ Ensure fresh enhance
+  lastSuggestText = "";
 
   if (!rawText) { if (blessingInput) blessingInput.focus(); return; }
   if (!rawCountry) { if (countryInput) countryInput.focus(); return; }
