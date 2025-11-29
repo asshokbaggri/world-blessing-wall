@@ -272,7 +272,7 @@ function scheduleSuggestions() {
   lastSuggestText = txt;
 
   if (suggestTimer) clearTimeout(suggestTimer);
-  suggestTimer = setTimeout(runSuggestionCall, 150);
+  suggestTimer = setTimeout(runSuggestionCall, 60);   // 60ms debounce
 }
 
 async function runSuggestionCall() {
@@ -288,12 +288,14 @@ async function runSuggestionCall() {
             langHint: lang
         });
 
-        const payload = resp?.data?.data?.data || {};
-        const suggestions = Array.isArray(payload.suggestions)
-            ? payload.suggestions.slice(0, 3)
+        // NEW ultra-fast response structure
+        const fast = resp?.data?.data || {};
+
+        const suggestions = Array.isArray(fast.suggestions)
+            ? fast.suggestions.slice(0, 3)
             : [];
 
-        const outLang = payload.lang || lang;
+        const outLang = fast.lang || lang;
 
         if (suggestions.length) {
             renderSuggestions(suggestions, outLang);
