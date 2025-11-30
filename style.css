@@ -1149,3 +1149,10 @@ textarea, input {
   padding-bottom: env(keyboard-inset-height, 0);
 }
 
+:root {
+  --vh: 1vh;
+}
+
+body {
+  height: calc(var(--vh) * 100);
+}
