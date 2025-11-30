@@ -2025,3 +2025,11 @@ window.loadBlessingsForMap = loadBlessingsForMap;
   resize();
   animate();
 })();
+
+// Universal mobile keyboard fix
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", () => {
+    window.scrollTo(0, 0);
+    document.body.style.transform = "translateY(0)";
+  });
+}
