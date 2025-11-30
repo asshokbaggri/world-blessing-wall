@@ -915,42 +915,38 @@ async function submitBlessing(){
     // --------------------
     //  SKIP AI ENHANCE IF SUGGESTION CHIP USED
     // --------------------
+    let enhanced = rawText;   // DECLARE HERE (important!)
+
     if (suggestionUsed) {
-      console.log("Skipping enhance because suggestion chip was used");
-      enhanced = rawText;   // original user text remains
-      suggestionUsed = false; // reset the flag
-      // jump forward (DO NOT run enhance)
-    }
-     
-    // --- AI Enhancement through Firebase Function v2 ---
-    let enhanced = rawText;
+        console.log("Skipping enhance because suggestion chip was used");
+        suggestionUsed = false;   // reset
 
-    try {
-        const resp = await processBlessingAI({
-            text: rawText,
-            mode: "enhance",
-            langHint: detectLang(rawText)
-        });
+        // DO NOT run AI enhance below
+    } else {
+        // --- AI Enhancement through Firebase Function v2 ---
+        try {
+            const resp = await processBlessingAI({
+                text: rawText,
+                mode: "enhance",
+                langHint: detectLang(rawText)
+            });
 
-        console.log("RESP.data.data =", resp?.data?.data);
+            console.log("RESP.data.data =", resp?.data?.data);
 
-        // ⭐ FINAL FIX → deepest correct path
-        const aiText = resp?.data?.data?.data?.enhanced || "";
+            const aiText = resp?.data?.data?.data?.enhanced || "";
+            const ok = aiText && aiText !== rawText;
 
-        // simple ok check
-        const ok = aiText && aiText !== rawText;
+            if (ok) {
+                enhanced = aiText;
+                console.log("AI Enhanced:", enhanced);
+            } else {
+                enhanced = rawText;
+            }
 
-        if (ok) {
-            enhanced = aiText;   // NO TRIM
-            console.log("AI Enhanced:", enhanced);
-        } else {
-            console.warn("AI enhance failed → using raw text");
+        } catch (e) {
             enhanced = rawText;
+            console.warn("AI enhance crashed → using raw text", e);
         }
-
-    } catch (e) {
-        console.warn("AI enhance crashed → using raw text", e);
-        enhanced = rawText;
     }
 
     // Now store enhanced blessing
