@@ -1136,23 +1136,3 @@ footer,
   transform: scale(0.97);
 }
 
-html, body {
-  height: 100%;
-  overscroll-behavior: none;
-}
-
-textarea, input {
-  font-size: 16px !important;
-}
-
-.safe-area {
-  padding-bottom: env(keyboard-inset-height, 0);
-}
-
-:root {
-  --vh: 1vh;
-}
-
-body {
-  height: calc(var(--vh) * 100);
-}
