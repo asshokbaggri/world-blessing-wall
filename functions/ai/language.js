@@ -9,21 +9,49 @@ export async function detectLanguage(text, apiKey) {
 
   try {
     const res = await c.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o-mini",   // ⚡ global + fast
       temperature: 0,
       messages: [
         {
           role: "system",
           content: `
-Detect the language of the user input.
-Return ONLY a lowercase 2-letter ISO code.
+You are a global language detection engine.
 
-Rules:
-- Hindi, Hinglish, Urdu mixed → return "hi"
-- Roman Hindi (e.g. "mera dil khush ho") → return "hi"
+Return ONLY a 2-letter ISO language code.
+No explanation, no text, only code.
+
+**India Rules (highest priority)**:
+- Hindi / Hinglish / Urdu / Roman Hindi → "hi"
+- Marathi / Bhojpuri / Haryanvi / Punjabi slang → "hi"
+
+**Global Rules**:
 - English → "en"
-- Bhojpuri / Haryanvi / Marathi slang → closest code (mostly hi)
-- Only output the code. No explanation.
+- Spanish → "es"
+- Arabic → "ar"
+- Indonesian → "id"
+- French → "fr"
+- German → "de"
+- Italian → "it"
+- Portuguese → "pt"
+- Russian → "ru"
+- Turkish → "tr"
+- Japanese → "ja"
+- Korean → "ko"
+- Chinese (Simplified) → "zh"
+- Chinese (Traditional) → "zh"
+- Malay → "ms"
+- Thai → "th"
+- Vietnamese → "vi"
+- Bengali → "bn"
+- Tamil → "ta"
+- Telugu → "te"
+- Kannada → "kn"
+- Malayalam → "ml"
+- Gujarati → "gu"
+- Nepali → "ne"
+- Sinhala → "si"
+
+If unsure → output "en".
 `
         },
         {
@@ -33,10 +61,15 @@ Rules:
       ]
     });
 
-    return (res.choices?.[0]?.message?.content || "unknown").trim();
+    let code = (res.choices?.[0]?.message?.content || "en").trim().toLowerCase();
+
+    // Ensure final code is valid
+    if (code.length !== 2) code = "en";
+
+    return code;
 
   } catch (err) {
     console.error("Language detect failed:", err);
-    return "en"; // safe fallback
+    return "en"; // safest global fallback
   }
 }
