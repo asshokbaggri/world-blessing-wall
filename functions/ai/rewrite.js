@@ -9,22 +9,23 @@ export async function rewriteBlessing(text, lang, apiKey) {
 
   try {
     const res = await c.chat.completions.create({
-      model: "gpt-4o",
-      temperature: 0.4, // light polishing only
+      model: "gpt-4o-mini",   // ⚡ super fast + cheap + safe
+      temperature: 0.35,
       messages: [
         {
           role: "system",
           content: `
-You are a rewrite engine for blessings.
+You lightly polish the blessing.
 
-Rules:
-- Keep SAME language (${lang}), SAME tone, SAME emotion.
-- Do NOT translate.
-- Do NOT reduce slang, Hinglish, or emotional style.
-- Do NOT remove adult words if user wrote them.
-- Just make it slightly cleaner, natural, readable.
-- Keep meaning EXACT same.
-- Output ONLY the rewritten text.`
+RULES:
+- Keep SAME language (${lang})
+- NO translation
+- NO tone change
+- NO emotion change
+- NO removing slang / Hinglish
+- NO removing adult words if user wrote them
+- NO long rewrite → ONLY light cleaning
+- Output ONLY pure text.`
         },
         {
           role: "user",
@@ -33,10 +34,11 @@ Rules:
       ]
     });
 
-    return (res.choices?.[0]?.message?.content || text).trim();
+    const out = res.choices?.[0]?.message?.content || text;
+    return out.trim();
 
   } catch (err) {
     console.error("Rewrite failed:", err);
-    return text; // fallback
+    return text;
   }
 }
