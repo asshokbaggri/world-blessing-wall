@@ -1035,7 +1035,7 @@ async function submitBlessing(){
 
         // WhatsApp auto-open (iOS + Android safe)
         const wa = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
-        window.location.href = wa;   // iOS safe redirect
+        // window.location.href = wa;   // iOS safe redirect
 
     } catch (e) {
         console.log("Auto share failed", e);
