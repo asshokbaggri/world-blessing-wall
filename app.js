@@ -2026,3 +2026,17 @@ window.loadBlessingsForMap = loadBlessingsForMap;
   animate();
 })();
 
+// Reset zoom on page load (iOS + Android fix)
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    document.documentElement.style.zoom = "1";
+    document.body.style.zoom = "1";
+  }, 120);
+});
+
+// Reset zoom after pull-to-refresh
+window.addEventListener("focus", () => {
+  document.documentElement.style.zoom = "1";
+  document.body.style.zoom = "1";
+});
+
