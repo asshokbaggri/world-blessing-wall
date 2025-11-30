@@ -1140,7 +1140,9 @@ footer,
   transform: scale(0.97);
 }
 
-textarea {
+textarea,
+input[type=text],
+select {
   font-size: 16px !important;
 }
 
