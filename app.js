@@ -85,7 +85,6 @@ let lastDoc = null;
 let initialLoaded = false;
 let loadingMore = false; // guard pagination
 const PAGE_LIMIT = 12;
-let usedSuggestion = false;   // ⭐ user ne suggestion chip tap kiya ya nahi
 
 // --------- CLIENT ID (persistent) & ipHash strategy ---------
 function getClientId(){
@@ -242,9 +241,6 @@ function renderSuggestions(list = [], lang = "en") {
       if (!blessingInput) return;
       blessingInput.value = txt;
       blessingInput.focus();
-
-      usedSuggestion = true;   // ⭐ flag ON
-      lastSuggestText = "";    // ⭐ Ensure fresh enhance
     });
 
     suggChips.appendChild(chip);
@@ -272,41 +268,40 @@ function scheduleSuggestions() {
   lastSuggestText = txt;
 
   if (suggestTimer) clearTimeout(suggestTimer);
-  suggestTimer = setTimeout(runSuggestionCall, 60);   // 60ms debounce
+  suggestTimer = setTimeout(runSuggestionCall, 700); // 0.7s pause
 }
 
 async function runSuggestionCall() {
-    const text = lastSuggestText;
-    if (!text) return;
+  const text = lastSuggestText;
+  if (!text || suggestBusy) return;
 
-    try {
-        const lang = detectLang(text);
+  suggestBusy = true;
+  try {
+    const lang = detectLang(text);
 
-        const resp = await processBlessingAI({
-            text,
-            mode: "suggest",
-            langHint: lang
-        });
+    const resp = await processBlessingAI({
+      text,
+      mode: "suggest",
+      langHint: lang
+    });
 
-        // CORRECT response extraction
-        const data = resp?.data?.data || {};
+    const ok = resp?.data?.data?.success;
+    const payload = resp?.data?.data?.data || {};
+    const suggestions = payload.suggestions || [];
+    const outLang = payload.lang || lang;
 
-        const suggestions = Array.isArray(data.suggestions)
-            ? data.suggestions.slice(0, 3)
-            : [];
-
-        const outLang = data.language || lang;
-
-        if (suggestions.length) {
-            renderSuggestions(suggestions, outLang);
-        } else {
-            renderSuggestions([], outLang);
-        }
-
-    } catch (e) {
-        console.warn("AI suggestions failed", e);
-        renderSuggestions([], "en");
+    if (ok && suggestions.length) {
+      renderSuggestions(suggestions, outLang);
+    } else {
+      renderSuggestions([], lang);
     }
+  } catch (e) {
+    console.warn("AI suggestions failed", e);
+    // silent fail, just hide
+    renderSuggestions([], "en");
+  } finally {
+    suggestBusy = false;
+  }
 }
 
 // ---- GLOBAL REALTIME UNSUB MAP ----
@@ -882,20 +877,11 @@ if (blessingInput) {
   // 🔮 on typing, schedule AI suggestions
   blessingInput.addEventListener("input", scheduleSuggestions);
   blessingInput.addEventListener("focus", scheduleSuggestions);
-   
-  // ⭐ Manual typing = always fresh enhance
-  blessingInput.addEventListener("input", () => {
-      lastSuggestText = "";
-      usedSuggestion = false;   // ⭐ FIX: Reset after successful submit
-  });
 }
 
 async function submitBlessing(){
   const rawText = (blessingInput?.value || "").trim();
   const rawCountry = (countryInput?.value || "").trim();
-   
-  // ⭐ Ensure fresh enhance
-  lastSuggestText = "";
 
   if (!rawText) { if (blessingInput) blessingInput.focus(); return; }
   if (!rawCountry) { if (countryInput) countryInput.focus(); return; }
@@ -925,37 +911,34 @@ async function submitBlessing(){
     const ipHash = await makeIpHash();
      
     // --- AI Enhancement through Firebase Function v2 ---
-    // ⭐ If user clicked suggestion → skip enhance
     let enhanced = rawText;
 
-    if (!usedSuggestion) {
-        try {
-            const resp = await processBlessingAI({
-                text: rawText,
-                mode: "enhance",
-                langHint: detectLang(rawText)
-            });
+    try {
+        const resp = await processBlessingAI({
+            text: rawText,
+            mode: "enhance",
+            langHint: detectLang(rawText)
+        });
 
-            console.log("RESP.data.data =", resp?.data?.data);
+        console.log("RESP.data.data =", resp?.data?.data);
 
-            const aiText = resp?.data?.data?.data?.enhanced || "";
+        // ⭐ FINAL FIX → deepest correct path
+        const aiText = resp?.data?.data?.data?.enhanced || "";
 
-            const ok = aiText && aiText !== rawText;
+        // simple ok check
+        const ok = aiText && aiText !== rawText;
 
-            if (ok) {
-                enhanced = aiText;   // NO TRIM
-                console.log("AI Enhanced:", enhanced);
-            } else {
-                console.warn("AI enhance failed → using raw text");
-                enhanced = rawText;
-            }
-
-        } catch (e) {
-            console.warn("AI enhance crashed → using raw text", e);
+        if (ok) {
+            enhanced = aiText;   // NO TRIM
+            console.log("AI Enhanced:", enhanced);
+        } else {
+            console.warn("AI enhance failed → using raw text");
             enhanced = rawText;
         }
-    } else {
-        console.log("💡 Suggestion chosen → Enhance skipped");
+
+    } catch (e) {
+        console.warn("AI enhance crashed → using raw text", e);
+        enhanced = rawText;
     }
 
     // Now store enhanced blessing
@@ -1052,7 +1035,7 @@ async function submitBlessing(){
 
         // WhatsApp auto-open (iOS + Android safe)
         const wa = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
-        // window.location.href = wa;   // iOS safe redirect
+        window.location.href = wa;   // iOS safe redirect
 
     } catch (e) {
         console.log("Auto share failed", e);
@@ -1062,8 +1045,6 @@ async function submitBlessing(){
     pulseSendBtn();
     triggerSparkle(14);
     showLiveToast("✨ Your blessing is live!");
-
-    usedSuggestion = false;   // ⭐ FIX: Reset after successful submit
 
     // clear input but keep country
     if (blessingInput) blessingInput.value = "";
