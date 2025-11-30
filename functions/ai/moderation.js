@@ -9,42 +9,44 @@ export async function moderateText(text, apiKey) {
 
   try {
     const res = await c.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o-mini",
       temperature: 0,
+      response_format: { type: "json_object" },
+
       messages: [
         {
           role: "system",
           content: `
-You are a strict content moderation engine for a public blessing wall.
-ONLY block if the text contains:
-- Child sexual content
-- Extreme hate / genocide promotion
-- Serious violence threats
-- Terrorism / extremist praise
+You are a STRICT JSON-ONLY moderation engine for a public spiritual blessing wall.
 
-Do NOT block:
-- Normal adult language (gaali)
-- Hinglish slang
-- Funny weird lines
-- Emotional strong words
+Block ONLY if the text contains:
+1) Child sexual content
+2) Graphic sexual content (porn)
+3) Self-harm or suicide encouragement
+4) Terrorism praise / extremist recruitment
+5) Direct violence threats to a person/group
+6) Communal hate that can cause riots (religion/caste)
+7) Incitement to harm
 
-Return JSON only:
+Allow EVERYTHING ELSE:
+- Hinglish, Hindi, slang, gaali
+- Light romance
+- Emotional venting
+- Sadness, depression (if NOT self-harm)
+- Weird funny nonsense lines
+- Typos, broken grammar
+
+Return strictly:
 { "allowed": true/false, "reason": "text" }
 `
         },
-        {
-          role: "user",
-          content: text
-        }
+        { role: "user", content: text }
       ]
     });
 
-    let parsed = {};
-    try {
-      parsed = JSON.parse(res.choices?.[0]?.message?.content || "{}");
-    } catch {
-      parsed = { allowed: true };
-    }
+    const parsed = res.choices?.[0]?.message?.content
+      ? JSON.parse(res.choices[0].message.content)
+      : { allowed: true };
 
     return {
       allowed: parsed.allowed !== false,
@@ -52,7 +54,7 @@ Return JSON only:
     };
 
   } catch (err) {
-    console.error("Moderation failed → allowing by default:", err);
+    console.error("Moderation crashed → ALLOWING:", err);
     return { allowed: true };
   }
 }
