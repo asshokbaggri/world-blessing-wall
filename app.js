@@ -84,6 +84,7 @@ const renderedIds = new Set(); // public feed DOM ids
 let lastDoc = null;
 let initialLoaded = false;
 let loadingMore = false; // guard pagination
+let suggestionUsed = false;
 const PAGE_LIMIT = 12;
 
 // --------- CLIENT ID (persistent) & ipHash strategy ---------
@@ -238,6 +239,7 @@ function renderSuggestions(list = [], lang = "en") {
     chip.textContent = txt;
 
     chip.addEventListener("click", () => {
+      suggestionUsed = true;   // ⭐ SUPER IMPORTANT PATCH
       if (!blessingInput) return;
       blessingInput.value = txt;
       blessingInput.focus();
@@ -909,6 +911,16 @@ async function submitBlessing(){
     const lang = detectLang(rawText);
     const { country, countryCode } = normalizeCountry(rawCountry);
     const ipHash = await makeIpHash();
+
+    // --------------------
+    //  SKIP AI ENHANCE IF SUGGESTION CHIP USED
+    // --------------------
+    if (suggestionUsed) {
+      console.log("Skipping enhance because suggestion chip was used");
+      enhanced = rawText;   // original user text remains
+      suggestionUsed = false; // reset the flag
+      // jump forward (DO NOT run enhance)
+    }
      
     // --- AI Enhancement through Firebase Function v2 ---
     let enhanced = rawText;
