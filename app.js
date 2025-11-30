@@ -2026,12 +2026,3 @@ window.loadBlessingsForMap = loadBlessingsForMap;
   animate();
 })();
 
-// Mobile viewport safe keyboard handling
-if (window.visualViewport) {
-  window.visualViewport.addEventListener("resize", () => {
-    document.documentElement.style.setProperty(
-      '--vh',
-      window.visualViewport.height * 0.01 + 'px'
-    );
-  });
-}
