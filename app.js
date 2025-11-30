@@ -2026,10 +2026,9 @@ window.loadBlessingsForMap = loadBlessingsForMap;
   animate();
 })();
 
-// Universal mobile keyboard fix
+// Soft keyboard fix (non-destructive)
 if (window.visualViewport) {
   window.visualViewport.addEventListener("resize", () => {
-    window.scrollTo(0, 0);
-    document.body.style.transform = "translateY(0)";
+    document.body.style.height = window.visualViewport.height + "px";
   });
 }
