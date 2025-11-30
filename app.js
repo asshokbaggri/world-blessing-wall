@@ -2026,9 +2026,9 @@ window.loadBlessingsForMap = loadBlessingsForMap;
   animate();
 })();
 
-// Soft keyboard fix (non-destructive)
+// Soft keyboard fix — maintain scroll stability without freezing layout
 if (window.visualViewport) {
   window.visualViewport.addEventListener("resize", () => {
-    document.body.style.height = window.visualViewport.height + "px";
+    document.documentElement.style.setProperty('--vh', window.visualViewport.height * 0.01 + 'px');
   });
 }
