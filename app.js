@@ -2026,17 +2026,36 @@ window.loadBlessingsForMap = loadBlessingsForMap;
   animate();
 })();
 
-// Reset zoom on page load (iOS + Android fix)
-window.addEventListener("load", () => {
+/* -------------------------------------------------
+   FULL MOBILE ZOOM RESET FIX (iOS + Android)
+--------------------------------------------------*/
+
+// 1) Fix when keyboard closes / viewport resets
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", () => {
+    window.scrollTo(0, 0);
+  });
+}
+
+// 2) Force viewport refresh after pull-to-refresh
+function resetViewportMeta() {
+  const vp = document.querySelector("meta[name=viewport]");
+  if (!vp) return;
+
+  // temporarily allow zoom then remove again
+  vp.setAttribute("content",
+    "width=device-width, initial-scale=1, maximum-scale=5"
+  );
+
   setTimeout(() => {
-    document.documentElement.style.zoom = "1";
-    document.body.style.zoom = "1";
+    vp.setAttribute("content",
+      "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    );
   }, 120);
-});
+}
 
-// Reset zoom after pull-to-refresh
-window.addEventListener("focus", () => {
-  document.documentElement.style.zoom = "1";
-  document.body.style.zoom = "1";
-});
+// When page regains focus (Safari pull-to-refresh)
+window.addEventListener("focus", resetViewportMeta);
 
+// Also on load
+window.addEventListener("load", resetViewportMeta);
