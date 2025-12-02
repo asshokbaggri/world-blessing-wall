@@ -1136,3 +1136,14 @@ footer,
   transform: scale(0.97);
 }
 
+/* FINAL NO-ZOOM FIX (iOS + Android both) */
+textarea,
+input[type=text],
+input[type=search],
+input[type=number],
+input[type=email],
+input[type=password] {
+    font-size: 16px !important;
+    touch-action: manipulation;
+}
+
