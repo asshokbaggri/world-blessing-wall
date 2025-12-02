@@ -29,10 +29,6 @@
 
 /* -------- Global -------- */
 *{ box-sizing:border-box; }
-html, body {
-  min-height: 100%;
-  height: auto !important;
-}
 body{
   margin:0;
   color:var(--text);
@@ -1138,11 +1134,5 @@ footer,
 
 .sugg-chip:active {
   transform: scale(0.97);
-}
-
-textarea,
-input[type=text],
-select {
-  font-size: 16px !important;
 }
 
