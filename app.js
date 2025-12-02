@@ -6,7 +6,7 @@
    - my-count box updates & animates
    ============================================================ */
 
-// ---------- Firebase ----------
+// ----------- Firebase ----------
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import {
